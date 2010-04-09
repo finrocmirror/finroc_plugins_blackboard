@@ -1,0 +1,5 @@
+<targets>
+  <finrocplugin name="blackboard" libs="finroc_core">
+    <sources>*.cpp</sources>
+  </finrocplugin>
+</targets>

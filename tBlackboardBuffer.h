@@ -1,0 +1,127 @@
+/**
+ * You received this file as part of an advanced experimental
+ * robotics framework prototype ('finroc')
+ *
+ * Copyright (C) 2007-2010 Max Reichardt,
+ *   Robotics Research Lab, University of Kaiserslautern
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+#include "finroc_core_utils/tJCBase.h"
+
+#ifndef PLUGINS__BLACKBOARD__TBLACKBOARDBUFFER_H
+#define PLUGINS__BLACKBOARD__TBLACKBOARDBUFFER_H
+
+#include "core/portdatabase/tDataType.h"
+#include "core/buffers/tCoreInput.h"
+#include "core/buffers/tCoreOutput.h"
+#include "core/buffers/tMemBuffer.h"
+
+namespace finroc
+{
+namespace blackboard
+{
+/*!
+ * \author Max Reichardt
+ *
+ * Buffer containing blackboard data
+ */
+class tBlackboardBuffer : public core::tMemBuffer
+{
+public:
+
+  /*! Datatypes for blackboard buffer and method calls */
+  static core::tDataType* cBUFFER_TYPE;
+
+  /*! Lock ID of buffer - against outdated unlocks */
+  int lock_iD;
+
+  /*! Number of entries and entry size */
+  int bb_capacity, elements, element_size;
+
+  tBlackboardBuffer() :
+      lock_iD(0),
+      bb_capacity(0),
+      elements(0),
+      element_size(0)
+  {}
+
+  virtual void Deserialize(core::tCoreInput& is);
+
+  void* GetElementPointer(int index)
+  {
+    assert(index < elements);
+    return GetBufferPointer(index * element_size);
+  }
+
+  const void* GetElementPointer(int index) const
+  {
+    assert(index < elements);
+    return GetBufferPointer(index * element_size);
+  }
+
+  /*!
+   * \return Number of elements that fit in blackboard
+   */
+  inline int GetBbCapacity() const
+  {
+    return bb_capacity;
+  }
+
+  /*!
+   * Offset of element in buffer (in bytes)
+   *
+   * \param index Index of element
+   * \return Offset
+   */
+  inline int GetElementOffset(int index)
+  {
+    return index * element_size;
+  }
+
+  /*!
+   * \return Element size
+   */
+  inline int GetElementSize() const
+  {
+    return element_size;
+  }
+
+  /*!
+   * \return Number of elements in blackboard
+   */
+  inline int GetElements() const
+  {
+    return elements;
+  }
+
+  /*!
+   * Resize blackboard
+   *
+   * \param new_capacity new Capacity
+   * \param new_elements new current number of elements
+   * \param new_element_size new size of elements
+   * \param keep_contents Keep current data - otherwise buffer will be nulled or random
+   */
+  void Resize(int new_capacity, int new_elements, int new_element_size, bool keep_contents);
+
+  virtual void Serialize(core::tCoreOutput& os) const;
+
+};
+
+} // namespace finroc
+} // namespace blackboard
+
+#endif // PLUGINS__BLACKBOARD__TBLACKBOARDBUFFER_H
