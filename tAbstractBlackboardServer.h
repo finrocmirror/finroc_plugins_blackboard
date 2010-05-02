@@ -260,13 +260,6 @@ public:
   tAbstractBlackboardServer(const util::tString& bb_name, int category, core::tFrameworkElement* parent = NULL);
 
   /*!
-   * \param bb_name Blackboard name
-   * \param category Blackboard category (see constants in BlackboardManager)
-   * \param flags Flags for blackboard
-   */
-  tAbstractBlackboardServer(const util::tString& bb_name, int category, int flags, core::tFrameworkElement* parent = NULL);
-
-  /*!
    * Check whether this is a valid data type for blackboards
    *
    * \param dt Data type to check

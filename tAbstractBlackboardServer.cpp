@@ -52,18 +52,6 @@ tAbstractBlackboardServer::tAbstractBlackboardServer(const util::tString& bb_nam
   // this(bbName,category,BlackboardManager.getInstance().getCategory(category).defaultFlags,parent);
 }
 
-tAbstractBlackboardServer::tAbstractBlackboardServer(const util::tString& bb_name, int category, int flags, core::tFrameworkElement* parent) :
-    core::tFrameworkElement(bb_name, parent == NULL ? tBlackboardManager::GetInstance()->GetCategory(category) : parent, flags),
-    pending_major_tasks(),
-    pending_asynch_change_tasks(),
-    wakeup_thread(-1),
-    read_port(NULL),
-    write_port(NULL),
-    category_index(category),
-    my_category(tBlackboardManager::GetInstance()->GetCategory(category))
-{
-}
-
 void tAbstractBlackboardServer::ClearAsyncChangeTasks()
 {
   for (size_t i = 0u; i < pending_asynch_change_tasks.Size(); i++)
