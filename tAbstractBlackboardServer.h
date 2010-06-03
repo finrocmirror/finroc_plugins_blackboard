@@ -39,6 +39,7 @@
 #include "core/port/rpc/method/tPort3Method.h"
 #include "core/port/rpc/method/tPort0Method.h"
 #include "core/tFrameworkElement.h"
+#include "finroc_core_utils/thread/sThreadUtil.h"
 #include "core/port/rpc/method/tAbstractMethod.h"
 #include "core/port/rpc/method/tAbstractMethodCallHandler.h"
 
@@ -68,9 +69,6 @@ protected:
   int64 wakeup_thread;
 
 public:
-
-  // for monitor functionality
-  mutable util::tMonitor monitor;
 
   /*! read port */
   core::tPortBase* read_port;
@@ -132,6 +130,14 @@ protected:
    * Clear any asynch change tasks from list
    */
   void ClearAsyncChangeTasks();
+
+  /*!
+   * \return Thread string (debug helper method)
+   */
+  inline util::tString CreateThreadString()
+  {
+    return util::tStringBuilder("Thread ") + util::tThread::CurrentThread()->ToString() + " (" + util::sThreadUtil::GetCurrentThreadId() + ")";
+  }
 
   /*!
    * (only call in synchronized context)
@@ -197,8 +203,10 @@ protected:
   /*!
    * Execute any pending tasks
    * (may only be called as last statement in synchronized context - and when there's no lock)
+   *
+   * \return Were there any pending commands that are (were) now executed?
    */
-  void ProcessPendingCommands(util::tLock& passed_lock);
+  bool ProcessPendingCommands(util::tLock& passed_lock);
 
   /*!
    * Perform read lock (only do this on single-buffered blackboards)
@@ -225,7 +233,7 @@ protected:
    */
   virtual void ReadUnlock(int lock_id) = 0;
 
-  finroc::util::tLock* curlock;
+  // finroc::util::tLock* curlock;
 
   /*!
    * Wait to receive lock on blackboard for specified amount of time

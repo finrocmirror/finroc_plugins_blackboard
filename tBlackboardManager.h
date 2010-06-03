@@ -25,7 +25,8 @@
 #define PLUGINS__BLACKBOARD__TBLACKBOARDMANAGER_H
 
 #include "core/portdatabase/tDataType.h"
-#include "finroc_core_utils/container/tSimpleList.h"
+#include "finroc_core_utils/container/tSimpleListWithMutex.h"
+#include "core/tLockOrderLevels.h"
 #include "core/tFrameworkElement.h"
 #include "core/tRuntimeListener.h"
 #include "core/thread/tCoreLoopThreadBase.h"
@@ -79,21 +80,21 @@ class tBlackboardManager : public core::tFrameworkElement, public core::tRuntime
      */
     void Add(tAbstractBlackboardServer* blackboard);
 
-    //    /**
-    //     * \param name Blackboard name
-    //     * \return Blackboard with specified name - or null if no blackboard with this name exists
-    //     */
-    //    @InCppFile
-    //    AbstractBlackboardServer getBlackboard(String name) {
-    //      @Ptr ArrayWrapper<AbstractBlackboardServer> it = blackboards.getIterable();
-    //      for (@SizeT int i = 0; i < it.size(); i++) {
-    //        @Ptr AbstractBlackboardServer info = it.get(i);
-    //        if (info != null && info.getDescription().equals(name)) {
-    //          return info;
-    //        }
+    //      /**
+    //       * \param name Blackboard name
+    //       * \return Blackboard with specified name - or null if no blackboard with this name exists
+    //       */
+    //      @InCppFile
+    //      AbstractBlackboardServer getBlackboard(String name) {
+    //          @Ptr ArrayWrapper<AbstractBlackboardServer> it = blackboards.getIterable();
+    //          for (@SizeT int i = 0; i < it.size(); i++) {
+    //              @Ptr AbstractBlackboardServer info = it.get(i);
+    //              if (info != null && info.getDescription().equals(name)) {
+    //                  return info;
+    //              }
+    //          }
+    //          return null;
     //      }
-    //      return null;
-    //    }
 
     /*!
      * Check whether blackboard client wants to connect to any contained blackboards
@@ -129,12 +130,9 @@ private:
   util::tSafeConcurrentlyIterableList<tRawBlackboardClient*> bb_clients;
 
   /*! Clients that wish to autoconnect */
-  util::tSimpleList<tRawBlackboardClient*> auto_connect_clients;
+  util::tSimpleListWithMutex<tRawBlackboardClient*> auto_connect_clients;
 
 public:
-
-  // for static synchronization in this class' methods
-  static util::tMutex static_obj_synch;
 
   /*!
    * Categories of blackboards - same as in MCA2 - questionable if that makes sense
@@ -268,7 +266,7 @@ public:
   //   * Returns whether blackboard with specified name exists
   //   */
   //  public boolean blackboardExists(@Const @Ref String name) {
-  //    return getRuntime().elementExists(createLinkName(name, true));
+  //      return getRuntime().elementExists(createLinkName(name, true));
   //  }
 
   //  /**
@@ -279,7 +277,7 @@ public:
   //   * \return link name (as suggested by BlackboardManager)
   //   */
   //  public static String createLinkName(@Const @Ref String blackboardName, boolean readPort) {
-  //    return "/Blackboards/" + blackboardName + "/" + (readPort ? "read" : "write");
+  //      return "/Blackboards/" + blackboardName + "/" + (readPort ? "read" : "write");
   //  }
 
   //  /**
@@ -289,10 +287,10 @@ public:
   //   * \return Blackboard name - or empty string if not a blackbaord link
   //   */
   //  public static String getBlackboardNameFromLink(@Const @Ref String linkName) {
-  //    if (isWriteBlackboard(linkName) || isReadBlackboard(linkName)) {
-  //      return linkName.substring(linkName.lastIndexOf("/") + 1, linkName.lastIndexOf("/"));
-  //    }
-  //    return "";
+  //      if (isWriteBlackboard(linkName) || isReadBlackboard(linkName)) {
+  //          return linkName.substring(linkName.lastIndexOf("/") + 1, linkName.lastIndexOf("/"));
+  //      }
+  //      return "";
   //  }
 
   //  /**
@@ -302,7 +300,7 @@ public:
   //   * \return Answer
   //   */
   //  public static boolean isWriteBlackboard(@Const @Ref String linkName) {
-  //    return linkName.startsWith("/Blackboards/") && linkName.endsWith("/write");
+  //      return linkName.startsWith("/Blackboards/") && linkName.endsWith("/write");
   //  }
   //
   //  /**
@@ -312,7 +310,7 @@ public:
   //   * \return Answer
   //   */
   //  public static boolean isReadBlackboard(@Const @Ref String linkName) {
-  //    return linkName.startsWith("/Blackboards/") && linkName.endsWith("/read");
+  //      return linkName.startsWith("/Blackboards/") && linkName.endsWith("/read");
   //  }
   //
   //  /**
@@ -320,7 +318,7 @@ public:
   //   * \return Blackboard info for remote blackboard with specified name - or null, if it does not exist
   //   */
   //  public AbstractBlackboardServer getRemoteBlackboard(@Const @Ref String name) {
-  //    return categories[REMOTE].getBlackboard(name);
+  //      return categories[REMOTE].getBlackboard(name);
   //  }
   //
   //  /**
@@ -328,7 +326,7 @@ public:
   //   * \return Blackboard info for local blackboard with specified name - or null, if it does not exist
   //   */
   //  public AbstractBlackboardServer getLocalBlackboard(@Const @Ref String name) {
-  //    return categories[LOCAL].getBlackboard(name);
+  //      return categories[LOCAL].getBlackboard(name);
   //  }
   //
   //  /**
@@ -336,7 +334,7 @@ public:
   //   * \return Blackboard info for shared blackboard with specified name - or null, if it does not exist
   //   */
   //  public AbstractBlackboardServer getSharedBlackboard(@Const @Ref String name) {
-  //    return categories[SHARED].getBlackboard(name);
+  //      return categories[SHARED].getBlackboard(name);
   //  }
 
   virtual void RuntimeChange(int8 change_type, core::tFrameworkElement* element);

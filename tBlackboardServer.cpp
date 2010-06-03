@@ -25,6 +25,7 @@
 #include "core/port/tPortCreationInfo.h"
 #include "core/port/tPortFlags.h"
 #include "core/tCoreFlags.h"
+#include "core/tLockOrderLevels.h"
 #include "finroc_core_utils/tTime.h"
 
 namespace finroc
@@ -35,7 +36,7 @@ const int64 tBlackboardServer::cUNLOCK_TIMEOUT;
 
 tBlackboardServer::tBlackboardServer(const util::tString& description, core::tFrameworkElement* parent) :
     tAbstractBlackboardServer(description, true ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, tBlackboardBuffer::cBUFFER_TYPE->GetRelatedType(), this, true ? core::tCoreFlags::cSHARED : 0)),
+    write(new core::tInterfaceServerPort("write", this, tBlackboardBuffer::cBUFFER_TYPE->GetRelatedType(), this, true ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
     locked(NULL),
     lock_time(0),
     last_keep_alive(0),
@@ -44,7 +45,7 @@ tBlackboardServer::tBlackboardServer(const util::tString& description, core::tFr
     published(NULL)
 {
   // this(description,BlackboardBuffer.BUFFER_TYPE,parent,true);
-  this->read_port = new core::tPort<tBlackboardBuffer>(core::tPortCreationInfo("read", this, tBlackboardBuffer::cBUFFER_TYPE, core::tPortFlags::cOUTPUT_PORT | (true ? core::tCoreFlags::cSHARED : 0)));
+  this->read_port = new core::tPort<tBlackboardBuffer>(core::tPortCreationInfo("read", this, tBlackboardBuffer::cBUFFER_TYPE, core::tPortFlags::cOUTPUT_PORT | (true ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
   CheckType(tBlackboardBuffer::cBUFFER_TYPE);
   this->write_port = write;
   SetPublished(static_cast<tBlackboardBuffer*>(this->read_port->GetDefaultBufferRaw()));
@@ -52,7 +53,7 @@ tBlackboardServer::tBlackboardServer(const util::tString& description, core::tFr
 
 tBlackboardServer::tBlackboardServer(const util::tString& description, core::tDataType* type, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared) :
     tAbstractBlackboardServer(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, type->GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0)),
+    write(new core::tInterfaceServerPort("write", this, type->GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
     locked(NULL),
     lock_time(0),
     last_keep_alive(0),
@@ -61,7 +62,7 @@ tBlackboardServer::tBlackboardServer(const util::tString& description, core::tDa
     published(NULL)
 {
   // this(description,type,parent,shared);
-  this->read_port = new core::tPort<tBlackboardBuffer>(core::tPortCreationInfo("read", this, type, core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)));
+  this->read_port = new core::tPort<tBlackboardBuffer>(core::tPortCreationInfo("read", this, type, core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
   CheckType(type);
   this->write_port = write;
   SetPublished(static_cast<tBlackboardBuffer*>(this->read_port->GetDefaultBufferRaw()));
@@ -70,7 +71,7 @@ tBlackboardServer::tBlackboardServer(const util::tString& description, core::tDa
 
 tBlackboardServer::tBlackboardServer(const util::tString& description, core::tDataType* type, core::tFrameworkElement* parent, bool shared) :
     tAbstractBlackboardServer(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, type->GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0)),
+    write(new core::tInterfaceServerPort("write", this, type->GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
     locked(NULL),
     lock_time(0),
     last_keep_alive(0),
@@ -78,7 +79,7 @@ tBlackboardServer::tBlackboardServer(const util::tString& description, core::tDa
     lock_id(0),
     published(NULL)
 {
-  this->read_port = new core::tPort<tBlackboardBuffer>(core::tPortCreationInfo("read", this, type, core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)));
+  this->read_port = new core::tPort<tBlackboardBuffer>(core::tPortCreationInfo("read", this, type, core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
   CheckType(type);
   this->write_port = write;
   SetPublished(static_cast<tBlackboardBuffer*>(this->read_port->GetDefaultBufferRaw()));
@@ -87,7 +88,7 @@ tBlackboardServer::tBlackboardServer(const util::tString& description, core::tDa
 void tBlackboardServer::AsynchChange(int offset, const tBlackboardBuffer* buf, bool check_lock)
 {
   {
-    util::tLock lock2(this->obj_synch);
+    util::tLock lock2(this->write_port);
     if (check_lock && locked != NULL)
     {
       CheckCurrentLock(lock2);
@@ -124,8 +125,8 @@ void tBlackboardServer::CheckCurrentLock(util::tLock& passed_lock)
     lock_id = lock_iDGen.IncrementAndGet();
     locked = NULL;
     util::tSystem::out.Println(util::tStringBuilder("Thread ") + util::tThread::CurrentThread()->ToString() + ": lock = null");
-    ProcessPendingCommands(passed_lock);
-    if (!IsLocked())
+    bool p = ProcessPendingCommands(passed_lock);
+    if ((!p) && (!IsLocked()))
     {
       ::finroc::blackboard::tAbstractBlackboardServer::ProcessPendingAsynchChangeTasks();
     }
@@ -157,7 +158,7 @@ void tBlackboardServer::DirectCommit(tBlackboardBuffer* new_buffer)
   }
 
   {
-    util::tLock lock2(this->obj_synch);
+    util::tLock lock2(this->write_port);
     if (locked != NULL)    // note: current lock is obsolete, since we have a completely new buffer
     {
       //lockID = lockIDGen.incrementAndGet(); // make sure, next unlock won't do anything => done in commitLocked()
@@ -195,7 +196,7 @@ void tBlackboardServer::DuplicateAndLock()
 void tBlackboardServer::KeepAlive(int lock_id_)
 {
   {
-    util::tLock lock2(this->obj_synch);
+    util::tLock lock2(this->write_port);
     if (locked != NULL && this->lock_id == lock_id_)
     {
       last_keep_alive = util::tTime::GetCoarse();
@@ -212,7 +213,7 @@ void tBlackboardServer::LockCheck()
   }
 
   {
-    util::tLock lock2(this->obj_synch);
+    util::tLock lock2(this->write_port);
     CheckCurrentLock(lock2);
   }
 }
@@ -242,7 +243,7 @@ tBlackboardBuffer* tBlackboardServer::ReadPart(int offset, int length, int timeo
 tBlackboardBuffer* tBlackboardServer::WriteLock(int64 timeout)
 {
   {
-    util::tLock lock2(this->obj_synch);
+    util::tLock lock2(this->write_port);
     if (locked != NULL || PendingTasks())    // make sure lock command doesn't "overtake" others
     {
       CheckCurrentLock(lock2);
@@ -286,7 +287,7 @@ void tBlackboardServer::WriteUnlock(tBlackboardBuffer* buf)
   }
 
   {
-    util::tLock lock2(this->obj_synch);
+    util::tLock lock2(this->write_port);
     if (this->lock_id != buf->lock_iD)
     {
       util::tSystem::out.Println("Skipping outdated unlock");

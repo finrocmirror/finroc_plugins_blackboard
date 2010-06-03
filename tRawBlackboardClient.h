@@ -54,6 +54,7 @@ public:
   enum tServerBuffers { eUNKNOWN, eMULTI, eSINGLE };
 
 public:
+  /*implements ReturnHandler*/
 
   class tReadPort : public core::tPortBase
   {
@@ -180,21 +181,21 @@ protected:
   //   * \param pushRead Should data to read be pushed instead of pulled? (makes no difference for writing)
   //   */
   //  public RawBlackboardClient(String description, FrameworkElement owner, @CppDefault("false") boolean readOnly, @CppDefault("false") boolean pushRead) {
-  //    this(description, owner, Blackboard2Plugin.BUFFER_TYPE, readOnly, pushRead, true, -1);
+  //      this(description, owner, Blackboard2Plugin.BUFFER_TYPE, readOnly, pushRead, true, -1);
   //  }
 
   //  @JavaOnly
   //  public RawBlackboardClient(String description) {
-  //    this(DEFAULT_PCI.derive(description), true, -1);
+  //      this(DEFAULT_PCI.derive(description), true, -1);
   //  }
 
   //  /**
   //   * Connect to blackboard server with same name/uid
   //   */
   //  public void autoConnect() {
-  //    // connect to server
-  //    readPort.connectToSource(BlackboardManager.createLinkName(getDescription(), true));
-  //    write.connectToSource(BlackboardManager.createLinkName(getDescription(), false));
+  //      // connect to server
+  //      readPort.connectToSource(BlackboardManager.createLinkName(getDescription(), true));
+  //      write.connectToSource(BlackboardManager.createLinkName(getDescription(), false));
   //  }
 
   virtual void PostChildInit();
@@ -233,7 +234,7 @@ public:
    * (if connection is broken, there's no guarantee that this will work or that an exception is thrown otherwise)
    *
    * \param offset Offset in byte in blackboard
-   * \param change_buf Contents to write to this position (unlocked buffer retrieved via getUnusedBuffer OR a used buffer with a lock)
+   * \param change_buf Contents to write to this position (unlocked buffer retrieved via getUnusedBuffer OR a used buffer with an additional lock)
    */
   void CommitAsynchChange(int offset, const tBlackboardBuffer* change_buf);
 
@@ -276,8 +277,8 @@ public:
 
   //  @Override
   //  public void handleMethodReturn(MethodCall mc, byte methodId, long intRet,
-  //      double dblRet, TypedObject objRet) {
-  //    System.out.println("Unhandled blackboard method return... shouldn't happen");
+  //          double dblRet, TypedObject objRet) {
+  //      System.out.println("Unhandled blackboard method return... shouldn't happen");
   //  }
 
   //  /**
@@ -288,20 +289,20 @@ public:
   //   * \return Unlocked, unsafe Blackboard buffer
   //   */
   //  public BlackboardBuffer deprecatedDirectBufferAccess(long timeout) {
-  //    assert(locked == null);
-  //    try {
-  //      BlackboardBuffer buffer = (BlackboardBuffer)writePort.synchObjMethodCall(DEPRECATED_DIRECT_BUFFER_ACCESS, timeout, false);
-  //      return buffer;
-  //    } catch (Exception e) {
-  //      return null;
-  //    }
+  //      assert(locked == null);
+  //      try {
+  //          BlackboardBuffer buffer = (BlackboardBuffer)writePort.synchObjMethodCall(DEPRECATED_DIRECT_BUFFER_ACCESS, timeout, false);
+  //          return buffer;
+  //      } catch (Exception e) {
+  //          return null;
+  //      }
   //  }
 
   //  /**
   //   * \return "Traditional" single-buffered blackboard? - less copying overhead, but more blocking
   //   */
   //  public boolean isSingleBuffered() {
-  //    return singleBuffered;
+  //      return singleBuffered;
   //  }
   //
   //  /**
@@ -310,7 +311,7 @@ public:
   //   * \param val
   //   */
   //  @InCppFile void setSingleBuffered(boolean val) {
-  //    singleBuffered = val;
+  //      singleBuffered = val;
   //  }
 
   inline bool HasWriteLock()
@@ -332,7 +333,7 @@ public:
   /*!
    * Directly commit/publish buffer - without lock
    *
-   * \param buffer Buffer to publish
+   * \param buffer Buffer to publish (unlocked buffer retrieved via getUnusedBuffer OR a used buffer with an additional lock)
    */
   void Publish(tBlackboardBuffer* buffer);
 

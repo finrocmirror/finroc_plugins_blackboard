@@ -53,7 +53,7 @@ bool tRawBlackboardClient::CheckConnect(tAbstractBlackboardServer* server)
   }
   if (IsConnected())
   {
-    return true;  // alredy connected
+    return true;  // already connected
   }
   if (auto_connect_category >= 0 && auto_connect_category != server->category_index)
   {
@@ -130,7 +130,10 @@ void tRawBlackboardClient::PrepareDelete()
 void tRawBlackboardClient::Publish(tBlackboardBuffer* buffer)
 {
   assert((lock_type == tRawBlackboardClient::eNONE));
-  assert((buffer->GetManager()->IsUnused()));
+  if (buffer->GetManager()->IsUnused())
+  {
+    buffer->GetManager()->GetCurrentRefCounter()->SetLocks(static_cast<int8>(1));
+  }
   try
   {
     tAbstractBlackboardServer::cDIRECT_COMMIT.Call(write_port, buffer, true);

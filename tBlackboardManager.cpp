@@ -30,13 +30,13 @@
 #include "blackboard/tBlackboardPlugin.h"
 #include "blackboard/tRemoteBlackboardServer.h"
 #include "core/port/std/tPortBase.h"
+#include "core/port/tPortCreationInfo.h"
 #include "core/port/rpc/tInterfacePort.h"
 
 namespace finroc
 {
 namespace blackboard
 {
-util::tMutex tBlackboardManager::static_obj_synch;
 const int tBlackboardManager::cALL, tBlackboardManager::cSHARED, tBlackboardManager::cLOCAL, tBlackboardManager::cREMOTE, tBlackboardManager::cDIMENSION;
 util::tString tBlackboardManager::cNAME = "Blackboards";
 util::tString tBlackboardManager::cSLASHED_NAME = util::tStringBuilder("/") + tBlackboardManager::cNAME + "/";
@@ -49,7 +49,7 @@ tBlackboardManager::tBlackboardManager() :
     categories(cDIMENSION),
     temp_buffer(),
     bb_clients(10u, 4u),
-    auto_connect_clients()
+    auto_connect_clients(core::tLockOrderLevels::cINNER_MOST - 50)
 {
   categories[cLOCAL] = new tBlackboardCategory(this, "Local", core::tCoreFlags::cALLOWS_CHILDREN);
   categories[cSHARED] = new tBlackboardCategory(this, "Shared", core::tCoreFlags::cALLOWS_CHILDREN | core::tCoreFlags::cSHARED | core::tCoreFlags::cGLOBALLY_UNIQUE_LINK);
@@ -62,7 +62,7 @@ tBlackboardManager::tBlackboardManager() :
 void tBlackboardManager::AddClient(tRawBlackboardClient* client, bool auto_connect)
 {
   {
-    util::tLock lock2(bb_clients.obj_synch);
+    util::tLock lock2(bb_clients);
     bb_clients.Add(client, false);
   }
   if (!auto_connect)
@@ -70,7 +70,7 @@ void tBlackboardManager::AddClient(tRawBlackboardClient* client, bool auto_conne
     return;
   }
   {
-    util::tLock lock2(auto_connect_clients.obj_synch);
+    util::tLock lock2(auto_connect_clients);
     auto_connect_clients.Add(client);
 
     for (int j = 0; (j < cDIMENSION) && (!client->IsConnected()); j++)
@@ -87,7 +87,7 @@ void tBlackboardManager::CheckAutoConnect(tAbstractBlackboardServer* server)
     return;
   }
   {
-    util::tLock lock2(auto_connect_clients.obj_synch);
+    util::tLock lock2(auto_connect_clients);
     for (size_t i = 0u; i < auto_connect_clients.Size(); i++)
     {
       auto_connect_clients.Get(i)->CheckConnect(server);
@@ -97,15 +97,17 @@ void tBlackboardManager::CheckAutoConnect(tAbstractBlackboardServer* server)
 
 void tBlackboardManager::CreateBlackboardManager()
 {
-  util::tLock lock1(static_obj_synch);
-  if (instance == NULL)
   {
-    instance = new tBlackboardManager();
-    core::tRuntimeEnvironment::GetInstance()->AddListener(instance);
+    util::tLock lock2(core::tRuntimeEnvironment::GetInstance()->GetRegistryLock());
+    if (instance == NULL)
+    {
+      instance = new tBlackboardManager();
+      core::tRuntimeEnvironment::GetInstance()->AddListener(instance);
 
-    // TODO do this properly
-    core::tPlugins::GetInstance()->AddPlugin(new tBlackboardPlugin());
-    // core::tPlugins::GetInstance()->AddPlugin(new tBlackboard2Plugin());
+      // TODO do this properly
+      core::tPlugins::GetInstance()->AddPlugin(new tBlackboardPlugin());
+      // core::tPlugins::GetInstance()->AddPlugin(new tBlackboard2Plugin());
+    }
   }
 }
 
@@ -204,7 +206,7 @@ void tBlackboardManager::PrepareDelete()
 void tBlackboardManager::RemoveClient(tRawBlackboardClient* client)
 {
   {
-    util::tLock lock2(bb_clients.obj_synch);
+    util::tLock lock2(bb_clients);
     bb_clients.Add(client, false);
   }
   if (!client->AutoConnectClient())
@@ -212,16 +214,16 @@ void tBlackboardManager::RemoveClient(tRawBlackboardClient* client)
     return;
   }
   {
-    util::tLock lock2(auto_connect_clients.obj_synch);
+    util::tLock lock2(auto_connect_clients);
     auto_connect_clients.RemoveElem(client);
   }
 }
 
 void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement* element)
 {
-  if (change_type == ::finroc::core::tRuntimeListener::cREMOVE || change_type == ::finroc::core::tRuntimeListener::cPRE_INIT)
+  if (change_type == ::finroc::core::tRuntimeListener::cADD)
   {
-    // Is this a remote blackboard?
+    // Is this a remote blackboard? -> Create proxy
     if (element->GetFlag(core::tCoreFlags::cNETWORK_ELEMENT) && element->GetFlag(core::tCoreFlags::cIS_PORT))
     {
       element->GetQualifiedLink(temp_buffer);
@@ -234,59 +236,34 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
       {
         tAbstractBlackboardServer* info = GetBlackboard(name, cREMOTE, NULL);
 
-        if (change_type == ::finroc::core::tRuntimeListener::cPRE_INIT)
+        // okay create blackboard proxy
+        bool add = (info == NULL);
+        if (add)
         {
-          // okay create/this blackboard
-          bool add = (info == NULL);
-          if (add)
-          {
-            info = new tRemoteBlackboardServer(name);
-          }
-          if (read)
-          {
-            assert((info->read_port == NULL));
-            info->read_port = static_cast<core::tPortBase*>(element);
-            info->read_port->Link(info, cREAD_PORT_NAME);
-          }
-          else if (write)
-          {
-            assert((info->write_port == NULL));
-            info->write_port = static_cast<core::tInterfacePort*>(element);
-            info->write_port->Link(info, cWRITE_PORT_NAME);
-          }
-          if (add)
-          {
-            info->Init();
-          }
-          CheckAutoConnect(info);
-
+          info = new tRemoteBlackboardServer(name);
         }
-        else if (change_type == ::finroc::core::tRuntimeListener::cREMOVE)
+        if (read && info->read_port == NULL)
         {
-          // okay delete this blackboard
-          assert(((info != NULL)) && "Remote Blackboard deleted that was never created");
-          if (read)
-          {
-            assert((info->read_port != NULL));
-            info->read_port = NULL;
-          }
-          else if (write)
-          {
-            assert((info->write_port != NULL));
-            info->write_port = NULL;
-          }
-          if (info->read_port == NULL && info->write_port == NULL)
-          {
-            info->ManagedDelete();
-          }
+          core::tPortBase* port = static_cast<core::tPortBase*>(element);
+          info->read_port = new core::tPortBase(core::tPortCreationInfo(cREAD_PORT_NAME, info, port->GetDataType()));
+          info->Init();
+          info->read_port->ConnectToSource(qname);
         }
+        else if (write && info->write_port == NULL)
+        {
+          core::tInterfacePort* port = static_cast<core::tInterfacePort*>(element);
+          info->write_port = new core::tInterfacePort(cWRITE_PORT_NAME, info, port->GetDataType(), core::tInterfacePort::eRouting);
+          info->Init();
+          info->write_port->ConnectToSource(qname);
+        }
+        CheckAutoConnect(info);
       }
     }
   }
 }
 
 tBlackboardManager::tBlackboardCategory::tBlackboardCategory(tBlackboardManager* const outer_class_ptr_, const util::tString& category_name, int default_flags_) :
-    core::tFrameworkElement(category_name, outer_class_ptr_),
+    core::tFrameworkElement(category_name, outer_class_ptr_, default_flags_, -1),
     outer_class_ptr(outer_class_ptr_),
     default_flags(default_flags_),
     blackboards(100u, 4u)
@@ -296,7 +273,7 @@ tBlackboardManager::tBlackboardCategory::tBlackboardCategory(tBlackboardManager*
 void tBlackboardManager::tBlackboardCategory::Add(tAbstractBlackboardServer* blackboard)
 {
   {
-    util::tLock lock2(outer_class_ptr->auto_connect_clients.obj_synch);
+    util::tLock lock2(outer_class_ptr->auto_connect_clients);
     blackboards.Add(blackboard, false);
     outer_class_ptr->CheckAutoConnect(blackboard);
   }
@@ -318,7 +295,7 @@ void tBlackboardManager::tBlackboardCategory::CheckConnect(tRawBlackboardClient*
 void tBlackboardManager::tBlackboardCategory::Remove(tAbstractBlackboardServer* blackboard)
 {
   {
-    util::tLock lock2(outer_class_ptr->auto_connect_clients.obj_synch);
+    util::tLock lock2(outer_class_ptr->auto_connect_clients);
     blackboards.Remove(blackboard);
   }
 }

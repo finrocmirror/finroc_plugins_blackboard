@@ -39,6 +39,7 @@ namespace blackboard
 class tBlackboardTask : public util::tReusable
 {
 public:
+  /* implements Task */
 
   /*! Method that is pending (possible are lock and asynch_change) */
   //public @Const AbstractMethod method;

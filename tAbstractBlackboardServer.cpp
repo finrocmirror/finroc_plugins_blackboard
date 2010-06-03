@@ -21,7 +21,6 @@
  */
 #include "blackboard/tAbstractBlackboardServer.h"
 #include "blackboard/tBlackboardPlugin.h"
-#include "finroc_core_utils/thread/sThreadUtil.h"
 #include "finroc_core_utils/tTime.h"
 
 namespace finroc
@@ -40,7 +39,7 @@ core::tPort0Method<tAbstractBlackboardServer*, int8> tAbstractBlackboardServer::
 core::tVoid1Method<tAbstractBlackboardServer*, int> tAbstractBlackboardServer::cKEEP_ALIVE(tAbstractBlackboardServer::cMETHODS, "KeepAliveSignal", "Lock ID", false);
 
 tAbstractBlackboardServer::tAbstractBlackboardServer(const util::tString& bb_name, int category, core::tFrameworkElement* parent) :
-    core::tFrameworkElement(bb_name, parent == NULL ? tBlackboardManager::GetInstance()->GetCategory(category) : parent, tBlackboardManager::GetInstance()->GetCategory(category)->default_flags),
+    core::tFrameworkElement(bb_name, parent == NULL ? tBlackboardManager::GetInstance()->GetCategory(category) : parent, tBlackboardManager::GetInstance()->GetCategory(category)->default_flags, -1),
     pending_major_tasks(),
     pending_asynch_change_tasks(),
     wakeup_thread(-1),
@@ -82,7 +81,7 @@ tBlackboardTask* tAbstractBlackboardServer::GetUnusedBlackboardTask()
 
 void tAbstractBlackboardServer::PrepareDelete()
 {
-  util::tLock lock1(obj_synch);
+  util::tLock lock1(this);
   if (tBlackboardManager::GetInstance() != NULL)    // we don't need to remove it, if blackboard manager has already been deleted
   {
     my_category->Remove(this);
@@ -103,16 +102,20 @@ void tAbstractBlackboardServer::ProcessPendingAsynchChangeTasks()
   pending_asynch_change_tasks.Clear();
 }
 
-void tAbstractBlackboardServer::ProcessPendingCommands(util::tLock& passed_lock)
+bool tAbstractBlackboardServer::ProcessPendingCommands(util::tLock& passed_lock)
 {
+  //System.out.println(createThreadString() + ": process pending commands");
   if (pending_major_tasks.Size() == 0)
   {
-    return;
+    //System.out.println(createThreadString() + ": nothing to do");
+    return false;
   }
   assert((wakeup_thread == -1));
   tBlackboardTask* next_task = pending_major_tasks.Remove(0);
   wakeup_thread = next_task->thread_uid;
-  monitor.NotifyAll(passed_lock);
+  //System.out.println(createThreadString() + ": waking up thread " + wakeupThread);
+  write_port->monitor.NotifyAll(passed_lock);
+  return true;
 }
 
 bool tAbstractBlackboardServer::WaitForLock(util::tLock& passed_lock, int64 timeout)
@@ -124,11 +127,13 @@ bool tAbstractBlackboardServer::WaitForLock(util::tLock& passed_lock, int64 time
   int64 start_time = util::tTime::GetCoarse();
   //long curTime = startTime;
   int64 wait_for = timeout;
+  //System.out.println(createThreadString() + ": waiting " + timeout + " ms for lock");
   while (wait_for > 0)
   {
     try
     {
-      monitor.Wait(passed_lock, wait_for);
+      //System.out.println(createThreadString() + ": entered wait");
+      write_port->monitor.Wait(passed_lock, wait_for);
     }
     catch (const util::tInterruptedException& e)
     {
@@ -136,6 +141,7 @@ bool tAbstractBlackboardServer::WaitForLock(util::tLock& passed_lock, int64 time
       util::tSystem::out.Println("Wait interrupted in AbstractBlackboardServer - shouldn't happen... usually");
     }
     wait_for = timeout - (util::tTime::GetCoarse() - start_time);
+    //System.out.println(createThreadString() + ": left wait; waitFor = " + waitFor + "; wakeupThread = " + wakeupThread);
     if (wakeup_thread == util::sThreadUtil::GetCurrentThreadId())
     {
       // ok, it's our turn now
@@ -148,6 +154,7 @@ bool tAbstractBlackboardServer::WaitForLock(util::tLock& passed_lock, int64 time
   }
 
   // ok, time seems to have run out - we have synchronized context though - so removing task is safe
+  //System.out.println(createThreadString() + ": time has run out; isLocked() = " + isLocked());
   pending_major_tasks.RemoveElem(task);
   task->Recycle2();
   assert(((IsLocked())) && "Somebody forgot thread waiting on blackboard");
