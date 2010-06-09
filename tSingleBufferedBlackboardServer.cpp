@@ -102,7 +102,7 @@ tSingleBufferedBlackboardServer::tSingleBufferedBlackboardServer(const util::tSt
 void tSingleBufferedBlackboardServer::AsynchChange(int offset, const tBlackboardBuffer* buf, bool check_lock)
 {
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     if (check_lock && IsLocked())
     {
       CheckCurrentLock(lock2);
@@ -170,7 +170,7 @@ void tSingleBufferedBlackboardServer::DirectCommit(tBlackboardBuffer* new_buffer
   }
 
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
 
     assert((new_buffer != buffer));
 
@@ -191,7 +191,7 @@ void tSingleBufferedBlackboardServer::DirectCommit(tBlackboardBuffer* new_buffer
 void tSingleBufferedBlackboardServer::KeepAlive(int lock_id_)
 {
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     if (locks != 0 && this->lock_id == lock_id_)
     {
       last_keep_alive = util::tTime::GetCoarse();
@@ -208,7 +208,7 @@ void tSingleBufferedBlackboardServer::LockCheck()
   }
 
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     CheckCurrentLock(lock2);
   }
 }
@@ -232,7 +232,7 @@ void tSingleBufferedBlackboardServer::NewBufferRevision(util::tLock& passed_lock
 const core::tPortData* tSingleBufferedBlackboardServer::PullRequest(core::tPortBase* origin, int8 add_locks)
 {
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
 
     // possibly wait for a copy
     while (read_copy_revision < revision)     // not so clean, but everything else becomes rather complicated
@@ -257,7 +257,7 @@ const core::tPortData* tSingleBufferedBlackboardServer::PullRequest(core::tPortB
 const tBlackboardBuffer* tSingleBufferedBlackboardServer::ReadLock(int64 timeout)
 {
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
 
     // Read Lock
     int64 current_revision = revision;
@@ -313,7 +313,7 @@ const tBlackboardBuffer* tSingleBufferedBlackboardServer::ReadLock(int64 timeout
 tBlackboardBuffer* tSingleBufferedBlackboardServer::ReadPart(int offset, int length, int timeout)
 {
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     const tBlackboardBuffer* bb = buffer;
     bool unlock = false;
     int64 current_revision = revision;
@@ -369,7 +369,7 @@ void tSingleBufferedBlackboardServer::ReadUnlock(int lock_id_)
   }
 
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     if (this->lock_id != lock_id_)
     {
       util::tSystem::out.Println("Skipping outdated unlock");
@@ -419,7 +419,7 @@ void tSingleBufferedBlackboardServer::UpdateReadCopy(util::tLock& passed_lock)
   {
     thread_waiting_for_copy = false;
     this->wakeup_thread = -1;
-    this->write_port->monitor.NotifyAll(passed_lock);
+    this->bb_lock.monitor.NotifyAll(passed_lock);
   }
 
 }
@@ -435,7 +435,7 @@ void tSingleBufferedBlackboardServer::WaitForReadCopy(util::tLock& passed_lock, 
       thread_waiting_for_copy = true;
       try
       {
-        this->write_port->monitor.Wait(passed_lock, wait_for);
+        this->bb_lock.monitor.Wait(passed_lock, wait_for);
       }
       catch (const util::tInterruptedException& e)
       {
@@ -449,7 +449,7 @@ void tSingleBufferedBlackboardServer::WaitForReadCopy(util::tLock& passed_lock, 
 tBlackboardBuffer* tSingleBufferedBlackboardServer::WriteLock(int64 timeout)
 {
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     if (IsLocked() || PendingTasks())
     {
       CheckCurrentLock(lock2);
@@ -495,7 +495,7 @@ void tSingleBufferedBlackboardServer::WriteUnlock(tBlackboardBuffer* buf)
   assert(((buf->lock_iD >= 0)) && "lock IDs < 0 are typically only found in read copies");
 
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     if (this->lock_id != buf->lock_iD)
     {
       util::tSystem::out.Println("Skipping outdated unlock");
@@ -549,7 +549,7 @@ void tSingleBufferedBlackboardServer::tBBReadPort::InitialPushTo(core::tAbstract
 
   // case 2: make read copy
   {
-    util::tLock lock2(outer_class_ptr->write_port);
+    util::tLock lock2(outer_class_ptr->bb_lock);
     if (outer_class_ptr->locks >= 0)    // ok, not locked or read locked
     {
       outer_class_ptr->locks++;

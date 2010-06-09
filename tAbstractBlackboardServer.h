@@ -25,6 +25,7 @@
 #define PLUGINS__BLACKBOARD__TABSTRACTBLACKBOARDSERVER_H
 
 #include "core/portdatabase/tDataType.h"
+#include "core/tLockOrderLevels.h"
 #include "core/port/std/tPortBase.h"
 #include "core/port/rpc/tInterfacePort.h"
 #include "blackboard/tBlackboardManager.h"
@@ -69,6 +70,9 @@ protected:
   int64 wakeup_thread;
 
 public:
+
+  /*! Lock for blackboard operation (needs to be deeper than runtime - (for initial pushes etc.)) */
+  util::tMutexLockOrderWithMonitor bb_lock;
 
   /*! read port */
   core::tPortBase* read_port;

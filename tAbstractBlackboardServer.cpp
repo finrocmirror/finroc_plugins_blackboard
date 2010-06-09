@@ -43,6 +43,7 @@ tAbstractBlackboardServer::tAbstractBlackboardServer(const util::tString& bb_nam
     pending_major_tasks(),
     pending_asynch_change_tasks(),
     wakeup_thread(-1),
+    bb_lock(core::tLockOrderLevels::cINNER_MOST - 1000),
     read_port(NULL),
     write_port(NULL),
     category_index(category),
@@ -82,12 +83,15 @@ tBlackboardTask* tAbstractBlackboardServer::GetUnusedBlackboardTask()
 void tAbstractBlackboardServer::PrepareDelete()
 {
   util::tLock lock1(this);
-  if (tBlackboardManager::GetInstance() != NULL)    // we don't need to remove it, if blackboard manager has already been deleted
   {
-    my_category->Remove(this);
-  }
+    util::tLock lock2(bb_lock);
+    if (tBlackboardManager::GetInstance() != NULL)    // we don't need to remove it, if blackboard manager has already been deleted
+    {
+      my_category->Remove(this);
+    }
 
-  ClearAsyncChangeTasks();
+    ClearAsyncChangeTasks();
+  }
 }
 
 void tAbstractBlackboardServer::ProcessPendingAsynchChangeTasks()
@@ -114,7 +118,7 @@ bool tAbstractBlackboardServer::ProcessPendingCommands(util::tLock& passed_lock)
   tBlackboardTask* next_task = pending_major_tasks.Remove(0);
   wakeup_thread = next_task->thread_uid;
   //System.out.println(createThreadString() + ": waking up thread " + wakeupThread);
-  write_port->monitor.NotifyAll(passed_lock);
+  bb_lock.monitor.NotifyAll(passed_lock);
   return true;
 }
 
@@ -133,7 +137,7 @@ bool tAbstractBlackboardServer::WaitForLock(util::tLock& passed_lock, int64 time
     try
     {
       //System.out.println(createThreadString() + ": entered wait");
-      write_port->monitor.Wait(passed_lock, wait_for);
+      bb_lock.monitor.Wait(passed_lock, wait_for);
     }
     catch (const util::tInterruptedException& e)
     {

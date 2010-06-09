@@ -88,7 +88,7 @@ tBlackboardServer::tBlackboardServer(const util::tString& description, core::tDa
 void tBlackboardServer::AsynchChange(int offset, const tBlackboardBuffer* buf, bool check_lock)
 {
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     if (check_lock && locked != NULL)
     {
       CheckCurrentLock(lock2);
@@ -158,7 +158,7 @@ void tBlackboardServer::DirectCommit(tBlackboardBuffer* new_buffer)
   }
 
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     if (locked != NULL)    // note: current lock is obsolete, since we have a completely new buffer
     {
       //lockID = lockIDGen.incrementAndGet(); // make sure, next unlock won't do anything => done in commitLocked()
@@ -196,7 +196,7 @@ void tBlackboardServer::DuplicateAndLock()
 void tBlackboardServer::KeepAlive(int lock_id_)
 {
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     if (locked != NULL && this->lock_id == lock_id_)
     {
       last_keep_alive = util::tTime::GetCoarse();
@@ -213,7 +213,7 @@ void tBlackboardServer::LockCheck()
   }
 
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     CheckCurrentLock(lock2);
   }
 }
@@ -243,7 +243,7 @@ tBlackboardBuffer* tBlackboardServer::ReadPart(int offset, int length, int timeo
 tBlackboardBuffer* tBlackboardServer::WriteLock(int64 timeout)
 {
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     if (locked != NULL || PendingTasks())    // make sure lock command doesn't "overtake" others
     {
       CheckCurrentLock(lock2);
@@ -287,7 +287,7 @@ void tBlackboardServer::WriteUnlock(tBlackboardBuffer* buf)
   }
 
   {
-    util::tLock lock2(this->write_port);
+    util::tLock lock2(this->bb_lock);
     if (this->lock_id != buf->lock_iD)
     {
       util::tSystem::out.Println("Skipping outdated unlock");
