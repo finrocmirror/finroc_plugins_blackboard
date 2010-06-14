@@ -188,6 +188,45 @@ void tSingleBufferedBlackboardServer::DirectCommit(tBlackboardBuffer* new_buffer
   }
 }
 
+void tSingleBufferedBlackboardServer::GetSizeInfo(size_t& element_size, size_t& elements, size_t& capacity)
+{
+  // ok... three cases... 1) up to date copy  2) no lock  3) lock
+
+  // case 1: get buffer from superclass
+  if (read_copy_revision == revision)
+  {
+    const tBlackboardBuffer* bb = static_cast<const tBlackboardBuffer*>(this->read_port->GetLockedUnsafeRaw());
+    element_size = bb->GetElementSize();
+    elements = bb->GetElements();
+    capacity = bb->GetBbCapacity();
+    bb->GetManager()->ReleaseLock();
+    return;
+  }
+
+  // case 2/3: okay... wait until blackboard has no lock (could be implemented more sophisticated, but that shouldn't matter here...)
+  while (true)
+  {
+    {
+      util::tLock lock3(this->bb_lock);
+      if (locks >= 0)    // ok, not locked or read locked
+      {
+        element_size = buffer->GetElementSize();
+        elements = buffer->GetElements();
+        capacity = buffer->GetBbCapacity();
+        return;
+      }
+      try
+      {
+        util::tThread::Sleep(50);
+      }
+      catch (const util::tInterruptedException& e)
+      {
+      }
+    }
+  }
+
+}
+
 void tSingleBufferedBlackboardServer::KeepAlive(int lock_id_)
 {
   {

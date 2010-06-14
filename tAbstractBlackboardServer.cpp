@@ -69,6 +69,15 @@ void tAbstractBlackboardServer::DeferAsynchChangeCommand(int offset, const tBlac
   pending_asynch_change_tasks.Add(task);
 }
 
+void tAbstractBlackboardServer::GetSizeInfo(size_t& element_size, size_t& elements, size_t& capacity)
+{
+  const tBlackboardBuffer* buf = static_cast<const tBlackboardBuffer*>(read_port->GetLockedUnsafeRaw());
+  element_size = buf->GetElementSize();
+  elements = buf->GetElements();
+  capacity = buf->GetBbCapacity();
+  buf->GetManager()->ReleaseLock();
+}
+
 tBlackboardTask* tAbstractBlackboardServer::GetUnusedBlackboardTask()
 {
   tBlackboardTask* task = tBlackboardPlugin::task_pool->GetUnused();

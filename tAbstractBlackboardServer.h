@@ -293,6 +293,12 @@ public:
     target->GetBuffer()->Put(0u, *src->GetBuffer(), 0u, src->GetSize());
   }
 
+  /*!
+   * (Only works in C++)
+   * Retrieve size information for blackboard
+   */
+  virtual void GetSizeInfo(size_t& element_size, size_t& elements, size_t& capacity);
+
   void HandleVoidCall(core::tAbstractMethod* method, tBlackboardBuffer* p1)
   {
     if (method == &cDIRECT_COMMIT)

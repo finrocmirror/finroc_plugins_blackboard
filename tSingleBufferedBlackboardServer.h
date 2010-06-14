@@ -406,6 +406,8 @@ public:
 
   virtual ~tSingleBufferedBlackboardServer();
 
+  virtual void GetSizeInfo(size_t& element_size, size_t& elements, size_t& capacity);
+
   inline int8 HandleCall(const core::tAbstractMethod* method)
   {
     assert((method == &(cIS_SINGLE_BUFFERED)));
