@@ -297,56 +297,60 @@ const tBlackboardBuffer* tSingleBufferedBlackboardServer::ReadLock(int64 timeout
 {
   {
     util::tLock lock2(this->bb_lock);
+    return ReadLockImpl(lock2, timeout);
+  }
+}
 
-    // Read Lock
-    int64 current_revision = revision;
+tBlackboardBuffer* tSingleBufferedBlackboardServer::ReadLockImpl(util::tLock& passed_lock, int64 timeout)
+{
+  // Read Lock
+  int64 current_revision = revision;
+  if (locks < 0 && current_revision != read_copy_revision)
+  {
+    CheckCurrentLock(passed_lock);
     if (locks < 0 && current_revision != read_copy_revision)
     {
-      CheckCurrentLock(lock2);
-      if (locks < 0 && current_revision != read_copy_revision)
+      if (timeout <= 0)
       {
-        if (timeout <= 0)
-        {
-          return NULL;  // we do not need to enqueue lock commands with zero timeout
-        }
-        WaitForReadCopy(lock2, current_revision, timeout);
-        assert((read_copy_revision >= current_revision));
+        return NULL;  // we do not need to enqueue lock commands with zero timeout
       }
+      WaitForReadCopy(passed_lock, current_revision, timeout);
+      assert((read_copy_revision >= current_revision));
     }
+  }
 
-    if (read_copy_revision >= current_revision)
+  if (read_copy_revision >= current_revision)
+  {
+    // there's a copy... use this
+    read_copy->GetManager()->AddLock();
+    return read_copy;
+  }
+
+  if (locks >= 0)
+  {
+    // okay, we either have no lock or a read lock
+    if (PendingTasks() || thread_waiting_for_copy)    // there are others waiting... make copy
     {
-      // there's a copy... use this
+      UpdateReadCopy(passed_lock);
+      assert((read_copy_revision >= current_revision));
       read_copy->GetManager()->AddLock();
       return read_copy;
     }
-
-    if (locks >= 0)
+    else    // no one waiting... simply lock buffer
     {
-      // okay, we either have no lock or a read lock
-      if (PendingTasks() || thread_waiting_for_copy)    // there are others waiting... make copy
+      if (locks == 0)    // if this is the first lock: increment and set lock id of buffer
       {
-        UpdateReadCopy(lock2);
-        assert((read_copy_revision >= current_revision));
-        read_copy->GetManager()->AddLock();
-        return read_copy;
+        int lock_iDNew = lock_iDGen.IncrementAndGet();
+        lock_id = lock_iDNew;
+        buffer->lock_iD = lock_iDNew;
       }
-      else    // no one waiting... simply lock buffer
-      {
-        if (locks == 0)    // if this is the first lock: increment and set lock id of buffer
-        {
-          int lock_iDNew = lock_iDGen.IncrementAndGet();
-          lock_id = lock_iDNew;
-          buffer->lock_iD = lock_iDNew;
-        }
-        locks++;
-        buffer->GetManager()->AddLock();
-        return buffer;
-      }
+      locks++;
+      buffer->GetManager()->AddLock();
+      return buffer;
     }
-
-    throw core::tMethodCallException(core::tMethodCallException::ePROGRAMMING_ERROR);
   }
+
+  throw core::tMethodCallException(core::tMethodCallException::ePROGRAMMING_ERROR);
 }
 
 tBlackboardBuffer* tSingleBufferedBlackboardServer::ReadPart(int offset, int length, int timeout)
@@ -356,6 +360,7 @@ tBlackboardBuffer* tSingleBufferedBlackboardServer::ReadPart(int offset, int len
     const tBlackboardBuffer* bb = buffer;
     bool unlock = false;
     int64 current_revision = revision;
+    int locks_check = 0;
     if (locks < 0 && current_revision != read_copy_revision)
     {
       CheckCurrentLock(lock2);
@@ -367,11 +372,13 @@ tBlackboardBuffer* tSingleBufferedBlackboardServer::ReadPart(int offset, int len
         }
 
         // okay... we'll do a read lock
-        bb = ReadLock(timeout);
+        bb = ReadLockImpl(lock2, timeout);
         if (bb == NULL)
         {
           return NULL;
         }
+        locks_check = locks;
+        assert((locks_check > 0));
         unlock = true;
       }
     }
@@ -391,7 +398,9 @@ tBlackboardBuffer* tSingleBufferedBlackboardServer::ReadPart(int offset, int len
 
     if (unlock)    // if we have a read lock, we need to release it
     {
-      ReadUnlock(lock_id);
+      assert((locks == locks_check));
+      ReadUnlockImpl(lock2, lock_id);
+      assert((locks == locks_check - 1));
     }
 
     // return buffer with one read lock
@@ -409,22 +418,32 @@ void tSingleBufferedBlackboardServer::ReadUnlock(int lock_id_)
 
   {
     util::tLock lock2(this->bb_lock);
-    if (this->lock_id != lock_id_)
-    {
-      util::tSystem::out.Println("Skipping outdated unlock");
-      return;
-    }
+    ReadUnlockImpl(lock2, lock_id_);
+  }
+}
 
-    // okay, this is unlock for the current lock
-    assert((locks > 0));
-    locks--;
-    if (locks == 0)
-    {
-      NewBufferRevision(lock2, false);
-      ProcessPendingCommands(lock2);
-    }
+void tSingleBufferedBlackboardServer::ReadUnlockImpl(util::tLock& passed_lock, int lock_id_)
+{
+  if (lock_id_ < 0)
+  {
+    return;  // not interested, since it's a copy
+  }
+
+  if (this->lock_id != lock_id_)
+  {
+    util::tSystem::out.Println("Skipping outdated unlock");
     return;
   }
+
+  // okay, this is unlock for the current lock
+  assert((locks > 0));
+  locks--;
+  if (locks == 0)
+  {
+    NewBufferRevision(passed_lock, false);
+    ProcessPendingCommands(passed_lock);
+  }
+  return;
 }
 
 void tSingleBufferedBlackboardServer::UpdateReadCopy(util::tLock& passed_lock)

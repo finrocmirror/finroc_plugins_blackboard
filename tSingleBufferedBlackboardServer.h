@@ -336,6 +336,16 @@ private:
   void NewBufferRevision(util::tLock& passed_lock, bool has_changes);
 
   /*!
+   * Helper method for above to avoid nested/double lock
+   */
+  tBlackboardBuffer* ReadLockImpl(util::tLock& passed_lock, int64 timeout);
+
+  /*!
+   * Helper method for above to avoid nested/double lock
+   */
+  void ReadUnlockImpl(util::tLock& passed_lock, int lock_id_);
+
+  /*!
    * Make a copy for the read port - and hand it to anyone who is interested
    */
   void UpdateReadCopy(util::tLock& passed_lock);

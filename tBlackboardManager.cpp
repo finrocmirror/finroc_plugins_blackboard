@@ -31,6 +31,7 @@
 #include "blackboard/tRemoteBlackboardServer.h"
 #include "core/port/std/tPortBase.h"
 #include "core/port/tPortCreationInfo.h"
+#include "core/port/tPortFlags.h"
 #include "core/port/rpc/tInterfacePort.h"
 
 namespace finroc
@@ -245,7 +246,7 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
         if (read && info->read_port == NULL)
         {
           core::tPortBase* port = static_cast<core::tPortBase*>(element);
-          info->read_port = new core::tPortBase(core::tPortCreationInfo(cREAD_PORT_NAME, info, port->GetDataType()));
+          info->read_port = new core::tPortBase(core::tPortCreationInfo(cREAD_PORT_NAME, info, port->GetDataType(), core::tPortFlags::cOUTPUT_PROXY));
           info->Init();
           info->read_port->ConnectToSource(qname);
         }
