@@ -120,11 +120,11 @@ void tBlackboardServer::CheckCurrentLock(util::tLock& passed_lock)
 {
   if (locked != NULL && util::tTime::GetCoarse() > last_keep_alive + cUNLOCK_TIMEOUT)
   {
-    util::tSystem::out.Println("Blackboard server: Lock timed out... unlocking");
+    FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG, log_domain, << "Blackboard server: Lock timed out... unlocking");
     locked->GetCurReference()->GetRefCounter()->ReleaseLock();
     lock_id = lock_iDGen.IncrementAndGet();
     locked = NULL;
-    util::tSystem::out.Println(util::tStringBuilder("Thread ") + util::tThread::CurrentThread()->ToString() + ": lock = null");
+    FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG, log_domain, << util::tStringBuilder("Thread ") << util::tThread::CurrentThread()->ToString() << ": lock = null");
     bool p = ProcessPendingCommands(passed_lock);
     if ((!p) && (!IsLocked()))
     {
@@ -282,7 +282,7 @@ void tBlackboardServer::WriteUnlock(tBlackboardBuffer* buf)
 {
   if (buf == NULL)
   {
-    util::tSystem::out.Println("blackboard write unlock without providing buffer - strange indeed - ignoring");
+    FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, << "blackboard write unlock without providing buffer - strange indeed - ignoring");
     return;
   }
 
@@ -290,7 +290,7 @@ void tBlackboardServer::WriteUnlock(tBlackboardBuffer* buf)
     util::tLock lock2(this->bb_lock);
     if (this->lock_id != buf->lock_iD)
     {
-      util::tSystem::out.Println("Skipping outdated unlock");
+      FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG, log_domain, << "Skipping outdated unlock");
       buf->GetManager()->ReleaseLock();
       return;
     }

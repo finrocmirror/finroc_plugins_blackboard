@@ -129,7 +129,7 @@ void tSingleBufferedBlackboardServer::CheckCurrentLock(util::tLock& passed_lock)
 {
   if (IsLocked() && util::tTime::GetCoarse() > last_keep_alive + cUNLOCK_TIMEOUT)
   {
-    util::tSystem::out.Println("Blackboard server: Lock timed out... unlocking");
+    FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG, log_domain, << "Blackboard server: Lock timed out... unlocking");
 
     // meh... we have a read or write lock... so a client may make changes to it... or may still read it... it's safer to create new buffer here
     tBlackboardBuffer* new_buffer = static_cast<tBlackboardBuffer*>(this->read_port->GetUnusedBufferRaw());
@@ -350,7 +350,7 @@ tBlackboardBuffer* tSingleBufferedBlackboardServer::ReadLockImpl(util::tLock& pa
     }
   }
 
-  throw core::tMethodCallException(core::tMethodCallException::ePROGRAMMING_ERROR);
+  throw core::tMethodCallException(core::tMethodCallException::ePROGRAMMING_ERROR, __CODE_LOCATION__);
 }
 
 tBlackboardBuffer* tSingleBufferedBlackboardServer::ReadPart(int offset, int length, int timeout)
@@ -431,7 +431,7 @@ void tSingleBufferedBlackboardServer::ReadUnlockImpl(util::tLock& passed_lock, i
 
   if (this->lock_id != lock_id_)
   {
-    util::tSystem::out.Println("Skipping outdated unlock");
+    FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG, log_domain, << "Skipping outdated unlock");
     return;
   }
 
@@ -497,7 +497,7 @@ void tSingleBufferedBlackboardServer::WaitForReadCopy(util::tLock& passed_lock, 
       }
       catch (const util::tInterruptedException& e)
       {
-        util::tSystem::out.Println("SingleBufferedBlackboardServer: Interrupted while waiting for read copy - strange");
+        FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, << "SingleBufferedBlackboardServer: Interrupted while waiting for read copy - strange");
         //e.printStackTrace();
       }
     }
@@ -547,7 +547,7 @@ void tSingleBufferedBlackboardServer::WriteUnlock(tBlackboardBuffer* buf)
 {
   if (buf == NULL)
   {
-    util::tSystem::out.Println("blackboard write unlock without providing buffer - you shouldn't do that - ignoring");
+    FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, << "blackboard write unlock without providing buffer - you shouldn't do that - ignoring");
     return;
   }
   assert(((buf->lock_iD >= 0)) && "lock IDs < 0 are typically only found in read copies");
@@ -556,7 +556,7 @@ void tSingleBufferedBlackboardServer::WriteUnlock(tBlackboardBuffer* buf)
     util::tLock lock2(this->bb_lock);
     if (this->lock_id != buf->lock_iD)
     {
-      util::tSystem::out.Println("Skipping outdated unlock");
+      FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG, log_domain, << "Skipping outdated unlock");
       buf->GetManager()->ReleaseLock();
       return;
     }

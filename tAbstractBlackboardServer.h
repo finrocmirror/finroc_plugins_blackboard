@@ -118,6 +118,9 @@ public:
   /*! Is server a single-buffered blackboard server? */
   static core::tVoid1Method<tAbstractBlackboardServer*, int> cKEEP_ALIVE;
 
+  /*! Log domain for this class */
+  CREATE_NAMED_LOGGING_DOMAIN(log_domain, "blackboard");
+
 protected:
 
   /*!

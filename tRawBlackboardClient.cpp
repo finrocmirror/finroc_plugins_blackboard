@@ -140,7 +140,7 @@ void tRawBlackboardClient::Publish(tBlackboardBuffer* buffer)
   }
   catch (const core::tMethodCallException& e)
   {
-    util::tSystem::out.Println("warning: Blackboard direct commit failed");
+    FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, << "warning: Blackboard direct commit failed");
   }
 }
 
@@ -224,7 +224,7 @@ void tRawBlackboardClient::SendKeepAlive()
     }
     catch (const core::tMethodCallException& e)
     {
-      util::tSystem::out.Println("warning: Sending Keep-Alice failed");
+      FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, << "warning: Sending Keep-Alive failed");
     }
   }
 }
@@ -233,7 +233,7 @@ void tRawBlackboardClient::Unlock()
 {
   if (lock_type == tRawBlackboardClient::eNONE)
   {
-    util::tSystem::out.Println("BlackboardClient warning: nothing to unlock");
+    FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, << "BlackboardClient warning: nothing to unlock");
     cur_lock_iD = -1;
     lock_type = tRawBlackboardClient::eNONE;
     locked = NULL;
@@ -252,8 +252,7 @@ void tRawBlackboardClient::Unlock()
       }
       catch (const core::tMethodCallException& e)
       {
-        util::tSystem::out.Println("warning: Unlocking blackboard (read) failed");
-        e.PrintStackTrace();
+        FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, << "warning: Unlocking blackboard (read) failed" << e);
       }
     }
     read_locked->GetManager()->ReleaseLock();
@@ -273,7 +272,7 @@ void tRawBlackboardClient::Unlock()
   }
   catch (const core::tMethodCallException& e)
   {
-    util::tSystem::out.Println("warning: Unlocking blackboard failed");
+    FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, << "warning: Unlocking blackboard failed");
     //e.printStackTrace();
   }
   locked = NULL;

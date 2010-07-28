@@ -314,16 +314,16 @@ protected:
 
   virtual const tBlackboardBuffer* ReadLock(int64 timeout)
   {
-    util::tSystem::out.Println("warning: Client must not attempt read lock on multi-buffered blackboard - Call failed");
-    throw core::tMethodCallException(core::tMethodCallException::eINVALID_PARAM);
+    FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, << "warning: Client must not attempt read lock on multi-buffered blackboard - Call failed");
+    throw core::tMethodCallException(core::tMethodCallException::eINVALID_PARAM, __CODE_LOCATION__);
   }
 
   virtual tBlackboardBuffer* ReadPart(int offset, int length, int timeout);
 
   virtual void ReadUnlock(int lock_id_)
   {
-    util::tSystem::out.Println("warning: Client must not attempt read unlock on multi-buffered blackboard - Call failed");
-    throw core::tMethodCallException(core::tMethodCallException::eINVALID_PARAM);
+    FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, << "warning: Client must not attempt read unlock on multi-buffered blackboard - Call failed");
+    throw core::tMethodCallException(core::tMethodCallException::eINVALID_PARAM, __CODE_LOCATION__);
   }
 
   virtual tBlackboardBuffer* WriteLock(int64 timeout);
