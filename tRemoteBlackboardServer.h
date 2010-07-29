@@ -43,52 +43,52 @@ protected:
 
   virtual void AsynchChange(int i, const tBlackboardBuffer* buf, bool check_lock)
   {
-    throw util::tRuntimeException("Operation not supported", __CODE_LOCATION__);
+    throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
 
   virtual void DirectCommit(tBlackboardBuffer* buf)
   {
-    throw util::tRuntimeException("Operation not supported", __CODE_LOCATION__);
+    throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
 
   virtual bool IsLocked()
   {
-    throw util::tRuntimeException("Operation not supported", __CODE_LOCATION__);
+    throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
 
   virtual bool IsSingleBuffered()
   {
-    throw util::tRuntimeException("Operation not supported", __CODE_LOCATION__);
+    throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
 
   virtual void KeepAlive(int lock_id)
   {
-    throw util::tRuntimeException("Operation not supported", __CODE_LOCATION__);
+    throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
 
   virtual const tBlackboardBuffer* ReadLock(int64 timeout)
   {
-    throw util::tRuntimeException("Operation not supported", __CODE_LOCATION__);
+    throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
 
   virtual tBlackboardBuffer* ReadPart(int offset, int length, int timeout)
   {
-    throw util::tRuntimeException("Operation not supported", __CODE_LOCATION__);
+    throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
 
   virtual void ReadUnlock(int lock_id)
   {
-    throw util::tRuntimeException("Operation not supported", __CODE_LOCATION__);
+    throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
 
   virtual tBlackboardBuffer* WriteLock(int64 timeout)
   {
-    throw util::tRuntimeException("Operation not supported", __CODE_LOCATION__);
+    throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
 
   virtual void WriteUnlock(tBlackboardBuffer* buf)
   {
-    throw util::tRuntimeException("Operation not supported", __CODE_LOCATION__);
+    throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
 
 public:
