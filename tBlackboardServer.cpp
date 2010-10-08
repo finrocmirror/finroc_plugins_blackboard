@@ -19,14 +19,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+#include "core/portdatabase/tDataType.h"
 #include "blackboard/tBlackboardServer.h"
+#include "blackboard/tBlackboardBuffer.h"
 #include "blackboard/tBlackboardManager.h"
 #include "core/port/std/tPort.h"
 #include "core/port/tPortCreationInfo.h"
 #include "core/port/tPortFlags.h"
 #include "core/tCoreFlags.h"
 #include "core/tLockOrderLevels.h"
+#include "core/port/rpc/tInterfaceServerPort.h"
+#include "core/port/std/tPortBase.h"
+#include "finroc_core_utils/stream/tFixedBuffer.h"
+#include "core/port/std/tPortDataManager.h"
 #include "finroc_core_utils/tTime.h"
+#include "core/port/std/tPortDataReference.h"
 
 namespace finroc
 {
@@ -124,7 +131,7 @@ void tBlackboardServer::CheckCurrentLock(util::tLock& passed_lock)
     locked->GetCurReference()->GetRefCounter()->ReleaseLock();
     lock_id = lock_iDGen.IncrementAndGet();
     locked = NULL;
-    FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG, log_domain, util::tStringBuilder("Thread "), util::tThread::CurrentThread()->ToString(), ": lock = null");
+    FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG, log_domain, "Thread ", util::tThread::CurrentThread()->ToString(), ": lock = null");
     bool p = ProcessPendingCommands(passed_lock);
     if ((!p) && (!IsLocked()))
     {

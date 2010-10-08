@@ -24,23 +24,25 @@
 #ifndef PLUGINS__BLACKBOARD__TSINGLEBUFFEREDBLACKBOARDSERVER_H
 #define PLUGINS__BLACKBOARD__TSINGLEBUFFEREDBLACKBOARDSERVER_H
 
-#include "core/portdatabase/tDataType.h"
-#include "core/port/rpc/tInterfaceServerPort.h"
-#include "blackboard/tBlackboardBuffer.h"
-#include "core/tFrameworkElement.h"
-#include "core/port/rpc/method/tAbstractMethod.h"
-#include "core/port/std/tPortBase.h"
-#include "core/port/std/tPortDataImpl.h"
 #include "blackboard/tAbstractBlackboardServer.h"
 #include "core/port/std/tPullRequestHandler.h"
 #include "core/port/tPortCreationInfo.h"
-#include "core/port/tAbstractPort.h"
 #include "core/port/std/tPort.h"
+
+namespace finroc
+{
+namespace core
+{
+class tInterfaceServerPort;
+} // namespace finroc
+} // namespace core
 
 namespace finroc
 {
 namespace blackboard
 {
+class tBlackboardBuffer;
+
 /*!
  * \author Max Reichardt
  *

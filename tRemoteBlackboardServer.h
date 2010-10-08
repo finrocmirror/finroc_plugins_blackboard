@@ -25,13 +25,14 @@
 #define PLUGINS__BLACKBOARD__TREMOTEBLACKBOARDSERVER_H
 
 #include "blackboard/tBlackboardManager.h"
-#include "blackboard/tBlackboardBuffer.h"
 #include "blackboard/tAbstractBlackboardServer.h"
 
 namespace finroc
 {
 namespace blackboard
 {
+class tBlackboardBuffer;
+
 /*!
  * \author Max Reichardt
  *

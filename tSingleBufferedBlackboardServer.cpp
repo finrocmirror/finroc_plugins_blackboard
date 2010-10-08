@@ -19,12 +19,20 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+#include "core/portdatabase/tDataType.h"
 #include "blackboard/tSingleBufferedBlackboardServer.h"
+#include "blackboard/tBlackboardBuffer.h"
 #include "blackboard/tBlackboardManager.h"
 #include "core/port/tPortFlags.h"
 #include "core/tCoreFlags.h"
 #include "core/tLockOrderLevels.h"
+#include "core/port/std/tPortBase.h"
+#include "core/port/rpc/tInterfaceServerPort.h"
+#include "core/port/std/tPortDataManager.h"
+#include "finroc_core_utils/stream/tFixedBuffer.h"
 #include "finroc_core_utils/tTime.h"
+#include "finroc_core_utils/log/tLogUser.h"
+#include "core/port/std/tPortDataReference.h"
 #include "core/port/rpc/tMethodCallException.h"
 
 namespace finroc

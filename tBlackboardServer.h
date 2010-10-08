@@ -24,17 +24,24 @@
 #ifndef PLUGINS__BLACKBOARD__TBLACKBOARDSERVER_H
 #define PLUGINS__BLACKBOARD__TBLACKBOARDSERVER_H
 
-#include "core/portdatabase/tDataType.h"
-#include "core/port/rpc/tInterfaceServerPort.h"
-#include "blackboard/tBlackboardBuffer.h"
-#include "core/tFrameworkElement.h"
+#include "finroc_core_utils/log/tLogUser.h"
 #include "core/port/rpc/tMethodCallException.h"
 #include "blackboard/tAbstractBlackboardServer.h"
 
 namespace finroc
 {
+namespace core
+{
+class tInterfaceServerPort;
+} // namespace finroc
+} // namespace core
+
+namespace finroc
+{
 namespace blackboard
 {
+class tBlackboardBuffer;
+
 /*!
  * \author Max Reichardt
  *

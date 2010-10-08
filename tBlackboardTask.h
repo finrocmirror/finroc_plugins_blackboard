@@ -24,6 +24,7 @@
 #ifndef PLUGINS__BLACKBOARD__TBLACKBOARDTASK_H
 #define PLUGINS__BLACKBOARD__TBLACKBOARDTASK_H
 
+#include "core/port/std/tPortDataManager.h"
 #include "blackboard/tBlackboardBuffer.h"
 #include "finroc_core_utils/container/tReusable.h"
 

@@ -24,10 +24,15 @@
 #ifndef PLUGINS__BLACKBOARD__TBLACKBOARDBUFFER_H
 #define PLUGINS__BLACKBOARD__TBLACKBOARDBUFFER_H
 
-#include "core/portdatabase/tDataType.h"
-#include "core/buffers/tCoreInput.h"
-#include "core/buffers/tCoreOutput.h"
 #include "core/buffers/tMemBuffer.h"
+
+namespace finroc
+{
+namespace core
+{
+class tDataType;
+} // namespace finroc
+} // namespace core
 
 namespace finroc
 {

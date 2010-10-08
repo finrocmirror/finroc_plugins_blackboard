@@ -19,17 +19,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "blackboard/tAbstractBlackboardServer.h"
-#include "blackboard/tRawBlackboardClient.h"
-
 #include "blackboard/tBlackboardManager.h"
-#include "core/tRuntimeEnvironment.h"
 #include "core/tCoreFlags.h"
 #include "finroc_core_utils/thread/sThreadUtil.h"
+#include "blackboard/tRawBlackboardClient.h"
 #include "core/plugin/tPlugins.h"
 #include "blackboard/tBlackboardPlugin.h"
-#include "blackboard/tRemoteBlackboardServer.h"
+#include "blackboard/tAbstractBlackboardServer.h"
 #include "core/port/std/tPortBase.h"
+#include "blackboard/tRemoteBlackboardServer.h"
 #include "core/port/tPortCreationInfo.h"
 #include "core/port/tPortFlags.h"
 #include "core/port/rpc/tInterfacePort.h"

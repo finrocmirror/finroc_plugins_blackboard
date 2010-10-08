@@ -20,6 +20,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #include "blackboard/tBlackboardPlugin.h"
+#include "blackboard/tBlackboardTask.h"
 #include "finroc_core_utils/tAutoDeleter.h"
 
 namespace finroc

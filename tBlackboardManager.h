@@ -24,21 +24,27 @@
 #ifndef PLUGINS__BLACKBOARD__TBLACKBOARDMANAGER_H
 #define PLUGINS__BLACKBOARD__TBLACKBOARDMANAGER_H
 
-#include "core/portdatabase/tDataType.h"
+#include "core/tRuntimeEnvironment.h"
 #include "finroc_core_utils/container/tSimpleListWithMutex.h"
 #include "core/tLockOrderLevels.h"
 #include "core/tFrameworkElement.h"
 #include "core/tRuntimeListener.h"
 #include "core/thread/tCoreLoopThreadBase.h"
 
-#include "core/tRuntimeEnvironment.h"
+namespace finroc
+{
+namespace core
+{
+class tDataType;
+} // namespace finroc
+} // namespace core
 
 namespace finroc
 {
 namespace blackboard
 {
-class tAbstractBlackboardServer;
 class tRawBlackboardClient;
+class tAbstractBlackboardServer;
 
 /*!
  * \author Max Reichardt

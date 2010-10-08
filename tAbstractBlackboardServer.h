@@ -20,34 +20,41 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #include "finroc_core_utils/tJCBase.h"
+#include "core/portdatabase/tDataType.h"
 
 #ifndef PLUGINS__BLACKBOARD__TABSTRACTBLACKBOARDSERVER_H
 #define PLUGINS__BLACKBOARD__TABSTRACTBLACKBOARDSERVER_H
 
-#include "core/portdatabase/tDataType.h"
 #include "core/tLockOrderLevels.h"
-#include "core/port/std/tPortBase.h"
-#include "core/port/rpc/tInterfacePort.h"
-#include "blackboard/tBlackboardManager.h"
 #include "finroc_core_utils/container/tSimpleList.h"
-#include "blackboard/tBlackboardTask.h"
 #include "core/port/rpc/method/tPortInterface.h"
 #include "core/port/rpc/method/tPort1Method.h"
-#include "blackboard/tBlackboardBuffer.h"
 #include "core/port/rpc/method/tPort2Method.h"
 #include "core/port/rpc/method/tVoid1Method.h"
 #include "core/port/rpc/method/tVoid2Method.h"
 #include "core/port/rpc/method/tPort3Method.h"
 #include "core/port/rpc/method/tPort0Method.h"
-#include "core/tFrameworkElement.h"
+#include "blackboard/tBlackboardBuffer.h"
+#include "finroc_core_utils/stream/tFixedBuffer.h"
 #include "finroc_core_utils/thread/sThreadUtil.h"
-#include "core/port/rpc/method/tAbstractMethod.h"
+#include "blackboard/tBlackboardManager.h"
+#include "core/tFrameworkElement.h"
 #include "core/port/rpc/method/tAbstractMethodCallHandler.h"
+
+namespace finroc
+{
+namespace core
+{
+class tPortBase;
+} // namespace finroc
+} // namespace core
 
 namespace finroc
 {
 namespace blackboard
 {
+class tBlackboardTask;
+
 /*! Blackboard info */
 struct tAbstractBlackboardServer : public core::tFrameworkElement, public core::tAbstractMethodCallHandler
 {

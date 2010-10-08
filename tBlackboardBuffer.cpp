@@ -21,6 +21,10 @@
  */
 #include "blackboard/tBlackboardBuffer.h"
 #include "blackboard/tBlackboardPlugin.h"
+#include "core/buffers/tCoreInput.h"
+#include "finroc_core_utils/stream/tMemoryBuffer.h"
+#include "finroc_core_utils/stream/tFixedBuffer.h"
+#include "core/buffers/tCoreOutput.h"
 
 namespace finroc
 {

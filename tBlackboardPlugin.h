@@ -20,22 +20,30 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #include "finroc_core_utils/tJCBase.h"
+#include "core/portdatabase/tDataType.h"
 
 #ifndef PLUGINS__BLACKBOARD__TBLACKBOARDPLUGIN_H
 #define PLUGINS__BLACKBOARD__TBLACKBOARDPLUGIN_H
 
-#include "core/portdatabase/tDataType.h"
 #include "finroc_core_utils/container/tReusablesPoolCR.h"
-#include "blackboard/tBlackboardTask.h"
-#include "core/plugin/tPluginManager.h"
 #include "core/portdatabase/tDataTypeRegister.h"
 #include "blackboard/tAbstractBlackboardServer.h"
 #include "core/plugin/tPlugin.h"
 
 namespace finroc
 {
+namespace core
+{
+class tPluginManager;
+} // namespace finroc
+} // namespace core
+
+namespace finroc
+{
 namespace blackboard
 {
+class tBlackboardTask;
+
 /*!
  * \author Max Reichardt
  *
