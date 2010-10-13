@@ -19,14 +19,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "finroc_core_utils/tJCBase.h"
+#include "rrlib/finroc_core_utils/tJCBase.h"
 #include "core/portdatabase/tDataType.h"
 
 #ifndef PLUGINS__BLACKBOARD__TABSTRACTBLACKBOARDSERVER_H
 #define PLUGINS__BLACKBOARD__TABSTRACTBLACKBOARDSERVER_H
 
 #include "core/tLockOrderLevels.h"
-#include "finroc_core_utils/container/tSimpleList.h"
+#include "rrlib/finroc_core_utils/container/tSimpleList.h"
 #include "core/port/rpc/method/tPortInterface.h"
 #include "core/port/rpc/method/tPort1Method.h"
 #include "core/port/rpc/method/tPort2Method.h"
@@ -34,10 +34,10 @@
 #include "core/port/rpc/method/tVoid2Method.h"
 #include "core/port/rpc/method/tPort3Method.h"
 #include "core/port/rpc/method/tPort0Method.h"
-#include "blackboard/tBlackboardBuffer.h"
-#include "finroc_core_utils/stream/tFixedBuffer.h"
-#include "finroc_core_utils/thread/sThreadUtil.h"
-#include "blackboard/tBlackboardManager.h"
+#include "plugins/blackboard/tBlackboardBuffer.h"
+#include "rrlib/finroc_core_utils/stream/tFixedBuffer.h"
+#include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
+#include "plugins/blackboard/tBlackboardManager.h"
 #include "core/tFrameworkElement.h"
 #include "core/port/rpc/method/tAbstractMethodCallHandler.h"
 

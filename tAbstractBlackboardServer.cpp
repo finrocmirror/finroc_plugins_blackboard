@@ -19,14 +19,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "blackboard/tAbstractBlackboardServer.h"
-#include "blackboard/tBlackboardTask.h"
+#include "plugins/blackboard/tAbstractBlackboardServer.h"
+#include "plugins/blackboard/tBlackboardTask.h"
 #include "core/port/std/tPortBase.h"
 #include "core/port/std/tPortDataManager.h"
-#include "finroc_core_utils/container/tReusablesPoolCR.h"
-#include "blackboard/tBlackboardPlugin.h"
-#include "finroc_core_utils/tTime.h"
-#include "finroc_core_utils/log/tLogUser.h"
+#include "rrlib/finroc_core_utils/container/tReusablesPoolCR.h"
+#include "plugins/blackboard/tBlackboardPlugin.h"
+#include "rrlib/finroc_core_utils/tTime.h"
+#include "rrlib/finroc_core_utils/log/tLogUser.h"
 
 namespace finroc
 {

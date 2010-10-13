@@ -20,9 +20,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #include "core/portdatabase/tDataType.h"
-#include "blackboard/tBlackboardServer.h"
-#include "blackboard/tBlackboardBuffer.h"
-#include "blackboard/tBlackboardManager.h"
+#include "plugins/blackboard/tBlackboardServer.h"
+#include "plugins/blackboard/tBlackboardBuffer.h"
+#include "plugins/blackboard/tBlackboardManager.h"
 #include "core/port/std/tPort.h"
 #include "core/port/tPortCreationInfo.h"
 #include "core/port/tPortFlags.h"
@@ -30,9 +30,9 @@
 #include "core/tLockOrderLevels.h"
 #include "core/port/rpc/tInterfaceServerPort.h"
 #include "core/port/std/tPortBase.h"
-#include "finroc_core_utils/stream/tFixedBuffer.h"
+#include "rrlib/finroc_core_utils/stream/tFixedBuffer.h"
 #include "core/port/std/tPortDataManager.h"
-#include "finroc_core_utils/tTime.h"
+#include "rrlib/finroc_core_utils/tTime.h"
 #include "core/port/std/tPortDataReference.h"
 
 namespace finroc

@@ -19,11 +19,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "blackboard/tBlackboardBuffer.h"
-#include "blackboard/tBlackboardPlugin.h"
+#include "plugins/blackboard/tBlackboardBuffer.h"
+#include "plugins/blackboard/tBlackboardPlugin.h"
 #include "core/buffers/tCoreInput.h"
-#include "finroc_core_utils/stream/tMemoryBuffer.h"
-#include "finroc_core_utils/stream/tFixedBuffer.h"
+#include "rrlib/finroc_core_utils/stream/tMemoryBuffer.h"
+#include "rrlib/finroc_core_utils/stream/tFixedBuffer.h"
 #include "core/buffers/tCoreOutput.h"
 
 namespace finroc

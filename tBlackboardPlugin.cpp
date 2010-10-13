@@ -19,9 +19,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "blackboard/tBlackboardPlugin.h"
-#include "blackboard/tBlackboardTask.h"
-#include "finroc_core_utils/tAutoDeleter.h"
+#include "plugins/blackboard/tBlackboardPlugin.h"
+#include "plugins/blackboard/tBlackboardTask.h"
+#include "rrlib/finroc_core_utils/tAutoDeleter.h"
 
 namespace finroc
 {

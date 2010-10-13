@@ -19,14 +19,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "finroc_core_utils/tJCBase.h"
+#include "rrlib/finroc_core_utils/tJCBase.h"
 
 #ifndef PLUGINS__BLACKBOARD__TBLACKBOARDTASK_H
 #define PLUGINS__BLACKBOARD__TBLACKBOARDTASK_H
 
 #include "core/port/std/tPortDataManager.h"
-#include "blackboard/tBlackboardBuffer.h"
-#include "finroc_core_utils/container/tReusable.h"
+#include "plugins/blackboard/tBlackboardBuffer.h"
+#include "rrlib/finroc_core_utils/container/tReusable.h"
 
 namespace finroc
 {
