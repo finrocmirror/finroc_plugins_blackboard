@@ -345,6 +345,11 @@ public:
 
   virtual void RuntimeChange(int8 change_type, core::tFrameworkElement* element);
 
+  virtual void RuntimeEdgeChange(int8 change_type, core::tAbstractPort* source, core::tAbstractPort* target)
+  {
+    // do nothing
+  }
+
 private:
   /*!
    * \author Max Reichardt
