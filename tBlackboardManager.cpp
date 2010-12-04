@@ -206,7 +206,7 @@ void tBlackboardManager::RemoveClient(tRawBlackboardClient* client)
 {
   {
     util::tLock lock2(bb_clients);
-    bb_clients.Add(client, false);
+    bb_clients.Remove(client);
   }
   if (!client->AutoConnectClient())
   {
