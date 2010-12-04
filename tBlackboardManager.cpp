@@ -316,7 +316,10 @@ void tBlackboardManager::tLockCheckerThread::MainLoopCallback()
   for (size_t i = 0u; i < it->Size(); i++)
   {
     tRawBlackboardClient* client = it->Get(i);
-    client->SendKeepAlive();
+    if (client != NULL && client->IsReady())
+    {
+      client->SendKeepAlive();
+    }
   }
 
   // check for outdated locks (do this for local and shared blackboards)
