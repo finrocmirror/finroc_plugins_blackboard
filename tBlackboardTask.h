@@ -42,14 +42,8 @@ class tBlackboardTask : public util::tReusable
 public:
   /* implements Task */
 
-  /*! Method that is pending (possible are lock and asynch_change) */
-  //public @Const AbstractMethod method;
-
   /*! In case a thread is waiting on BlackboardServer - his uid - may only be changed in context synchronized to blackboard server */
   int64 thread_uid;
-
-  ///** Notify waiting thread on lock when ready (instead of calling executeTask()) */
-  //public boolean notifyOnly;
 
   /*! BlackboardBuffer to use for task - if this is set, it will be unlocked with recycle */
   const tBlackboardBuffer* buffer;

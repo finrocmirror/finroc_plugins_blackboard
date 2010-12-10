@@ -143,9 +143,6 @@ protected:
   /*! Is there currently a lock? */
   tRawBlackboardClient::tLockType lock_type;
 
-  /*! Is this a client of a "traditional" single-buffered blackboard? */
-  //protected boolean singleBuffered;
-
   /*! ID of current locking operation */
   volatile int cur_lock_iD;
 
@@ -166,44 +163,6 @@ private:
   void CheckSingleBuffered();
 
 protected:
-
-  //
-  //  /**
-  //   * \param description Name/Uid of blackboard
-  //   * \param owner Parent of client
-  //   * \param type Data type of blackboard contents
-  //   * \param readOnly Is this interface only used for read access?
-  //   * \param pushRead Should data to read be pushed instead of pulled? (makes no difference for writing)
-  //   */
-  //  public RawBlackboardClient(String description, FrameworkElement owner, DataType type, boolean readOnly, boolean pushRead, , @CppDefault("-1") int autoConnectCategory) {
-  //
-  //  }
-  //
-  //  /**
-  //   * (auto-connects blackboard)
-  //   *
-  //   * \param description Name/Uid of blackboard
-  //   * \param owner Parent of client
-  //   * \param readOnly Is this interface only used for read access?
-  //   * \param pushRead Should data to read be pushed instead of pulled? (makes no difference for writing)
-  //   */
-  //  public RawBlackboardClient(String description, FrameworkElement owner, @CppDefault("false") boolean readOnly, @CppDefault("false") boolean pushRead) {
-  //      this(description, owner, Blackboard2Plugin.BUFFER_TYPE, readOnly, pushRead, true, -1);
-  //  }
-
-  //  @JavaOnly
-  //  public RawBlackboardClient(String description) {
-  //      this(DEFAULT_PCI.derive(description), true, -1);
-  //  }
-
-  //  /**
-  //   * Connect to blackboard server with same name/uid
-  //   */
-  //  public void autoConnect() {
-  //      // connect to server
-  //      readPort.connectToSource(BlackboardManager.createLinkName(getDescription(), true));
-  //      write.connectToSource(BlackboardManager.createLinkName(getDescription(), false));
-  //  }
 
   virtual void PostChildInit();
 
@@ -282,45 +241,6 @@ public:
     return lock_type == tRawBlackboardClient::eREAD;
   }
 
-  //  @Override
-  //  public void handleMethodReturn(MethodCall mc, byte methodId, long intRet,
-  //          double dblRet, TypedObject objRet) {
-  //      System.out.println("Unhandled blackboard method return... shouldn't happen");
-  //  }
-
-  //  /**
-  //   * Get direct access to published blackboard buffer without any locks.
-  //   * (This is unsafe and deprecated - It can, however, be safe in constructors - does not work over network connection)
-  //   * It is included for MCA2 backward compatibility
-  //   *
-  //   * \return Unlocked, unsafe Blackboard buffer
-  //   */
-  //  public BlackboardBuffer deprecatedDirectBufferAccess(long timeout) {
-  //      assert(locked == null);
-  //      try {
-  //          BlackboardBuffer buffer = (BlackboardBuffer)writePort.synchObjMethodCall(DEPRECATED_DIRECT_BUFFER_ACCESS, timeout, false);
-  //          return buffer;
-  //      } catch (Exception e) {
-  //          return null;
-  //      }
-  //  }
-
-  //  /**
-  //   * \return "Traditional" single-buffered blackboard? - less copying overhead, but more blocking
-  //   */
-  //  public boolean isSingleBuffered() {
-  //      return singleBuffered;
-  //  }
-  //
-  //  /**
-  //   * For cpp compilation
-  //   *
-  //   * \param val
-  //   */
-  //  @InCppFile void setSingleBuffered(boolean val) {
-  //      singleBuffered = val;
-  //  }
-
   inline bool HasWriteLock()
   {
     return lock_type == tRawBlackboardClient::eWRITE;
@@ -353,21 +273,7 @@ public:
    */
   inline const tBlackboardBuffer* Read(int64 timeout)
   {
-    //assert(!isSingleBuffered());
-
-    //checkSingleBuffered();
-    //if (serverBuffers == ServerBuffers.UNKNOWN) { // not connected ?!
-    //  return null;
-    //}
-
-    //boolean viaPort = (serverBuffers == ServerBuffers.MULTI) || readPort.pushStrategy() || forceReadCopyToAvoidBlocking;
-    //if (viaPort) {
     return static_cast<const tBlackboardBuffer*>(read_port->GetLockedUnsafeRaw());
-
-    //} else {
-    //
-    //  return readLock(timeout);
-    //}
   }
 
   inline const tBlackboardBuffer* Read()
