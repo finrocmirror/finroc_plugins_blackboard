@@ -41,7 +41,7 @@ namespace finroc
 namespace blackboard
 {
 tRawBlackboardClient::tRawBlackboardClient(core::tPortCreationInfo pci, bool auto_connect_, int auto_connect_category_) :
-    core::tFrameworkElement(pci.description, pci.parent),
+    core::tFrameworkElement(pci.parent, pci.description),
     server_buffers(tRawBlackboardClient::eUNKNOWN),
     write_port(pci.GetFlag(core::tPortFlags::cEMITS_DATA) ? new tWritePort(this, pci.data_type->GetRelatedType()) : NULL),
     read_port(pci.GetFlag(core::tPortFlags::cACCEPTS_DATA) ? new tReadPort(this, core::tPortCreationInfo("read", this, pci.data_type, core::tPortFlags::cACCEPTS_DATA | (pci.flags & core::tPortFlags::cPUSH_STRATEGY))) : NULL),

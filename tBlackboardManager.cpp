@@ -44,7 +44,7 @@ util::tString tBlackboardManager::cREAD_POSTFIX = util::tStringBuilder("/") + tB
 tBlackboardManager* volatile tBlackboardManager::instance;
 
 tBlackboardManager::tBlackboardManager() :
-    core::tFrameworkElement(cNAME, core::tRuntimeEnvironment::GetInstance()),
+    core::tFrameworkElement(core::tRuntimeEnvironment::GetInstance(), cNAME),
     categories(cDIMENSION),
     temp_buffer(),
     bb_clients(10u, 4u),
@@ -262,7 +262,7 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
 }
 
 tBlackboardManager::tBlackboardCategory::tBlackboardCategory(tBlackboardManager* const outer_class_ptr_, const util::tString& category_name, int default_flags_) :
-    core::tFrameworkElement(category_name, outer_class_ptr_, default_flags_, -1),
+    core::tFrameworkElement(outer_class_ptr_, category_name, default_flags_, -1),
     outer_class_ptr(outer_class_ptr_),
     default_flags(default_flags_),
     blackboards(100u, 4u)

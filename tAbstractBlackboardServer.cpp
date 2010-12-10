@@ -44,7 +44,7 @@ core::tPort0Method<tAbstractBlackboardServer*, int8> tAbstractBlackboardServer::
 core::tVoid1Method<tAbstractBlackboardServer*, int> tAbstractBlackboardServer::cKEEP_ALIVE(tAbstractBlackboardServer::cMETHODS, "KeepAliveSignal", "Lock ID", false);
 
 tAbstractBlackboardServer::tAbstractBlackboardServer(const util::tString& bb_name, int category, core::tFrameworkElement* parent) :
-    core::tFrameworkElement(bb_name, parent == NULL ? tBlackboardManager::GetInstance()->GetCategory(category) : parent, tBlackboardManager::GetInstance()->GetCategory(category)->default_flags, -1),
+    core::tFrameworkElement(parent == NULL ? tBlackboardManager::GetInstance()->GetCategory(category) : parent, bb_name, tBlackboardManager::GetInstance()->GetCategory(category)->default_flags, -1),
     pending_major_tasks(),
     pending_asynch_change_tasks(),
     wakeup_thread(-1),
