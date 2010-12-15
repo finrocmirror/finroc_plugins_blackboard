@@ -23,13 +23,12 @@
 #include "plugins/blackboard/tBlackboardServer.h"
 #include "plugins/blackboard/tBlackboardBuffer.h"
 #include "plugins/blackboard/tBlackboardManager.h"
-#include "core/port/std/tPort.h"
+#include "core/port/std/tPortBase.h"
 #include "core/port/tPortCreationInfo.h"
 #include "core/port/tPortFlags.h"
 #include "core/tCoreFlags.h"
 #include "core/tLockOrderLevels.h"
 #include "core/port/rpc/tInterfaceServerPort.h"
-#include "core/port/std/tPortBase.h"
 #include "rrlib/finroc_core_utils/stream/tFixedBuffer.h"
 #include "core/port/std/tPortDataManager.h"
 #include "rrlib/finroc_core_utils/tTime.h"
@@ -52,7 +51,7 @@ tBlackboardServer::tBlackboardServer(const util::tString& description, core::tFr
     published(NULL)
 {
   // this(description,BlackboardBuffer.BUFFER_TYPE,parent,true);
-  this->read_port = new core::tPort<tBlackboardBuffer>(core::tPortCreationInfo("read", this, tBlackboardBuffer::cBUFFER_TYPE, core::tPortFlags::cOUTPUT_PORT | (true ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
+  this->read_port = new core::tPortBase(core::tPortCreationInfo("read", this, tBlackboardBuffer::cBUFFER_TYPE, core::tPortFlags::cOUTPUT_PORT | (true ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
   CheckType(tBlackboardBuffer::cBUFFER_TYPE);
   this->write_port = write;
   SetPublished(static_cast<tBlackboardBuffer*>(this->read_port->GetDefaultBufferRaw()));
@@ -69,7 +68,7 @@ tBlackboardServer::tBlackboardServer(const util::tString& description, core::tDa
     published(NULL)
 {
   // this(description,type,parent,shared);
-  this->read_port = new core::tPort<tBlackboardBuffer>(core::tPortCreationInfo("read", this, type, core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
+  this->read_port = new core::tPortBase(core::tPortCreationInfo("read", this, type, core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
   CheckType(type);
   this->write_port = write;
   SetPublished(static_cast<tBlackboardBuffer*>(this->read_port->GetDefaultBufferRaw()));
@@ -86,7 +85,7 @@ tBlackboardServer::tBlackboardServer(const util::tString& description, core::tDa
     lock_id(0),
     published(NULL)
 {
-  this->read_port = new core::tPort<tBlackboardBuffer>(core::tPortCreationInfo("read", this, type, core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
+  this->read_port = new core::tPortBase(core::tPortCreationInfo("read", this, type, core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
   CheckType(type);
   this->write_port = write;
   SetPublished(static_cast<tBlackboardBuffer*>(this->read_port->GetDefaultBufferRaw()));

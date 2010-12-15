@@ -27,7 +27,7 @@
 #include "plugins/blackboard/tAbstractBlackboardServer.h"
 #include "core/port/std/tPullRequestHandler.h"
 #include "core/port/tPortCreationInfo.h"
-#include "core/port/std/tPort.h"
+#include "core/port/std/tPortBase.h"
 
 namespace finroc
 {
@@ -199,7 +199,7 @@ public:
   virtual const core::tPortData* PullRequest(core::tPortBase* origin, int8 add_locks);
 
   /*! Special read port for blackboard buffer */
-  class tBBReadPort : public core::tPort<tBlackboardBuffer>
+  class tBBReadPort : public core::tPortBase
   {
   private:
 

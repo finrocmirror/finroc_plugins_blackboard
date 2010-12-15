@@ -26,7 +26,6 @@
 #include "core/port/tPortFlags.h"
 #include "core/tCoreFlags.h"
 #include "core/tLockOrderLevels.h"
-#include "core/port/std/tPortBase.h"
 #include "core/port/rpc/tInterfaceServerPort.h"
 #include "core/port/std/tPortDataManager.h"
 #include "rrlib/finroc_core_utils/stream/tFixedBuffer.h"
@@ -593,7 +592,7 @@ void tSingleBufferedBlackboardServer::WriteUnlock(tBlackboardBuffer* buf)
 }
 
 tSingleBufferedBlackboardServer::tBBReadPort::tBBReadPort(tSingleBufferedBlackboardServer* const outer_class_ptr_, core::tPortCreationInfo pci) :
-    core::tPort<tBlackboardBuffer>(pci),
+    core::tPortBase(pci),
     outer_class_ptr(outer_class_ptr_)
 {
 }

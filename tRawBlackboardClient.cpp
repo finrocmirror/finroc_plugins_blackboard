@@ -104,7 +104,7 @@ void tRawBlackboardClient::CheckSingleBuffered()
   }
   try
   {
-    int8 result = tAbstractBlackboardServer::cIS_SINGLE_BUFFERED.Call(write_port, cNET_TIMEOUT);
+    int8 result = tAbstractBlackboardServer::cIS_SINGLE_BUFFERED.Call(*write_port, cNET_TIMEOUT);
     server_buffers = (result == 0) ? tRawBlackboardClient::eMULTI : tRawBlackboardClient::eSINGLE;
   }
   catch (const core::tMethodCallException& e)
@@ -119,7 +119,7 @@ void tRawBlackboardClient::CommitAsynchChange(int offset, const tBlackboardBuffe
   {
     change_buf->GetManager()->GetCurrentRefCounter()->SetLocks(static_cast<int8>(1));
   }
-  tAbstractBlackboardServer::cASYNCH_CHANGE.Call(write_port, offset, change_buf, true);
+  tAbstractBlackboardServer::cASYNCH_CHANGE.Call(*write_port, offset, change_buf, true);
 }
 
 void tRawBlackboardClient::PostChildInit()
@@ -148,7 +148,7 @@ void tRawBlackboardClient::Publish(tBlackboardBuffer* buffer)
   }
   try
   {
-    tAbstractBlackboardServer::cDIRECT_COMMIT.Call(write_port, buffer, true);
+    tAbstractBlackboardServer::cDIRECT_COMMIT.Call(*write_port, buffer, true);
   }
   catch (const core::tMethodCallException& e)
   {
@@ -185,7 +185,7 @@ const tBlackboardBuffer* tRawBlackboardClient::ReadLock(bool force_read_copy_to_
     assert((IsReady()));
     try
     {
-      const tBlackboardBuffer* ret = tAbstractBlackboardServer::cREAD_LOCK.Call(write_port, timeout, 0, static_cast<int>((timeout + cNET_TIMEOUT)));
+      const tBlackboardBuffer* ret = tAbstractBlackboardServer::cREAD_LOCK.Call(*write_port, timeout, 0, static_cast<int>((timeout + cNET_TIMEOUT)));
       if (ret != NULL)
       {
         this->lock_type = tRawBlackboardClient::eREAD;
@@ -217,7 +217,7 @@ tBlackboardBuffer* tRawBlackboardClient::ReadPart(int offset, int length, int ti
   }
   try
   {
-    return tAbstractBlackboardServer::cREAD_PART.Call(write_port, offset, length, timeout, timeout + cNET_TIMEOUT);
+    return tAbstractBlackboardServer::cREAD_PART.Call(*write_port, offset, length, timeout, timeout + cNET_TIMEOUT);
   }
   catch (const core::tMethodCallException& e)
   {
@@ -232,7 +232,7 @@ void tRawBlackboardClient::SendKeepAlive()
   {
     try
     {
-      tAbstractBlackboardServer::cKEEP_ALIVE.Call(write_port, cur_lock_iD, false);
+      tAbstractBlackboardServer::cKEEP_ALIVE.Call(*write_port, cur_lock_iD, false);
     }
     catch (const core::tMethodCallException& e)
     {
@@ -260,7 +260,7 @@ void tRawBlackboardClient::Unlock()
     {
       try
       {
-        tAbstractBlackboardServer::cREAD_UNLOCK.Call(write_port, cur_lock_iD, true);
+        tAbstractBlackboardServer::cREAD_UNLOCK.Call(*write_port, cur_lock_iD, true);
       }
       catch (const core::tMethodCallException& e)
       {
@@ -280,7 +280,7 @@ void tRawBlackboardClient::Unlock()
 
   try
   {
-    tAbstractBlackboardServer::cUNLOCK.Call(write_port, locked, true);
+    tAbstractBlackboardServer::cUNLOCK.Call(*write_port, locked, true);
   }
   catch (const core::tMethodCallException& e)
   {
@@ -305,7 +305,7 @@ tBlackboardBuffer* tRawBlackboardClient::WriteLock(int64 timeout)
   assert((IsReady()));
   try
   {
-    tBlackboardBuffer* ret = tAbstractBlackboardServer::cLOCK.Call(write_port, timeout, static_cast<int>((timeout + cNET_TIMEOUT)));
+    tBlackboardBuffer* ret = tAbstractBlackboardServer::cLOCK.Call(*write_port, timeout, static_cast<int>((timeout + cNET_TIMEOUT)));
     if (ret != NULL)
     {
       this->lock_type = tRawBlackboardClient::eWRITE;
@@ -356,13 +356,13 @@ tRawBlackboardClient::tWritePort::tWritePort(tRawBlackboardClient* const outer_c
 
 void tRawBlackboardClient::tWritePort::NewConnection(core::tAbstractPort* partner)
 {
-  ::finroc::core::tAbstractPort::NewConnection(partner);
+  ::finroc::core::tInterfaceClientPort::NewConnection(partner);
   if (outer_class_ptr->read_port != NULL)
   {
-    ::finroc::core::tFrameworkElement* w = partner->GetParent()->GetChild("read");
+    core::tFrameworkElement* w = partner->GetParent()->GetChild("read");
     if (w != NULL)
     {
-      outer_class_ptr->read_port->ConnectToSource(static_cast< ::finroc::core::tAbstractPort*>(w));
+      outer_class_ptr->read_port->ConnectToSource(static_cast<core::tAbstractPort*>(w));
     }
   }
   outer_class_ptr->server_buffers = tRawBlackboardClient::eUNKNOWN;
