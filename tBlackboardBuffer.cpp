@@ -67,8 +67,8 @@ void tBlackboardBuffer::Resize(int new_capacity, int new_elements, int new_eleme
   }
 
   // do some copying
-  int copy_elems = util::tMath::Min(old_elements, elements);
-  int copy_size = util::tMath::Min(old_elem_size, element_size);
+  int copy_elems = std::min(old_elements, elements);
+  int copy_size = std::min(old_elem_size, element_size);
 
   if (element_size < old_elem_size)
   {
