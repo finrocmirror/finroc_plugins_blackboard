@@ -129,7 +129,7 @@ protected:
   //public static final byte LOCK = 1, ASYNCH_CHANGE = 2, UNLOCK = 3, READ_PART = 4, DIRECT_COMMIT = 5, DEPRECATED_DIRECT_BUFFER_ACCESS = 6, IS_SINGLE_BUFFERED = 7;
 
   /*! Interface port for write access */
-  ::std::tr1::shared_ptr<tWritePort> write_port;
+  ::std::shared_ptr<tWritePort> write_port;
 
   /*! Port for reading */
   tReadPort* read_port;
