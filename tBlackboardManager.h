@@ -19,14 +19,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "rrlib/finroc_core_utils/tJCBase.h"
 
-#ifndef PLUGINS__BLACKBOARD__TBLACKBOARDMANAGER_H
-#define PLUGINS__BLACKBOARD__TBLACKBOARDMANAGER_H
+#ifndef plugins__blackboard__tBlackboardManager_h__
+#define plugins__blackboard__tBlackboardManager_h__
+
+#include "rrlib/finroc_core_utils/definitions.h"
 
 #include "core/tRuntimeEnvironment.h"
 #include "rrlib/finroc_core_utils/container/tSimpleListWithMutex.h"
 #include "core/tLockOrderLevels.h"
+#include "rrlib/serialization/tDataTypeBase.h"
 #include "core/tFrameworkElement.h"
 #include "core/tRuntimeListener.h"
 #include "core/thread/tCoreLoopThreadBase.h"
@@ -35,7 +37,7 @@ namespace finroc
 {
 namespace core
 {
-class tDataType;
+class tAbstractPort;
 } // namespace finroc
 } // namespace core
 
@@ -44,7 +46,7 @@ namespace finroc
 namespace blackboard
 {
 class tRawBlackboardClient;
-class tAbstractBlackboardServer;
+class tAbstractBlackboardServerRaw;
 
 /*!
  * \author Max Reichardt
@@ -71,7 +73,7 @@ class tBlackboardManager : public core::tFrameworkElement, public core::tRuntime
     const int default_flags;
 
     /*! List of blackboards in category */
-    util::tSafeConcurrentlyIterableList<tAbstractBlackboardServer*> blackboards;
+    util::tSafeConcurrentlyIterableList<tAbstractBlackboardServerRaw*> blackboards;
 
     /*!
      * \param category_name Name of category
@@ -84,7 +86,7 @@ class tBlackboardManager : public core::tFrameworkElement, public core::tRuntime
      *
      * \param blackboard Blackboard to add
      */
-    void Add(tAbstractBlackboardServer* blackboard);
+    void Add(tAbstractBlackboardServerRaw* blackboard);
 
     /*!
      * Check whether blackboard client wants to connect to any contained blackboards
@@ -98,13 +100,13 @@ class tBlackboardManager : public core::tFrameworkElement, public core::tRuntime
      *
      * \param blackboard Blackboard to remove
      */
-    void Remove(tAbstractBlackboardServer* blackboard);
+    void Remove(tAbstractBlackboardServerRaw* blackboard);
 
   };
 
 private:
   class tLockCheckerThread; // inner class forward declaration
-  friend class tAbstractBlackboardServer;
+  friend class tAbstractBlackboardServerRaw;
 private:
 
   /*! Singleton instance */
@@ -151,7 +153,7 @@ private:
    *
    * \param server new server to check with
    */
-  void CheckAutoConnect(tAbstractBlackboardServer* server);
+  void CheckAutoConnect(tAbstractBlackboardServerRaw* server);
 
   /*!
    * Synchronized helper method
@@ -180,7 +182,7 @@ public:
    * \param type Data type of blackboard (null all types)
    * \return Blackboard - or null if no blackboard could be found
    */
-  tAbstractBlackboardServer* GetBlackboard(const util::tString& name, int category, core::tDataType* type);
+  tAbstractBlackboardServerRaw* GetBlackboard(const util::tString& name, int category, rrlib::serialization::tDataTypeBase type);
 
   /*!
    * Get blackboard matching the specified features
@@ -191,7 +193,7 @@ public:
    * \param type Data type of blackboard (null all types)
    * \return Blackboard - or null if no blackboard could be found
    */
-  tAbstractBlackboardServer* GetBlackboard(const util::tString& name, int start_cat, int end_cat, core::tDataType* type);
+  tAbstractBlackboardServerRaw* GetBlackboard(const util::tString& name, int start_cat, int end_cat, rrlib::serialization::tDataTypeBase type);
 
   /*!
    * Retrieve blackboard with specified index
@@ -200,7 +202,7 @@ public:
    * \param category Index in which category? (-1 all)
    * \return Blackboard - or null, if it does not exist (can happen, because lists are not filled continuously when blackboards are deleted)
    */
-  tAbstractBlackboardServer* GetBlackboard(size_t index, int category = -1);
+  tAbstractBlackboardServerRaw* GetBlackboard(size_t index, int category = -1);
 
   /*!
    * Retrieve blackboard with specified index
@@ -210,7 +212,7 @@ public:
    * \param end_cat end category index (inclusive)
    * \return Blackboard - or null, if it does not exist (can happen, because lists are not filled continuously when blackboards are deleted)
    */
-  tAbstractBlackboardServer* GetBlackboard(size_t index, int start_cat, int end_cat);
+  tAbstractBlackboardServerRaw* GetBlackboard(size_t index, int start_cat, int end_cat);
 
   /*!
    * \param qname qualified link
@@ -289,4 +291,4 @@ private:
 } // namespace finroc
 } // namespace blackboard
 
-#endif // PLUGINS__BLACKBOARD__TBLACKBOARDMANAGER_H
+#endif // plugins__blackboard__tBlackboardManager_h__

@@ -2,7 +2,7 @@
  * You received this file as part of an advanced experimental
  * robotics framework prototype ('finroc')
  *
- * Copyright (C) 2007-2010 Max Reichardt,
+ * Copyright (C) 2011 Max Reichardt,
  *   Robotics Research Lab, University of Kaiserslautern
  *
  * This program is free software; you can redistribute it and/or
@@ -20,8 +20,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef plugins__blackboard__tBlackboardTask_h__
-#define plugins__blackboard__tBlackboardTask_h__
+#ifndef plugins__blackboard__tBBLockException_h__
+#define plugins__blackboard__tBBLockException_h__
 
 #include "rrlib/finroc_core_utils/definitions.h"
 
@@ -32,28 +32,16 @@ namespace blackboard
 /*!
  * \author Max Reichardt
  *
- * Class to store pending blackboard tasks
+ * Thrown when blackboard lock takes too long
  */
-class tBlackboardTask
+class tBBLockException : public util::tException
 {
 public:
-  /* implements Task */
 
-  /*! In case a thread is waiting on BlackboardServer - his uid - may only be changed in context synchronized to blackboard server */
-  int64 thread_uid;
-
-  tBlackboardTask() :
-      thread_uid(0)
-  {}
-
-  bool operator==(const tBlackboardTask& other) const
-  {
-    return thread_uid == other.thread_uid;
-  }
-
+  tBBLockException() {}
 };
 
 } // namespace finroc
 } // namespace blackboard
 
-#endif // plugins__blackboard__tBlackboardTask_h__
+#endif // plugins__blackboard__tBBLockException_h__

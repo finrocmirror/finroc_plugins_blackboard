@@ -20,25 +20,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #include "plugins/blackboard/tBlackboardBuffer.h"
-#include "plugins/blackboard/tBlackboardPlugin.h"
-#include "core/buffers/tCoreInput.h"
-#include "rrlib/finroc_core_utils/stream/tMemoryBuffer.h"
-#include "rrlib/finroc_core_utils/stream/tFixedBuffer.h"
-#include "core/buffers/tCoreOutput.h"
+#include "rrlib/serialization/tInputStream.h"
+#include "rrlib/serialization/tFixedBuffer.h"
+#include "rrlib/serialization/tOutputStream.h"
 
 namespace finroc
 {
 namespace blackboard
 {
-core::tDataType* tBlackboardBuffer::cBUFFER_TYPE = tBlackboardPlugin::RegisterBlackboardType(util::tTypedClass<tBlackboardBuffer>(), "Raw Blackboard Data");
-
-void tBlackboardBuffer::Deserialize(core::tCoreInput& is)
+void tBlackboardBuffer::Deserialize(rrlib::serialization::tInputStream& is)
 {
-  lock_iD = is.ReadInt();
+  //lockID = is.readInt();
   bb_capacity = is.ReadInt();
   elements = is.ReadInt();
   element_size = is.ReadInt();
-  ::finroc::core::tMemBuffer::Deserialize(is);
+  ::rrlib::serialization::tMemoryBuffer::Deserialize(is);
 }
 
 void tBlackboardBuffer::Resize(int new_capacity, int new_elements, int new_element_size, bool keep_contents)
@@ -103,13 +99,13 @@ void tBlackboardBuffer::Resize(int new_capacity, int new_elements, int new_eleme
   this->cur_size = new_elements * new_element_size;
 }
 
-void tBlackboardBuffer::Serialize(core::tCoreOutput& os) const
+void tBlackboardBuffer::Serialize(rrlib::serialization::tOutputStream& os) const
 {
-  os.WriteInt(lock_iD);
+  //os.writeInt(lockID);
   os.WriteInt(bb_capacity);
   os.WriteInt(elements);
   os.WriteInt(element_size);
-  ::finroc::core::tMemBuffer::Serialize(os);
+  ::rrlib::serialization::tMemoryBuffer::Serialize(os);
 }
 
 } // namespace finroc

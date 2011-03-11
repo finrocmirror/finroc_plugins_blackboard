@@ -19,33 +19,30 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "rrlib/finroc_core_utils/tJCBase.h"
-#include "core/portdatabase/tDataType.h"
 
-#ifndef PLUGINS__BLACKBOARD__TABSTRACTBLACKBOARDSERVER_H
-#define PLUGINS__BLACKBOARD__TABSTRACTBLACKBOARDSERVER_H
+#ifndef plugins__blackboard__tAbstractBlackboardServer_h__
+#define plugins__blackboard__tAbstractBlackboardServer_h__
 
-#include "core/tLockOrderLevels.h"
+#include "rrlib/finroc_core_utils/definitions.h"
+
 #include "rrlib/finroc_core_utils/container/tSimpleList.h"
+#include "plugins/blackboard/tBlackboardTask.h"
 #include "core/port/rpc/method/tPortInterface.h"
 #include "core/port/rpc/method/tPort1Method.h"
 #include "core/port/rpc/method/tPort2Method.h"
 #include "core/port/rpc/method/tVoid1Method.h"
-#include "core/port/rpc/method/tVoid2Method.h"
-#include "core/port/rpc/method/tPort3Method.h"
+#include "core/port/rpc/method/tVoid3Method.h"
 #include "core/port/rpc/method/tPort0Method.h"
-#include "plugins/blackboard/tBlackboardBuffer.h"
-#include "rrlib/finroc_core_utils/stream/tFixedBuffer.h"
 #include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
-#include "plugins/blackboard/tBlackboardManager.h"
-#include "core/tFrameworkElement.h"
-#include "core/port/rpc/method/tAbstractMethodCallHandler.h"
+#include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
+
+#include "core/port/tPortTypeMap.h"
 
 namespace finroc
 {
 namespace core
 {
-class tPortBase;
+class tFrameworkElement;
 } // namespace finroc
 } // namespace core
 
@@ -53,45 +50,41 @@ namespace finroc
 {
 namespace blackboard
 {
-class tBlackboardTask;
-
 /*! Blackboard info */
-struct tAbstractBlackboardServer : public core::tFrameworkElement, public core::tAbstractMethodCallHandler
+template<typename T>
+struct tAbstractBlackboardServer : public tAbstractBlackboardServerRaw
 {
-protected:
+public:
 
-  /*!
-   * Queue with pending major commands (e.g. LOCK, READ_PART in SingleBufferedBlackboard)
-   * They are executed in another thread
-   * may only be accessed in synchronized context */
-  util::tSimpleList<tBlackboardTask*> pending_major_tasks;
+  typedef typename core::tPortTypeMap<T>::tListType tBBVector;
+  typedef typename std::shared_ptr<tBBVector> tBBVectorVar;
+  typedef typename std::shared_ptr<const tBBVector> tConstBBVectorVar;
+  typedef typename core::tPortTypeMap<tBBVector>::tGenericChange tChangeTransaction;
+  typedef typename std::shared_ptr<tChangeTransaction> tChangeTransactionVar;
+  typedef typename std::shared_ptr<const tChangeTransaction> tConstChangeTransactionVar;
+
+  using tAbstractBlackboardServerRaw::HandleCall;
+
+  class tAsynchChangeTask : public tBlackboardTask
+  {
+  public:
+
+    // BlackboardBuffer to use for task - if this is set, it will be unlocked with recycle
+    tConstChangeTransactionVar buffer;
+
+    // Offset for asynch change command
+    int64_t offset;
+
+    // index for asynch change command
+    int64_t index;
+  };
 
   /*!
    * Queue with pending asynch change commands
    * they don't lock and don't execute in an extra thread
    * may only be accessed in synchronized context
    */
-  util::tSimpleList<tBlackboardTask*> pending_asynch_change_tasks;
-
-  /*! Uid of thread that is allowed to wake up now - after notifyAll() - thread should reset this to -1 as soon as possible */
-  int64 wakeup_thread;
-
-public:
-
-  /*! Lock for blackboard operation (needs to be deeper than runtime - (for initial pushes etc.)) */
-  util::tMutexLockOrderWithMonitor bb_lock;
-
-  /*! read port */
-  core::tPortBase* read_port;
-
-  /*! write port */
-  core::tInterfacePort* write_port;
-
-  /*! Category index of Blackboard category that this server belongs to (see constants in BlackboardManager) */
-  int category_index;
-
-  /*! Blackboard category that this server belongs to */
-  tBlackboardManager::tBlackboardCategory* my_category;
+  util::tSimpleList<tAsynchChangeTask> pending_asynch_change_tasks;
 
   // Methods...
 
@@ -99,56 +92,68 @@ public:
   static core::tPortInterface cMETHODS;
 
   /*! Write Lock */
-  static core::tPort1Method<tAbstractBlackboardServer*, tBlackboardBuffer*, int64> cLOCK;
+  static typename core::tPort1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar, int> cLOCK;
 
   /*! Read Lock (only useful for SingleBufferedBlackboardBuffers) */
-  static core::tPort2Method<tAbstractBlackboardServer*, const tBlackboardBuffer*, int64, int> cREAD_LOCK;
+  static typename core::tPort2Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tConstBBVectorVar, int, int> cREAD_LOCK;
 
   /*! Write Unlock */
-  static core::tVoid1Method<tAbstractBlackboardServer*, tBlackboardBuffer*> cUNLOCK;
+  static typename core::tVoid1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar> cUNLOCK;
 
   /*! Read Unlock */
-  static core::tVoid1Method<tAbstractBlackboardServer*, int> cREAD_UNLOCK;
+  static core::tVoid1Method<tAbstractBlackboardServer<T>*, int> cREAD_UNLOCK;
 
   /*! Asynch Change */
-  static core::tVoid2Method<tAbstractBlackboardServer*, int, const tBlackboardBuffer*> cASYNCH_CHANGE;
+  static typename core::tVoid3Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar, int, int> cASYNCH_CHANGE;
 
-  /*! Read part of blackboard (no extra thread with multi-buffered blackboards) */
-  static core::tPort3Method<tAbstractBlackboardServer*, tBlackboardBuffer*, int, int, int> cREAD_PART;
+  //    /** Read part of blackboard (no extra thread with multi-buffered blackboards) */
+  //    @PassByValue public static Port3Method<AbstractBlackboardServer, BlackboardBuffer, Integer, Integer, Integer> READ_PART =
+  //        new Port3Method<AbstractBlackboardServer, BlackboardBuffer, Integer, Integer, Integer>(METHODS, "Read Part", "Offset", "Length", "Timeout", true);
 
   /*! Directly commit buffer */
-  static core::tVoid1Method<tAbstractBlackboardServer*, tBlackboardBuffer*> cDIRECT_COMMIT;
+  static typename core::tVoid1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar> cDIRECT_COMMIT;
 
   /*! Is server a single-buffered blackboard server? */
-  static core::tPort0Method<tAbstractBlackboardServer*, int8> cIS_SINGLE_BUFFERED;
+  static core::tPort0Method<tAbstractBlackboardServer<T>*, int8> cIS_SINGLE_BUFFERED;
 
-  /*! Is server a single-buffered blackboard server? */
-  static core::tVoid1Method<tAbstractBlackboardServer*, int> cKEEP_ALIVE;
-
-  /*! Log domain for this class */
-  RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "blackboard");
+  /*! Send keep-alive signal for lock */
+  static core::tVoid1Method<tAbstractBlackboardServer<T>*, int> cKEEP_ALIVE;
 
 protected:
 
   /*!
+   * Apply asynch change to blackboard
+   *
+   * \param bb blackboard buffer
+   * \param changes Changes to apply
+   */
+  inline void ApplyAsynchChange(tBBVector& bb, tConstChangeTransactionVar& changes, int index, int offset)
+  {
+    core::typeutil::ApplyChange(bb, *changes, index, offset);
+  }
+
+  /*!
    * Asynchronous change to blackboard
    *
-   * \param offset Offset in blackboard
    * \param buf Buffer with contents to write there
+   * \param start_idx Start index in blackboard
+   * \param offset Custom optional Offset in element type
    * \param check_lock Check whether buffer is currently locked, before performing asynch change (normal operation)
    */
-  virtual void AsynchChange(int i, const tBlackboardBuffer* buf, bool check_lock) = 0;
+  virtual void AsynchChange(tConstChangeTransactionVar& buf, int start_idx, int offset, bool check_lock) = 0;
 
   /*!
    * (only call in synchronized context)
    * Clear any asynch change tasks from list
    */
-  void ClearAsyncChangeTasks();
+  virtual void ClearAsyncChangeTasks();
+
+  // finroc::util::tLock* curlock;
 
   /*!
    * \return Thread string (debug helper method)
    */
-  inline util::tString CreateThreadString()
+  virtual util::tString CreateThreadString()
   {
     return util::tStringBuilder("Thread ") + util::tThread::CurrentThread()->ToString() + " (" + util::sThreadUtil::GetCurrentThreadId() + ")";
   }
@@ -160,19 +165,14 @@ protected:
    * \param offset Offset offset to start writing
    * \param buf (Locked) buffer with contents to write
    */
-  void DeferAsynchChangeCommand(int offset, const tBlackboardBuffer* buf);
+  void DeferAsynchChangeCommand(tConstChangeTransactionVar& buf, int index, int offset);
 
   /*!
    * Direct commit of new blackboard buffer
    *
    * \param buf New Buffer
    */
-  virtual void DirectCommit(tBlackboardBuffer* buf) = 0;
-
-  /*!
-   * \return Unused blackboard task for pending tasks
-   */
-  tBlackboardTask* GetUnusedBlackboardTask();
+  virtual void DirectCommit(tBBVectorVar& buf) = 0;
 
   /*!
    * \return Is blackboard currently locked?
@@ -196,17 +196,10 @@ protected:
   /*!
    * \return Does blackboard have pending commands that are waiting for execution?
    */
-  inline bool PendingTasks()
+  virtual bool PendingTasks()
   {
-    return (pending_major_tasks.Size() > 0) || (wakeup_thread != -1);
+    return (this->pending_major_tasks.Size() > 0) || (this->wakeup_thread != -1);
   }
-
-  virtual void PostChildInit()
-  {
-    my_category->Add(this);
-  }
-
-  virtual void PrepareDelete();
 
   /*!
    * (only call in synchronized context)
@@ -220,7 +213,7 @@ protected:
    *
    * \return Were there any pending commands that are (were) now executed?
    */
-  bool ProcessPendingCommands(util::tLock& passed_lock);
+  virtual bool ProcessPendingCommands(util::tLock& passed_lock);
 
   /*!
    * Perform read lock (only do this on single-buffered blackboards)
@@ -228,17 +221,7 @@ protected:
    * \param timeout Timeout in ms
    * \return Locked BlackboardBuffer (if lockId is < 0 this is a copy)
    */
-  virtual const tBlackboardBuffer* ReadLock(int64 timeout) = 0;
-
-  /*!
-   * Read part of blackboard
-   *
-   * \param offset Offset to start reading
-   * \param length Length (in bytes) of area to read
-   * \param timeout Timeout for this command
-   * \return Memory buffer containing read area
-   */
-  virtual tBlackboardBuffer* ReadPart(int offset, int length, int timeout) = 0;
+  virtual typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLock(int64 timeout) = 0;
 
   /*!
    * Unlock blackboard (from read lock)
@@ -247,16 +230,17 @@ protected:
    */
   virtual void ReadUnlock(int lock_id) = 0;
 
-  // finroc::util::tLock* curlock;
-
   /*!
-   * Wait to receive lock on blackboard for specified amount of time
-   * (MUST be called in synchronized context)
+   * Resize blackboard
    *
-   * \param timeout Time to wait for lock
-   * \return Do we have a lock now? (or did rather timeout expire?)
+   * \param buf Buffer to resize
+   * \param new_capacity new Capacity
+   * \param new_elements new current number of elements
    */
-  bool WaitForLock(util::tLock& passed_lock, int64 timeout);
+  inline void Resize(tBBVector& buf, int new_capacity, int new_elements)
+  {
+    buf.resize(new_elements);
+  }
 
   /*!
    * Perform read lock (only do this on single-buffered blackboards)
@@ -264,14 +248,14 @@ protected:
    * \param timeout Timeout in ms
    * \return Locked BlackboardBuffer (if lockId is < 0 this is a copy)
    */
-  virtual tBlackboardBuffer* WriteLock(int64 timeout) = 0;
+  virtual typename tAbstractBlackboardServer<T>::tBBVectorVar WriteLock(int64 timeout) = 0;
 
   /*!
    * Unlock blackboard (from write lock)
    *
    * \param buf Buffer containing changes (may be the same or another one - the latter is typically the case with remote clients)
    */
-  virtual void WriteUnlock(tBlackboardBuffer* buf) = 0;
+  virtual void WriteUnlock(tBBVectorVar& buf) = 0;
 
 public:
 
@@ -282,34 +266,18 @@ public:
   tAbstractBlackboardServer(const util::tString& bb_name, int category, core::tFrameworkElement* parent = NULL);
 
   /*!
-   * Check whether this is a valid data type for blackboards
-   *
-   * \param dt Data type to check
-   */
-  inline static void CheckType(core::tDataType* dt)
-  {
-    assert(((dt->GetRelatedType() != NULL && dt->GetRelatedType()->IsMethodType())) && "Please register Blackboard types using Blackboard2Plugin class");
-  }
-
-  /*!
    * Copy a blackboard buffer
+   * TODO: provide factory for buffer reuse
    *
    * \param src Source Buffer
    * \param target Target Buffer
    */
-  inline void CopyBlackboardBuffer(tBlackboardBuffer* src, tBlackboardBuffer* target)
+  inline void CopyBlackboardBuffer(const tBBVector& src, tBBVector& target)
   {
-    target->Resize(src->GetBbCapacity(), src->GetElements(), src->GetElementSize(), false);
-    target->GetBuffer()->Put(0u, *src->GetBuffer(), 0u, src->GetSize());
+    rrlib::serialization::deepcopy::Copy(src, target, NULL);
   }
 
-  /*!
-   * (Only works in C++)
-   * Retrieve size information for blackboard
-   */
-  virtual void GetSizeInfo(size_t& element_size, size_t& elements, size_t& capacity);
-
-  void HandleVoidCall(core::tAbstractMethod* method, tBlackboardBuffer* p1)
+  void HandleVoidCall(core::tAbstractMethod* method, tBBVectorVar p1)
   {
     if (method == &cDIRECT_COMMIT)
     {
@@ -343,33 +311,28 @@ public:
     }
   }
 
-  inline tBlackboardBuffer* HandleCall(const core::tAbstractMethod* method, int p1, int p2, int p3)
-  {
-    assert((method == &(cREAD_PART)));
-    return ReadPart(p1, p2, p3);
-  }
+  //    @Override
+  //    public BlackboardBuffer handleCall(AbstractMethod method, Integer p1, Integer p2, Integer p3) throws MethodCallException {
+  //        assert(method == READ_PART);
+  //        return readPart(p1, p2, p3);
+  //    }
 
-  inline tBlackboardBuffer* HandleCall(const core::tAbstractMethod* method, int64 p1)
+  inline tBBVectorVar HandleCall(const core::tAbstractMethod* method, int p1)
   {
     assert((method == &(cLOCK)));
     return WriteLock(p1);
   }
 
-  inline const tBlackboardBuffer* HandleCall(const core::tAbstractMethod* method, int64 p1, int dummy)
+  inline const tBBVectorVar HandleCall(const core::tAbstractMethod* method, int p1, int dummy)
   {
     assert((method == &(cREAD_LOCK)));
     return ReadLock(p1);
   }
 
-  inline int8 HandleCall(const core::tAbstractMethod* method)
-  {
-    return IsSingleBuffered() ? static_cast<int8>(1) : static_cast<int8>(0);
-  }
-
-  inline void HandleVoidCall(const core::tAbstractMethod* method, int p1, const tBlackboardBuffer* p2)
+  inline void HandleVoidCall(const core::tAbstractMethod* method, tConstChangeTransactionVar p2, int index, int offset)
   {
     assert((method == &(cASYNCH_CHANGE)));
-    AsynchChange(p1, p2, true);
+    AsynchChange(p2, index, offset, true);
   }
 
   /*!
@@ -382,4 +345,6 @@ public:
 } // namespace finroc
 } // namespace blackboard
 
-#endif // PLUGINS__BLACKBOARD__TABSTRACTBLACKBOARDSERVER_H
+#include "plugins/blackboard/tAbstractBlackboardServer.hpp"
+
+#endif // plugins__blackboard__tAbstractBlackboardServer_h__

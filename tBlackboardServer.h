@@ -19,11 +19,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "rrlib/finroc_core_utils/tJCBase.h"
 
-#ifndef PLUGINS__BLACKBOARD__TBLACKBOARDSERVER_H
-#define PLUGINS__BLACKBOARD__TBLACKBOARDSERVER_H
+#ifndef plugins__blackboard__tBlackboardServer_h__
+#define plugins__blackboard__tBlackboardServer_h__
 
+#include "rrlib/finroc_core_utils/definitions.h"
+
+#include "core/port/tPort.h"
+#include "rrlib/serialization/tDataTypeBase.h"
 #include "rrlib/finroc_core_utils/log/tLogUser.h"
 #include "core/port/rpc/tMethodCallException.h"
 #include "plugins/blackboard/tAbstractBlackboardServer.h"
@@ -40,16 +43,24 @@ namespace finroc
 {
 namespace blackboard
 {
-class tBlackboardBuffer;
-
 /*!
  * \author Max Reichardt
  *
  * This is the base class for a blackboard server
  */
-class tBlackboardServer : public tAbstractBlackboardServer
+template<typename T>
+class tBlackboardServer : public tAbstractBlackboardServer<T>
 {
 private:
+
+  typedef typename tAbstractBlackboardServer<T>::tBBVector tBBVector;
+  typedef typename tAbstractBlackboardServer<T>::tBBVectorVar tBBVectorVar;
+  typedef typename tAbstractBlackboardServer<T>::tConstBBVectorVar tConstBBVectorVar;
+  typedef typename tAbstractBlackboardServer<T>::tChangeTransaction tChangeTransaction;
+  typedef typename tAbstractBlackboardServer<T>::tChangeTransactionVar tChangeTransactionVar;
+  typedef typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar tConstChangeTransactionVar;
+
+  using tAbstractBlackboardServer<T>::log_domain;
 
   /*! Unlock timeout in ms - if no keep-alive signal occurs in this period of time */
   static const int64 cUNLOCK_TIMEOUT = 1000;
@@ -58,7 +69,7 @@ private:
   core::tInterfaceServerPort* write;
 
   /*! Is blackboard currently locked? - in this case points to duplicated buffer */
-  tBlackboardBuffer* locked;
+  tBBVectorVar locked;
 
   /*! Time when last lock was performed */
   volatile int64 lock_time;
@@ -75,7 +86,14 @@ private:
    * Currently published MemBuffer - not extra locked - attached to lock of read port
    * In single buffered mode - this is the one and only buffer
    */
-  tBlackboardBuffer* published;
+  tBBVector* published;
+
+public:
+
+  /*! read port */
+  ::std::shared_ptr<core::tPort<tBBVector> > read_port;
+
+private:
 
   /*!
    * Check if lock timed out (only call in synchronized/exclusive access context)
@@ -89,20 +107,29 @@ private:
   void DuplicateAndLock();
 
   /*!
+   * \return Port data manager for buffer
+   */
+  template <typename Q>
+  inline static core::tPortDataManager* GetManager(std::shared_ptr<Q>& t)
+  {
+    return core::tPortDataManager::GetManager(t);
+  }
+
+  /*!
    * This method exists due to current imperfectness in java->c++ converter
    *
    * \param p
    */
-  inline void SetPublished(tBlackboardBuffer* p)
+  inline void SetPublished(tBBVector* p)
   {
     published = p;
   }
 
 protected:
 
-  virtual void AsynchChange(int offset, const tBlackboardBuffer* buf, bool check_lock);
+  virtual void AsynchChange(tConstChangeTransactionVar& buf, int index, int offset, bool check_lock);
 
-  virtual void DirectCommit(tBlackboardBuffer* new_buffer);
+  virtual void DirectCommit(tBBVectorVar& new_buffer);
 
   virtual bool IsLocked()
   {
@@ -116,13 +143,11 @@ protected:
 
   virtual void KeepAlive(int lock_id_);
 
-  virtual const tBlackboardBuffer* ReadLock(int64 timeout)
+  virtual typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLock(int64 timeout)
   {
     FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, "warning: Client must not attempt read lock on multi-buffered blackboard - Call failed");
     throw core::tMethodCallException(core::tMethodCallException::eINVALID_PARAM, CODE_LOCATION_MACRO);
   }
-
-  virtual tBlackboardBuffer* ReadPart(int offset, int length, int timeout);
 
   virtual void ReadUnlock(int lock_id_)
   {
@@ -130,9 +155,31 @@ protected:
     throw core::tMethodCallException(core::tMethodCallException::eINVALID_PARAM, CODE_LOCATION_MACRO);
   }
 
-  virtual tBlackboardBuffer* WriteLock(int64 timeout);
+  //    @Override
+  //    protected BlackboardBuffer readPart(int offset, int length, int timeout) {
+  //        // current buffer (note: we get it from readPort, since -this way- call does not need to be executed in synchronized context)
+  //        @Const BlackboardBuffer buffer = (BlackboardBuffer)readPort.getLockedUnsafeRaw();
+  //        assert(buffer.getManager().isLocked());
+  //
+  //        // prepare and set return value
+  //        BlackboardBuffer send = (BlackboardBuffer)write.getUnusedBuffer(buffer.getType());
+  //        send.resize(1, 1, length, false); // ensure minimal size
+  //        send.getBuffer().put(0, buffer.getBuffer(), offset, length);
+  //        send.bbCapacity = buffer.bbCapacity;
+  //        send.elements = buffer.elements;
+  //        send.elementSize = buffer.elementSize;
+  //
+  //        // release old lock
+  //        buffer.getManager().getCurrentRefCounter().releaseLock();
+  //
+  //        // return buffer with one read lock
+  //        send.getManager().getCurrentRefCounter().setLocks((byte)1);
+  //        return send;
+  //    }
 
-  virtual void WriteUnlock(tBlackboardBuffer* buf);
+  virtual typename tAbstractBlackboardServer<T>::tBBVectorVar WriteLock(int64 timeout);
+
+  virtual void WriteUnlock(tBBVectorVar& buf);
 
 public:
 
@@ -151,7 +198,7 @@ public:
    * \param parent parent of BlackboardServer
    * \param shared Share blackboard with other runtime environments?
    */
-  tBlackboardServer(const util::tString& description, core::tDataType* type, int capacity, int elements, int elem_size, core::tFrameworkElement* parent = NULL, bool shared = true);
+  tBlackboardServer(const util::tString& description, rrlib::serialization::tDataTypeBase type, int capacity, int elements, int elem_size, core::tFrameworkElement* parent = NULL, bool shared = true);
 
   /*!
    * \param description Name/Uid of blackboard
@@ -160,7 +207,7 @@ public:
    * \param parent parent of BlackboardServer
    * \param shared Share blackboard with other runtime environments?
    */
-  tBlackboardServer(const util::tString& description, core::tDataType* type, core::tFrameworkElement* parent = NULL, bool shared = true);
+  tBlackboardServer(const util::tString& description, rrlib::serialization::tDataTypeBase type, core::tFrameworkElement* parent = NULL, bool shared = true);
 
   virtual void LockCheck();
 
@@ -169,4 +216,6 @@ public:
 } // namespace finroc
 } // namespace blackboard
 
-#endif // PLUGINS__BLACKBOARD__TBLACKBOARDSERVER_H
+#include "plugins/blackboard/tBlackboardServer.hpp"
+
+#endif // plugins__blackboard__tBlackboardServer_h__

@@ -25,7 +25,7 @@
 #include "plugins/blackboard/tRawBlackboardClient.h"
 #include "core/plugin/tPlugins.h"
 #include "plugins/blackboard/tBlackboardPlugin.h"
-#include "plugins/blackboard/tAbstractBlackboardServer.h"
+#include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
 #include "core/port/std/tPortBase.h"
 #include "plugins/blackboard/tRemoteBlackboardServer.h"
 #include "core/port/tPortCreationInfo.h"
@@ -79,9 +79,9 @@ void tBlackboardManager::AddClient(tRawBlackboardClient* client, bool auto_conne
   }
 }
 
-void tBlackboardManager::CheckAutoConnect(tAbstractBlackboardServer* server)
+void tBlackboardManager::CheckAutoConnect(tAbstractBlackboardServerRaw* server)
 {
-  if (server->read_port == NULL || server->write_port == NULL)
+  if (server->read_port_raw == NULL || server->write_port_raw == NULL)
   {
     return;
   }
@@ -110,23 +110,23 @@ void tBlackboardManager::CreateBlackboardManager()
   }
 }
 
-tAbstractBlackboardServer* tBlackboardManager::GetBlackboard(const util::tString& name, int category, core::tDataType* type)
+tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(const util::tString& name, int category, rrlib::serialization::tDataTypeBase type)
 {
   int start_cat = category < 0 ? 0 : category;
   int end_cat = category < 0 ? cDIMENSION - 1 : start_cat;
   return GetBlackboard(name, start_cat, end_cat, type);
 }
 
-tAbstractBlackboardServer* tBlackboardManager::GetBlackboard(const util::tString& name, int start_cat, int end_cat, core::tDataType* type)
+tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(const util::tString& name, int start_cat, int end_cat, rrlib::serialization::tDataTypeBase type)
 {
   for (int c = start_cat; c <= end_cat; c++)
   {
     tBlackboardCategory* cat = categories[c];
-    util::tArrayWrapper<tAbstractBlackboardServer*>* it = cat->blackboards.GetIterable();
+    util::tArrayWrapper<tAbstractBlackboardServerRaw*>* it = cat->blackboards.GetIterable();
     for (size_t i = 0u; i < it->Size(); i++)
     {
-      tAbstractBlackboardServer* info = it->Get(i);
-      if (info->GetDescription().Equals(name) && (type == NULL || info->read_port->GetDataType() == type))
+      tAbstractBlackboardServerRaw* info = it->Get(i);
+      if (info->GetDescription().Equals(name) && (type == NULL || info->read_port_raw->GetDataType() == type))
       {
         return info;
       }
@@ -135,19 +135,19 @@ tAbstractBlackboardServer* tBlackboardManager::GetBlackboard(const util::tString
   return NULL;
 }
 
-tAbstractBlackboardServer* tBlackboardManager::GetBlackboard(size_t index, int category)
+tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(size_t index, int category)
 {
   int start_cat = category < 0 ? 0 : category;
   int end_cat = category < 0 ? cDIMENSION - 1 : start_cat;
   return GetBlackboard(index, start_cat, end_cat);
 }
 
-tAbstractBlackboardServer* tBlackboardManager::GetBlackboard(size_t index, int start_cat, int end_cat)
+tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(size_t index, int start_cat, int end_cat)
 {
   for (int c = start_cat; c <= end_cat; c++)
   {
     tBlackboardCategory* cat = categories[c];
-    util::tArrayWrapper<tAbstractBlackboardServer*>* it = cat->blackboards.GetIterable();
+    util::tArrayWrapper<tAbstractBlackboardServerRaw*>* it = cat->blackboards.GetIterable();
     if (index >= it->Size())
     {
       index -= it->Size();
@@ -233,7 +233,7 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
 
       if (name.Length() > 0)
       {
-        tAbstractBlackboardServer* info = GetBlackboard(name, cREMOTE, NULL);
+        tAbstractBlackboardServerRaw* info = GetBlackboard(name, cREMOTE, NULL);
 
         // okay create blackboard proxy
         bool add = (info == NULL);
@@ -241,19 +241,19 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
         {
           info = new tRemoteBlackboardServer(name);
         }
-        if (read && info->read_port == NULL)
+        if (read && info->read_port_raw == NULL)
         {
           core::tPortBase* port = static_cast<core::tPortBase*>(element);
-          info->read_port = new core::tPortBase(core::tPortCreationInfo(cREAD_PORT_NAME, info, port->GetDataType(), core::tPortFlags::cOUTPUT_PROXY));
+          info->read_port_raw = new core::tPortBase(core::tPortCreationInfo(cREAD_PORT_NAME, info, port->GetDataType(), core::tPortFlags::cOUTPUT_PROXY));
           info->Init();
-          info->read_port->ConnectToSource(qname);
+          info->read_port_raw->ConnectToSource(qname);
         }
-        else if (write && info->write_port == NULL)
+        else if (write && info->write_port_raw == NULL)
         {
           core::tInterfacePort* port = static_cast<core::tInterfacePort*>(element);
-          info->write_port = new core::tInterfacePort(cWRITE_PORT_NAME, info, port->GetDataType(), core::tInterfacePort::eRouting);
+          info->write_port_raw = new core::tInterfacePort(cWRITE_PORT_NAME, info, port->GetDataType(), core::tInterfacePort::eRouting);
           info->Init();
-          info->write_port->ConnectToSource(qname);
+          info->write_port_raw->ConnectToSource(qname);
         }
         CheckAutoConnect(info);
       }
@@ -269,7 +269,7 @@ tBlackboardManager::tBlackboardCategory::tBlackboardCategory(tBlackboardManager*
 {
 }
 
-void tBlackboardManager::tBlackboardCategory::Add(tAbstractBlackboardServer* blackboard)
+void tBlackboardManager::tBlackboardCategory::Add(tAbstractBlackboardServerRaw* blackboard)
 {
   {
     util::tLock lock2(outer_class_ptr->auto_connect_clients);
@@ -280,10 +280,10 @@ void tBlackboardManager::tBlackboardCategory::Add(tAbstractBlackboardServer* bla
 
 void tBlackboardManager::tBlackboardCategory::CheckConnect(tRawBlackboardClient* client)
 {
-  util::tArrayWrapper<tAbstractBlackboardServer*>* it = blackboards.GetIterable();
+  util::tArrayWrapper<tAbstractBlackboardServerRaw*>* it = blackboards.GetIterable();
   for (size_t i = 0u; i < it->Size(); i++)
   {
-    tAbstractBlackboardServer* info = it->Get(i);
+    tAbstractBlackboardServerRaw* info = it->Get(i);
     if (client->CheckConnect(info))
     {
       return;
@@ -291,7 +291,7 @@ void tBlackboardManager::tBlackboardCategory::CheckConnect(tRawBlackboardClient*
   }
 }
 
-void tBlackboardManager::tBlackboardCategory::Remove(tAbstractBlackboardServer* blackboard)
+void tBlackboardManager::tBlackboardCategory::Remove(tAbstractBlackboardServerRaw* blackboard)
 {
   {
     util::tLock lock2(outer_class_ptr->auto_connect_clients);
@@ -326,10 +326,10 @@ void tBlackboardManager::tLockCheckerThread::MainLoopCallback()
   for (int i = 0; i < 2; i++)
   {
     tBlackboardManager::tBlackboardCategory* cat = outer_class_ptr->GetCategory(i == 0 ? tBlackboardManager::cLOCAL : tBlackboardManager::cSHARED);
-    util::tArrayWrapper<tAbstractBlackboardServer*>* it2 = cat->blackboards.GetIterable();
+    util::tArrayWrapper<tAbstractBlackboardServerRaw*>* it2 = cat->blackboards.GetIterable();
     for (size_t j = 0u; j < it2->Size(); j++)
     {
-      tAbstractBlackboardServer* bb = it2->Get(j);
+      tAbstractBlackboardServerRaw* bb = it2->Get(j);
       if (bb != NULL && bb->IsReady())
       {
         bb->LockCheck();

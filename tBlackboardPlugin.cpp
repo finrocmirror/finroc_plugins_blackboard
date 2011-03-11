@@ -20,19 +20,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #include "plugins/blackboard/tBlackboardPlugin.h"
-#include "plugins/blackboard/tBlackboardTask.h"
-#include "rrlib/finroc_core_utils/tAutoDeleter.h"
+#include "rrlib/serialization/tMemoryBuffer.h"
+#include "plugins/blackboard/tBlackboardBuffer.h"
 
 namespace finroc
 {
 namespace blackboard
 {
-util::tReusablesPoolCR<tBlackboardTask>* tBlackboardPlugin::task_pool;
+rrlib::serialization::tDataTypeBase tBlackboardPlugin::cBB_MEM_BUFFER = RegisterBlackboardType(util::tTypedClass<rrlib::serialization::tMemoryBuffer>());
+rrlib::serialization::tDataTypeBase tBlackboardPlugin::cBB_BLACKBOARD_BUFFER = RegisterBlackboardType(util::tTypedClass<tBlackboardBuffer>());
 
-void tBlackboardPlugin::Init(core::tPluginManager& mgr)
+void tBlackboardPlugin::Init()
 {
-  task_pool = new util::tReusablesPoolCR<tBlackboardTask>();
-  util::tAutoDeleter::AddStatic(task_pool);
+  //        taskPool = new ReusablesPoolCR<BlackboardTask>();
+  //        AutoDeleter.addStatic(taskPool);
+  //        taskPool = new ReusablesPoolCR<BlackboardTask>();
+  //        AutoDeleter.addStatic(taskPool);
 }
 
 } // namespace finroc

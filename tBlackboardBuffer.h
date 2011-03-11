@@ -19,20 +19,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "rrlib/finroc_core_utils/tJCBase.h"
 
-#ifndef PLUGINS__BLACKBOARD__TBLACKBOARDBUFFER_H
-#define PLUGINS__BLACKBOARD__TBLACKBOARDBUFFER_H
+#ifndef plugins__blackboard__tBlackboardBuffer_h__
+#define plugins__blackboard__tBlackboardBuffer_h__
 
-#include "core/buffers/tMemBuffer.h"
+#include "rrlib/finroc_core_utils/definitions.h"
 
-namespace finroc
+#include "rrlib/serialization/tMemoryBuffer.h"
+
+namespace rrlib
 {
-namespace core
+namespace serialization
 {
-class tDataType;
-} // namespace finroc
-} // namespace core
+class tInputStream;
+} // namespace rrlib
+} // namespace serialization
 
 namespace finroc
 {
@@ -41,29 +42,28 @@ namespace blackboard
 /*!
  * \author Max Reichardt
  *
- * Buffer containing blackboard data
+ * Buffer containing blackboard data - in MCA style
  */
-class tBlackboardBuffer : public core::tMemBuffer
+class tBlackboardBuffer : public rrlib::serialization::tMemoryBuffer
 {
 public:
 
-  /*! Datatypes for blackboard buffer and method calls */
-  static core::tDataType* cBUFFER_TYPE;
+  //    /** Data type of this class */
+  //    @Const public final static DataTypeBase TYPE = DataTypeRegister.;
 
-  /*! Lock ID of buffer - against outdated unlocks */
-  int lock_iD;
+  //    /** Lock ID of buffer - against outdated unlocks */
+  //    int lockID;
 
   /*! Number of entries and entry size */
   int bb_capacity, elements, element_size;
 
   tBlackboardBuffer() :
-      lock_iD(0),
       bb_capacity(0),
       elements(0),
       element_size(0)
   {}
 
-  virtual void Deserialize(core::tCoreInput& is);
+  virtual void Deserialize(rrlib::serialization::tInputStream& is);
 
   void* GetElementPointer(int index)
   {
@@ -122,11 +122,11 @@ public:
    */
   void Resize(int new_capacity, int new_elements, int new_element_size, bool keep_contents);
 
-  virtual void Serialize(core::tCoreOutput& os) const;
+  virtual void Serialize(rrlib::serialization::tOutputStream& os) const;
 
 };
 
 } // namespace finroc
 } // namespace blackboard
 
-#endif // PLUGINS__BLACKBOARD__TBLACKBOARDBUFFER_H
+#endif // plugins__blackboard__tBlackboardBuffer_h__
