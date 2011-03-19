@@ -19,6 +19,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+#include "core/port/tPortCreationInfo.h"
+#include "core/port/tPortFlags.h"
 #include "core/port/rpc/tMethodCallException.h"
 #include "core/port/rpc/method/tPort2Method.h"
 #include "plugins/blackboard/tAbstractBlackboardServer.h"
@@ -29,8 +31,8 @@ namespace finroc
 namespace blackboard
 {
 template<typename T>
-tBlackboardClient<T>::tBlackboardClient(core::tPortCreationInfo pci, bool auto_connect, int auto_connect_category) :
-    wrapped(new tRawBlackboardClient(pci, static_cast<T*>(NULL), auto_connect, auto_connect_category)),
+tBlackboardClient<T>::tBlackboardClient(const util::tString& description, core::tFrameworkElement* parent, bool auto_connect, int auto_connect_category, bool read_port, bool write_port, rrlib::serialization::tDataTypeBase type) :
+    wrapped(new tRawBlackboardClient(core::tPortCreationInfo(description, parent, type, (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0)), static_cast<T*>(NULL), auto_connect, auto_connect_category)),
     locked(),
     read_locked()
 {

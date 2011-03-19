@@ -19,7 +19,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "rrlib/serialization/tMemoryBuffer.h"
 #include "plugins/blackboard/tBlackboardManager.h"
 #include "core/port/tPortCreationInfo.h"
 #include "core/port/tPortFlags.h"
@@ -39,30 +38,7 @@ template<typename T>
 const int64 tBlackboardServer<T>::cUNLOCK_TIMEOUT;
 
 template<typename T>
-tBlackboardServer<T>::tBlackboardServer(const util::tString& description, core::tFrameworkElement* parent) :
-    tAbstractBlackboardServer<T>(description, true ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, rrlib::serialization::tMemoryBuffer::cTYPE.GetRelatedType(), this, true ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
-    locked(),
-    lock_time(0),
-    last_keep_alive(0),
-    lock_iDGen(0),
-    lock_id(0),
-    published(),
-    read_port()
-{
-  // this(description,MemoryBuffer.TYPE,parent,true);
-  core::tPortCreationInfo read_pci = core::tPortCreationInfo("read", this, rrlib::serialization::tMemoryBuffer::cTYPE.GetListType(), core::tPortFlags::cOUTPUT_PORT | (true ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1);
-
-  read_port.reset(new core::tPort<tBBVector>(read_pci));
-
-  this->read_port_raw = static_cast<core::tPortBase*>(read_port->GetWrapped());
-  ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(rrlib::serialization::tMemoryBuffer::cTYPE);
-  this->write_port_raw = write;
-  SetPublished(read_port->GetDefaultBuffer());
-}
-
-template<typename T>
-tBlackboardServer<T>::tBlackboardServer(const util::tString& description, rrlib::serialization::tDataTypeBase type, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared) :
+tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
     tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
     write(new core::tInterfaceServerPort("write", this, type.GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
     locked(),
@@ -73,7 +49,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, rrlib:
     published(),
     read_port()
 {
-  // this(description,type,parent,shared);
+  // this(description,parent,shared,type);
   core::tPortCreationInfo read_pci = core::tPortCreationInfo("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1);
 
   read_port.reset(new core::tPort<tBBVector>(read_pci));
@@ -86,7 +62,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, rrlib:
 }
 
 template<typename T>
-tBlackboardServer<T>::tBlackboardServer(const util::tString& description, rrlib::serialization::tDataTypeBase type, core::tFrameworkElement* parent, bool shared) :
+tBlackboardServer<T>::tBlackboardServer(const util::tString& description, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
     tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
     write(new core::tInterfaceServerPort("write", this, type.GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
     locked(),
@@ -268,7 +244,7 @@ typename tAbstractBlackboardServer<T>::tBBVectorVar tBlackboardServer<T>::WriteL
       CheckCurrentLock(lock2);
       if (locked != NULL || this->PendingTasks())
       {
-        if (timeout <= 0)     // we do not need to enqueue lock commands with zero timeout
+        if (timeout <= 0)    // we do not need to enqueue lock commands with zero timeout
         {
 
           return tBBVectorVar(); // we do not need to enqueue lock commands with zero timeout

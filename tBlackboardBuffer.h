@@ -63,6 +63,26 @@ public:
       element_size(0)
   {}
 
+  tBlackboardBuffer(tBlackboardBuffer && o) :
+      rrlib::serialization::tMemoryBuffer(std::forward<rrlib::serialization::tMemoryBuffer>(o)),
+      bb_capacity(0),
+      elements(0),
+      element_size(0)
+  {
+    std::swap(bb_capacity, o.bb_capacity);
+    std::swap(elements, o.elements);
+    std::swap(element_size, o.element_size);
+  }
+
+  tBlackboardBuffer& operator=(tBlackboardBuffer && o)
+  {
+    rrlib::serialization::tMemoryBuffer::operator=(std::forward<rrlib::serialization::tMemoryBuffer>(o));
+    std::swap(bb_capacity, o.bb_capacity);
+    std::swap(elements, o.elements);
+    std::swap(element_size, o.element_size);
+    return *this;
+  }
+
   virtual void Deserialize(rrlib::serialization::tInputStream& is);
 
   void* GetElementPointer(int index)

@@ -239,7 +239,7 @@ protected:
    */
   inline void Resize(tBBVector& buf, int new_capacity, int new_elements)
   {
-    buf.resize(new_elements);
+    rrlib::serialization::sSerialization::ResizeVector(buf, new_elements);
   }
 
   /*!
@@ -274,7 +274,7 @@ public:
    */
   inline void CopyBlackboardBuffer(const tBBVector& src, tBBVector& target)
   {
-    rrlib::serialization::deepcopy::Copy(src, target, NULL);
+    rrlib::serialization::sSerialization::DeepCopy(src, target, NULL);
   }
 
   void HandleVoidCall(core::tAbstractMethod* method, tBBVectorVar p1)

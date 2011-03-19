@@ -26,6 +26,7 @@
 #include "rrlib/finroc_core_utils/definitions.h"
 
 #include "plugins/blackboard/tBBLockException.h"
+#include "rrlib/serialization/sSerialization.h"
 #include "plugins/blackboard/tBlackboardClient.h"
 
 namespace finroc
@@ -95,7 +96,7 @@ public:
   {
     if (new_size != Size())
     {
-      locked->resize(new_size);
+      rrlib::serialization::sSerialization::ResizeVector(*locked, new_size);
     }
   }
 

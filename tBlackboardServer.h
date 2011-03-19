@@ -185,29 +185,22 @@ public:
 
   /*!
    * \param description Name/Uid of blackboard
-   * @parent parent of BlackboardServer
-   */
-  tBlackboardServer(const util::tString& description, core::tFrameworkElement* parent = NULL);
-
-  /*!
-   * \param description Name/Uid of blackboard
-   * \param type Data Type of blackboard content
    * \param capacity Blackboard capacity (see BlackboardBuffer)
    * \param elements Number of element (see BlackboardBuffer)
    * \param elem_size Element size (see BlackboardBuffer)
    * \param parent parent of BlackboardServer
    * \param shared Share blackboard with other runtime environments?
+   * \param type Data Type of blackboard content
    */
-  tBlackboardServer(const util::tString& description, rrlib::serialization::tDataTypeBase type, int capacity, int elements, int elem_size, core::tFrameworkElement* parent = NULL, bool shared = true);
+  tBlackboardServer(const util::tString& description, int capacity, int elements, int elem_size, core::tFrameworkElement* parent = NULL, bool shared = true, rrlib::serialization::tDataTypeBase type = rrlib::serialization::tDataType<T>());
 
   /*!
    * \param description Name/Uid of blackboard
-   * \param type Data Type of blackboard content
-   * \param mc_type Type of method calls
    * \param parent parent of BlackboardServer
    * \param shared Share blackboard with other runtime environments?
+   * \param type Data Type of blackboard content
    */
-  tBlackboardServer(const util::tString& description, rrlib::serialization::tDataTypeBase type, core::tFrameworkElement* parent = NULL, bool shared = true);
+  tBlackboardServer(const util::tString& description, core::tFrameworkElement* parent = NULL, bool shared = true, rrlib::serialization::tDataTypeBase type = rrlib::serialization::tDataType<T>());
 
   virtual void LockCheck();
 

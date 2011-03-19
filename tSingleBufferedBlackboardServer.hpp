@@ -19,7 +19,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "rrlib/serialization/tMemoryBuffer.h"
 #include "plugins/blackboard/tBlackboardManager.h"
 #include "core/port/tPortFlags.h"
 #include "core/tCoreFlags.h"
@@ -39,29 +38,7 @@ template<typename T>
 const int64 tSingleBufferedBlackboardServer<T>::cUNLOCK_TIMEOUT;
 
 template<typename T>
-tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::tString& description, core::tFrameworkElement* parent) :
-    tAbstractBlackboardServer<T>(description, true ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, rrlib::serialization::tMemoryBuffer::cTYPE.GetRelatedType(), this, true ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
-    buffer(write->GetBufferForReturn<tBBVector>()),
-    locks(0),
-    lock_time(0),
-    last_keep_alive(0),
-    lock_iDGen(0),
-    lock_id(0),
-    revision(0),
-    read_copy(),
-    read_copy_revision(-1),
-    thread_waiting_for_copy(false)
-{
-  // this(description,MemoryBuffer.TYPE,parent,true);
-  this->read_port_raw = new tBBReadPort(this, core::tPortCreationInfo("read", this, rrlib::serialization::tMemoryBuffer::cTYPE.GetListType(), core::tPortFlags::cOUTPUT_PORT | (true ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
-  this->read_port_raw->SetPullRequestHandler(this);
-  ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(rrlib::serialization::tMemoryBuffer::cTYPE);
-  this->write_port_raw = write;
-}
-
-template<typename T>
-tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::tString& description, rrlib::serialization::tDataTypeBase type, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared) :
+tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::tString& description, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
     tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
     write(new core::tInterfaceServerPort("write", this, type.GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
     buffer(write->GetBufferForReturn<tBBVector>()),
@@ -75,7 +52,7 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
     read_copy_revision(-1),
     thread_waiting_for_copy(false)
 {
-  // this(description,type,parent,shared);
+  // this(description,parent,shared,type);
   this->read_port_raw = new tBBReadPort(this, core::tPortCreationInfo("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
   this->read_port_raw->SetPullRequestHandler(this);
   ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(type);
@@ -84,7 +61,7 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
 }
 
 template<typename T>
-tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::tString& description, rrlib::serialization::tDataTypeBase type, core::tFrameworkElement* parent, bool shared) :
+tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::tString& description, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
     tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
     write(new core::tInterfaceServerPort("write", this, type.GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
     buffer(write->GetBufferForReturn<tBBVector>()),
@@ -282,7 +259,7 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboa
     CheckCurrentLock(passed_lock);
     if (locks < 0 && current_revision != read_copy_revision)
     {
-      if (timeout <= 0)     // we do not need to enqueue lock commands with zero timeout
+      if (timeout <= 0)    // we do not need to enqueue lock commands with zero timeout
       {
 
         return tConstBBVectorVar(); // we do not need to enqueue lock commands with zero timeout
@@ -432,7 +409,7 @@ typename tAbstractBlackboardServer<T>::tBBVectorVar tSingleBufferedBlackboardSer
       CheckCurrentLock(lock2);
       if (IsLocked() || this->PendingTasks())
       {
-        if (timeout <= 0)     // we do not need to enqueue lock commands with zero timeout
+        if (timeout <= 0)    // we do not need to enqueue lock commands with zero timeout
         {
 
           return tBBVectorVar(); // we do not need to enqueue lock commands with zero timeout
@@ -441,7 +418,7 @@ typename tAbstractBlackboardServer<T>::tBBVectorVar tSingleBufferedBlackboardSer
         {
           // wait for lock
           bool have_lock = this->WaitForLock(lock2, timeout);
-          if (!have_lock)     // we didn't get lock :-/
+          if (!have_lock)    // we didn't get lock :-/
           {
 
             return tBBVectorVar(); // we didn't get lock :-/

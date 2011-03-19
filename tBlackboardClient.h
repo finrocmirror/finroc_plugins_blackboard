@@ -25,10 +25,18 @@
 
 #include "rrlib/finroc_core_utils/definitions.h"
 
-#include "core/port/tPortCreationInfo.h"
+#include "rrlib/serialization/tDataTypeBase.h"
 #include "plugins/blackboard/tRawBlackboardClient.h"
 
 #include "core/port/tPortUtil.h"
+
+namespace finroc
+{
+namespace core
+{
+class tFrameworkElement;
+} // namespace finroc
+} // namespace core
 
 namespace finroc
 {
@@ -105,12 +113,15 @@ protected:
 public:
 
   /*!
-   * \param pci PortCreationInfo (relevant info: description (blackboard name), parent (of client), type (data type of blackboard content),
-   * flags (emit data => write port, accept data => read port
+   * \param description Name/Uid of blackboard
+   * \param parent Parent of blackboard client
    * \param auto_connect Auto-Connect blackboard client to matching server?
    * \param auto_connect_category If auto-connect is active: Limit auto-connecting to a specific blackboard category? (-1 is no)
+   * \param read_port Create read port?
+   * \param write_port Create write port?
+   * \param type Data Type of blackboard content
    */
-  tBlackboardClient(core::tPortCreationInfo pci, bool auto_connect = true, int auto_connect_category = -1);
+  tBlackboardClient(const util::tString& description, core::tFrameworkElement* parent = NULL, bool auto_connect = true, int auto_connect_category = -1, bool read_port = true, bool write_port = true, rrlib::serialization::tDataTypeBase type = rrlib::serialization::tDataType<T>());
 
   //
   //    /**
