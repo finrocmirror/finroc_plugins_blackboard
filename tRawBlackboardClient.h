@@ -143,7 +143,7 @@ protected:
   void (*keep_alive_func)(tWritePort*, int);
 
   /*! Interface port for write access */
-  ::std::shared_ptr<tWritePort> write_port;
+  std::shared_ptr<tWritePort> write_port;
 
   /*! Port for reading */
   tReadPort* read_port;

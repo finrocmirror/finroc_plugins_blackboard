@@ -120,8 +120,7 @@ void tSingleBufferedBlackboardServer<T>::CheckCurrentLock(util::tLock& passed_lo
     tBBVectorVar new_buffer = write->GetBufferForReturn<tBBVector>();
 
     this->CopyBlackboardBuffer(*buffer, *new_buffer);
-
-    buffer = new_buffer;
+    buffer = std::move(new_buffer);
 
     NewBufferRevision(passed_lock, true);
     locks = 0;
@@ -152,11 +151,10 @@ void tSingleBufferedBlackboardServer<T>::DirectCommit(tBBVectorVar& new_buffer)
   {
     util::tLock lock2(this->bb_lock);
 
+    // note: current lock is obsolete, since we have a completely new buffer
     assert((&(new_buffer) != &(buffer)));
 
-    // note: current lock is obsolete, since we have a completely new buffer
-
-    buffer = new_buffer;
+    buffer = std::move(new_buffer);
 
     // Clear any asynch change commands from queue, since they were for old buffer
     this->ClearAsyncChangeTasks();
@@ -272,8 +270,9 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboa
   if (read_copy_revision >= current_revision)
   {
     // there's a copy... use this
+    GetManager(read_copy)->AddLock();
 
-    return read_copy;
+    return GetManager(read_copy);
   }
 
   if (locks >= 0)
@@ -283,8 +282,9 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboa
     {
       UpdateReadCopy(passed_lock);
       assert((read_copy_revision >= current_revision));
+      GetManager(read_copy)->AddLock();
 
-      return read_copy;
+      return GetManager(read_copy);
     }
     else    // no one waiting... simply lock buffer
     {
@@ -295,8 +295,9 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboa
         GetManager(buffer)->lock_iD = lock_iDNew;
       }
       locks++;
+      GetManager(buffer)->AddLock();
 
-      return buffer;
+      return GetManager(buffer);
     }
   }
 
@@ -437,7 +438,9 @@ typename tAbstractBlackboardServer<T>::tBBVectorVar tSingleBufferedBlackboardSer
     lock_time = util::tTime::GetCoarse();
     last_keep_alive = lock_time;
 
-    return buffer;
+    GetManager(buffer)->AddLock();
+
+    return GetManager(buffer);
   }
 }
 
@@ -470,7 +473,8 @@ void tSingleBufferedBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
     }
     else
     {
-      buffer = buf;
+      buffer = std::move(buf);
+
       //System.out.println("Thread " + Thread.currentThread().toString() + ": lock = " + buffer.toString());
       assert((GetManager(buffer)->IsLocked()));
     }

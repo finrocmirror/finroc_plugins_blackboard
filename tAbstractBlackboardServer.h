@@ -25,8 +25,6 @@
 
 #include "rrlib/finroc_core_utils/definitions.h"
 
-#include "rrlib/finroc_core_utils/container/tSimpleList.h"
-#include "plugins/blackboard/tBlackboardTask.h"
 #include "core/port/rpc/method/tPortInterface.h"
 #include "core/port/rpc/method/tPort1Method.h"
 #include "core/port/rpc/method/tPort2Method.h"
@@ -34,6 +32,8 @@
 #include "core/port/rpc/method/tVoid3Method.h"
 #include "core/port/rpc/method/tPort0Method.h"
 #include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
+#include "rrlib/finroc_core_utils/container/tSimpleList.h"
+#include "plugins/blackboard/tBlackboardTask.h"
 #include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
 
 #include "core/port/tPortTypeMap.h"
@@ -57,11 +57,11 @@ struct tAbstractBlackboardServer : public tAbstractBlackboardServerRaw
 public:
 
   typedef typename core::tPortTypeMap<T>::tListType tBBVector;
-  typedef typename std::shared_ptr<tBBVector> tBBVectorVar;
-  typedef typename std::shared_ptr<const tBBVector> tConstBBVectorVar;
+  typedef typename core::tPortDataPtr<tBBVector> tBBVectorVar;
+  typedef typename core::tPortDataPtr<const tBBVector> tConstBBVectorVar;
   typedef typename core::tPortTypeMap<tBBVector>::tGenericChange tChangeTransaction;
-  typedef typename std::shared_ptr<tChangeTransaction> tChangeTransactionVar;
-  typedef typename std::shared_ptr<const tChangeTransaction> tConstChangeTransactionVar;
+  typedef typename core::tPortDataPtr<tChangeTransaction> tChangeTransactionVar;
+  typedef typename core::tPortDataPtr<const tChangeTransaction> tConstChangeTransactionVar;
 
   using tAbstractBlackboardServerRaw::HandleCall;
 
@@ -77,6 +77,32 @@ public:
 
     // index for asynch change command
     int64_t index;
+
+    tAsynchChangeTask(tConstChangeTransactionVar && buffer_, int64_t offset_, int64_t index_) :
+        buffer(),
+        offset(offset_),
+        index(index_)
+    {
+      buffer = std::move(buffer);
+    }
+
+    tAsynchChangeTask(tAsynchChangeTask && o) :
+        buffer(),
+        offset(0),
+        index(0)
+    {
+      std::swap(buffer, o.buffer);
+      std::swap(offset, o.offset);
+      std::swap(index, o.index);
+    }
+
+    tAsynchChangeTask& operator=(tAsynchChangeTask && o)
+    {
+      std::swap(buffer, o.buffer);
+      std::swap(offset, o.offset);
+      std::swap(index, o.index);
+      return *this;
+    }
   };
 
   /*!
@@ -84,7 +110,7 @@ public:
    * they don't lock and don't execute in an extra thread
    * may only be accessed in synchronized context
    */
-  util::tSimpleList<tAsynchChangeTask> pending_asynch_change_tasks;
+  std::vector<tAsynchChangeTask> pending_asynch_change_tasks;
 
   // Methods...
 
@@ -165,7 +191,10 @@ protected:
    * \param offset Offset offset to start writing
    * \param buf (Locked) buffer with contents to write
    */
-  void DeferAsynchChangeCommand(tConstChangeTransactionVar& buf, int index, int offset);
+  inline void DeferAsynchChangeCommand(tConstChangeTransactionVar& buf, int index, int offset)
+  {
+    pending_asynch_change_tasks.push_back(tAsynchChangeTask(std::move(buf), offset, index));
+  }
 
   /*!
    * Direct commit of new blackboard buffer
@@ -277,7 +306,7 @@ public:
     rrlib::serialization::sSerialization::DeepCopy(src, target, NULL);
   }
 
-  void HandleVoidCall(core::tAbstractMethod* method, tBBVectorVar p1)
+  void HandleVoidCall(core::tAbstractMethod* method, tBBVectorVar& p1)
   {
     if (method == &cDIRECT_COMMIT)
     {
@@ -329,7 +358,7 @@ public:
     return ReadLock(p1);
   }
 
-  inline void HandleVoidCall(const core::tAbstractMethod* method, tConstChangeTransactionVar p2, int index, int offset)
+  inline void HandleVoidCall(const core::tAbstractMethod* method, tConstChangeTransactionVar& p2, int index, int offset)
   {
     assert((method == &(cASYNCH_CHANGE)));
     AsynchChange(p2, index, offset, true);

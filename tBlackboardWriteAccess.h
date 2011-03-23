@@ -44,10 +44,10 @@ class tBlackboardWriteAccess
 private:
 
   /*! Locked blackboard */
-  tBlackboardClient<T> blackboard;
+  tBlackboardClient<T>& blackboard;
 
   /*! not null - if buffer is currently locked for writing */
-  typename tBlackboardClient<T>::tBBVectorVar locked;
+  typename tBlackboardClient<T>::tBBVector* locked;
 
 public:
 
@@ -55,7 +55,7 @@ public:
    * \param blackboard Blackboard to access
    * \param timeout Timeout for lock (in ms)
    */
-  tBlackboardWriteAccess(tBlackboardClient<T> blackboard_, int timeout = 60000) :
+  tBlackboardWriteAccess(tBlackboardClient<T>& blackboard_, int timeout = 60000) :
       blackboard(blackboard_),
       locked(blackboard_.WriteLock(timeout))
   {

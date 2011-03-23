@@ -117,9 +117,9 @@ private:
    * \return Port data manager for buffer
    */
   template <typename Q>
-  inline static core::tPortDataManager* GetManager(std::shared_ptr<Q>& t)
+  inline static core::tPortDataManager* GetManager(core::tPortDataPtr<Q>& t)
   {
-    return core::tPortDataManager::GetManager(t);
+    return t.GetManager();
   }
 
   void NewBufferRevision(util::tLock& passed_lock, bool has_changes);

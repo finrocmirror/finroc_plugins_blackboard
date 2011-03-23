@@ -43,7 +43,7 @@ void tBlackboardClient<T>::Publish(tBBVectorVar& buffer)
 {
   assert((wrapped->lock_type == tRawBlackboardClient::eNONE));
 
-  assert(!core::tPortDataManager::GetManager(buffer)->IsUnused() && "Obtain buffer from getUnusedBuffer()");
+  assert(!buffer.GetManager()->IsUnused() && "Obtain buffer from getUnusedBuffer()");
 
   /*if (buffer.getManager().isUnused()) {
       buffer.getManager().getCurrentRefCounter().setLocks((byte)1);
@@ -59,7 +59,7 @@ void tBlackboardClient<T>::Publish(tBBVectorVar& buffer)
 }
 
 template<typename T>
-typename tAbstractBlackboardServer<T>::tConstBBVectorVar tBlackboardClient<T>::ReadLock(bool force_read_copy_to_avoid_blocking, int timeout)
+const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::ReadLock(bool force_read_copy_to_avoid_blocking, int timeout)
 {
   assert(((locked == NULL && wrapped->lock_type == tRawBlackboardClient::eNONE)) && "Unlock first");
   if (timeout <= 0)
@@ -80,7 +80,7 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tBlackboardClient<T>::R
   {
     wrapped->lock_type = tRawBlackboardClient::eREAD;
     wrapped->cur_lock_iD = -1;
-    return (read_locked = Read(timeout));
+    return &((read_locked = Read(timeout)));
   }
   else
   {
@@ -95,7 +95,7 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tBlackboardClient<T>::R
       {
         wrapped->lock_type = tRawBlackboardClient::eREAD;
 
-        wrapped->cur_lock_iD = core::tPortDataManager::GetManager(ret)->lock_iD;
+        wrapped->cur_lock_iD = ret.GetManager()->lock_iD;
         read_locked = ret;
 
         // acknowledge lock
@@ -105,7 +105,7 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tBlackboardClient<T>::R
       {
         wrapped->cur_lock_iD = -1;
       }
-      return ret;
+      return &(ret);
     }
     catch (const core::tMethodCallException& e)
     {
@@ -161,13 +161,8 @@ void tBlackboardClient<T>::Unlock()
 }
 
 template<typename T>
-typename tAbstractBlackboardServer<T>::tBBVectorVar tBlackboardClient<T>::WriteLock(int timeout)
+typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::WriteLock(int timeout)
 {
-  if (timeout <= 0)
-  {
-    timeout = 60000;  // wait one minute for method to complete if no time is specified
-  }
-
   assert((locked == NULL && wrapped->lock_type == tRawBlackboardClient::eNONE));
   assert((wrapped->cur_lock_iD == -1));
   assert((wrapped->IsReady()));
@@ -179,9 +174,8 @@ typename tAbstractBlackboardServer<T>::tBBVectorVar tBlackboardClient<T>::WriteL
     {
       wrapped->lock_type = tRawBlackboardClient::eWRITE;
 
-      wrapped->cur_lock_iD = core::tPortDataManager::GetManager(ret)->lock_iD;
-
-      locked = ret;
+      wrapped->cur_lock_iD = ret.GetManager()->lock_iD;
+      locked = std::move(ret);
 
       // acknowledge lock
       wrapped->SendKeepAlive();
@@ -190,13 +184,14 @@ typename tAbstractBlackboardServer<T>::tBBVectorVar tBlackboardClient<T>::WriteL
     {
       wrapped->cur_lock_iD = -1;
     }
-    return ret;
+
+    return locked.Get();
+
   }
   catch (const core::tMethodCallException& e)
   {
     wrapped->cur_lock_iD = -1;
-
-    return tBBVectorVar();
+    return NULL;
   }
 }
 

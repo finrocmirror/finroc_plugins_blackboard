@@ -152,8 +152,8 @@ public:
    */
   inline void CommitAsynchChange(tChangeTransactionVar& change_buf, int index, int offset)
   {
-    assert(!core::tPortDataManager::GetManager(change_buf)->IsUnused() && "Obtain buffer from getUnusedChangeBuffer()");
-    tAbstractBlackboardServer<T>::cASYNCH_CHANGE.Call(*wrapped->GetWritePort(), change_buf, index, offset, true);
+    assert(!change_buf.GetManager()->IsUnused() && "Obtain buffer from getUnusedChangeBuffer()");
+    tAbstractBlackboardServer<T>::cASYNCH_CHANGE.Call(*wrapped->GetWritePort(), static_cast<tConstChangeTransactionVar&>(change_buf), index, offset, true);
   }
 
   /*!
@@ -247,44 +247,14 @@ public:
    * \param force_read_copy_to_avoid_blocking Force read copy to avoid blocking? (only relevant for single buffered blackboard servers)
    * \param timeout Timeout for call
    */
-  typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLock(bool force_read_copy_to_avoid_blocking = false, int timeout = 60000);
+  const typename tAbstractBlackboardServer<T>::tBBVector* ReadLock(bool force_read_copy_to_avoid_blocking = false, int timeout = 60000);
 
   /*!
    * Commit changes of previously locked buffer
    */
   void Unlock();
 
-  //
-  //    /**
-  //     * Read part of blackboard
-  //     *
-  //     * \param offset offset in byte
-  //     * \param length length in byte
-  //     * \param timeout timeout for this synchronous operation
-  //     * \return Lock Locked buffer - or null if operation failed (position 0 in this buffer is position 'offset' in original one)
-  //     *  is unlocked automatically
-  //     */
-  //    public BlackboardBuffer readPart(int offset, int length, @CppDefault("60000") int timeout) {
-  //        if (timeout <= 0) {
-  //            timeout = 60000; // wait one minute for method to complete if no time is specified
-  //        }
-  //        try {
-  //            return AbstractBlackboardServer.READ_PART.call(getWritePort(), offset, length, timeout, timeout + NET_TIMEOUT);
-  //        } catch (MethodCallException e) {
-  //            return null;
-  //        }
-  //    }
-  //
-  /*!
-   * Lock blackboard in order to read and commit changes
-   * (synchronous/blocking... only use if absolutely necessary)
-   *
-   * \param timeout timeout for lock
-   * \return Lock Locked buffer - or null if lock failed - this buffer may be modified -
-   * call unlock() after modifications are complete - locks of buffer should normally not be modified -
-   * except of it should be used in some other port or stored for longer than the unlock() operation
-   */
-  typename tAbstractBlackboardServer<T>::tBBVectorVar WriteLock(int timeout = 60000);
+  typename tAbstractBlackboardServer<T>::tBBVector* WriteLock(int timeout = 60000);
 
 };
 

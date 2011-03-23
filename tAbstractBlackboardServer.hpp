@@ -61,30 +61,20 @@ tAbstractBlackboardServer<T>::tAbstractBlackboardServer(const util::tString& bb_
 template<typename T>
 void tAbstractBlackboardServer<T>::ClearAsyncChangeTasks()
 {
-  pending_asynch_change_tasks.Clear();
-}
-
-template<typename T>
-void tAbstractBlackboardServer<T>::DeferAsynchChangeCommand(tConstChangeTransactionVar& buf, int index, int offset)
-{
-  tAsynchChangeTask task;
-  task.offset = offset;
-  task.buffer = buf;
-  task.index = index;
-  pending_asynch_change_tasks.Add(task);
+  pending_asynch_change_tasks.clear();
 }
 
 template<typename T>
 void tAbstractBlackboardServer<T>::ProcessPendingAsynchChangeTasks()
 {
-  for (size_t i = 0u; i < pending_asynch_change_tasks.Size(); i++)
+  for (size_t i = 0u; i < pending_asynch_change_tasks.size(); i++)
   {
-    tAsynchChangeTask task = pending_asynch_change_tasks.Get(i);
+    tAsynchChangeTask& task = pending_asynch_change_tasks[i];
     AsynchChange(task.buffer, static_cast<int>(task.index), static_cast<int>(task.offset), false);
 
     task.buffer.reset();
   }
-  pending_asynch_change_tasks.Clear();
+  pending_asynch_change_tasks.clear();
 }
 
 template<typename T>
