@@ -296,18 +296,10 @@ void tBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
     assert((locked != NULL));
     assert((bufmgr->IsLocked()));
 
-    if (&(buf) == &(locked))
+    if (buf != locked)
     {
-      // we got the same buffer back - we only need to release one lock from method call
-      // we got the same buffer back - we only need to release one lock from method call
-
-    }
-    else
-    {
-      locked = buf;
-      //System.out.println("Thread " + Thread.currentThread().toString() + ": lock = " + locked.toString());
-      //System.out.println("Thread " + Thread.currentThread().toString() + ": lock = " + locked.toString());
-
+      locked = std::move(buf);
+      assert(GetManager(bufmgr)->IsLocked());
     }
 
     CommitLocked();

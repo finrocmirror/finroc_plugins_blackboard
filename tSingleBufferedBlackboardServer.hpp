@@ -468,16 +468,13 @@ void tSingleBufferedBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
     assert((bufmgr->IsLocked()));
 
     lock_id = lock_iDGen.IncrementAndGet();
-    if (&(buf) == &(buffer))
-    {
-    }
-    else
+
+    if (buf != buffer)
     {
       buffer = std::move(buf);
-
-      //System.out.println("Thread " + Thread.currentThread().toString() + ": lock = " + buffer.toString());
-      assert((GetManager(buffer)->IsLocked()));
+      assert(GetManager(buffer)->IsLocked());
     }
+
     locks = 0;
     NewBufferRevision(lock2, true);
 

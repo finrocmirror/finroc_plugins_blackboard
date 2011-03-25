@@ -155,6 +155,7 @@ protected:
 
   virtual bool IsLocked()
   {
+    assert(buffer.get() != NULL && buffer.GetManager() != NULL);
     return locks != 0;
   }
 
