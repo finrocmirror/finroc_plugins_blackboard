@@ -474,6 +474,10 @@ void tSingleBufferedBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
       buffer = std::move(buf);
       assert(GetManager(buffer)->IsLocked());
     }
+    else
+    {
+      buf.reset();
+    }
 
     locks = 0;
     NewBufferRevision(lock2, true);

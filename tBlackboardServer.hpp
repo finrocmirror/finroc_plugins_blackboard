@@ -149,8 +149,8 @@ void tBlackboardServer<T>::CommitLocked()
   core::tPortDataManager* mgr = GetManager(locked);
   mgr->lock_iD = -1;
 
-  read_port->Publish(locked);
   published = locked.get();
+  read_port->Publish(locked);
   locked.reset();
 
   lock_id = lock_iDGen.IncrementAndGet();
@@ -180,7 +180,8 @@ void tBlackboardServer<T>::DirectCommit(tBBVectorVar& new_buffer)
 
     // commit new buffer
 
-    locked = new_buffer;
+    locked = std::move(new_buffer);
+
     CommitLocked();
 
     assert((locked == NULL));
@@ -269,8 +270,11 @@ typename tAbstractBlackboardServer<T>::tBBVectorVar tBlackboardServer<T>::WriteL
 
     DuplicateAndLock();
 
-    return locked;  // return buffer with one read lock
-    //mc.setReturn(locked, false);
+    core::tPortDataManager* mgr = GetManager(locked);
+    assert((locked != NULL && mgr->IsLocked()));
+    mgr->AddLock();  // second lock for PortDataPtr duplication  // return buffer with one read lock
+
+    return tBBVectorVar(mgr);
   }
 }
 
@@ -299,7 +303,11 @@ void tBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
     if (buf != locked)
     {
       locked = std::move(buf);
-      assert(GetManager(bufmgr)->IsLocked());
+      assert(GetManager(locked)->IsLocked());
+    }
+    else
+    {
+      buf.reset();
     }
 
     CommitLocked();
