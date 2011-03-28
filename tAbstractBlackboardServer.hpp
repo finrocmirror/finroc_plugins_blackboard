@@ -25,7 +25,7 @@ namespace finroc
 namespace blackboard
 {
 template<typename T>
-core::tPortInterface tAbstractBlackboardServer<T>::cMETHODS("Blackboard Interface");
+core::tPortInterface tAbstractBlackboardServer<T>::cMETHODS("Blackboard Interface", true);
 
 template<typename T>
 typename core::tPort1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar, int> tAbstractBlackboardServer<T>::cLOCK(tAbstractBlackboardServer::cMETHODS, "Lock", "timeout", true);

@@ -71,8 +71,7 @@ const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::Re
   wrapped->CheckSingleBuffered();
   if (wrapped->server_buffers == tRawBlackboardClient::eUNKNOWN)    // we currently have no partner (?)
   {
-
-    return tConstBBVectorVar();
+    return NULL;
   }
 
   bool via_port = (wrapped->server_buffers == tRawBlackboardClient::eMULTI) || wrapped->GetReadPort()->PushStrategy() || force_read_copy_to_avoid_blocking || wrapped->GetWritePort()->HasRemoteServer();
@@ -80,7 +79,9 @@ const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::Re
   {
     wrapped->lock_type = tRawBlackboardClient::eREAD;
     wrapped->cur_lock_iD = -1;
-    return &((read_locked = Read(timeout)));
+    read_locked = Read(timeout);
+
+    return read_locked.get();
   }
   else
   {
@@ -96,22 +97,23 @@ const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::Re
         wrapped->lock_type = tRawBlackboardClient::eREAD;
 
         wrapped->cur_lock_iD = ret.GetManager()->lock_iD;
-        read_locked = ret;
+        read_locked = std::move(ret);
 
         // acknowledge lock
         wrapped->SendKeepAlive();
+
+        return read_locked.get();
       }
       else
       {
         wrapped->cur_lock_iD = -1;
+        return NULL;
       }
-      return &(ret);
     }
     catch (const core::tMethodCallException& e)
     {
       wrapped->cur_lock_iD = -1;
-
-      return tConstBBVectorVar();
+      return NULL;
     }
   }
 }

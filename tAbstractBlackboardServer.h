@@ -352,7 +352,7 @@ public:
     return WriteLock(p1);
   }
 
-  inline const tBBVectorVar HandleCall(const core::tAbstractMethod* method, int p1, int dummy)
+  inline tConstBBVectorVar HandleCall(const core::tAbstractMethod* method, int p1, int dummy)
   {
     assert((method == &(cREAD_LOCK)));
     return ReadLock(p1);

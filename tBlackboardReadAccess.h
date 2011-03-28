@@ -46,7 +46,7 @@ private:
   tBlackboardClient<T>& blackboard;
 
   /*! not null - if buffer is currently locked for writing */
-  const typename tBlackboardClient<T>::tBBVectorVar* locked;
+  const typename tBlackboardClient<T>::tBBVector* locked;
 
 public:
 
