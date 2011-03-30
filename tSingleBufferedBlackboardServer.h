@@ -238,11 +238,12 @@ public:
 
   /*!
    * \param description Name/Uid of blackboard
+   * \param elements Initial number of elements
    * \param parent parent of BlackboardServer
    * \param shared Share blackboard with other runtime environments?
    * \param type Data Type of blackboard content
    */
-  tSingleBufferedBlackboardServer(const util::tString& description, core::tFrameworkElement* parent = NULL, bool shared = true, rrlib::serialization::tDataTypeBase type = rrlib::serialization::tDataType<T>());
+  tSingleBufferedBlackboardServer(const util::tString& description, int elements = 0, core::tFrameworkElement* parent = NULL, bool shared = true, rrlib::serialization::tDataTypeBase type = rrlib::serialization::tDataType<T>());
 
   virtual ~tSingleBufferedBlackboardServer();
 

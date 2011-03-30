@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+#include "plugins/blackboard/tBlackboardPlugin.h"
 
 namespace finroc
 {
@@ -62,6 +63,18 @@ template<typename T>
 void tAbstractBlackboardServer<T>::ClearAsyncChangeTasks()
 {
   pending_asynch_change_tasks.clear();
+}
+
+template<typename T>
+rrlib::serialization::tDataTypeBase tAbstractBlackboardServer<T>::GetBlackboardMethodType(rrlib::serialization::tDataTypeBase dt)
+{
+  rrlib::serialization::tDataTypeBase dtb = dt.GetRelatedType();
+  if (dtb != NULL)
+  {
+    return dtb;
+  }
+  tBlackboardPlugin::RegisterBlackboardType<T>(dt);
+  return dt.GetRelatedType();
 }
 
 template<typename T>

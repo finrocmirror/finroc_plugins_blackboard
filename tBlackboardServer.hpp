@@ -49,8 +49,8 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int ca
     published(),
     read_port()
 {
-  // this(description,parent,shared,type);
-  core::tPortCreationInfo read_pci = core::tPortCreationInfo("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1);
+  // this(description,elements,parent,shared,type);
+  core::tPortCreationInfo read_pci = core::tPortCreationInfo("read", this, this->GetBlackboardMethodType(type), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1);
 
   read_port.reset(new core::tPort<tBBVector>(read_pci));
 
@@ -58,11 +58,14 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int ca
   ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(type);
   this->write_port_raw = write;
   SetPublished(read_port->GetDefaultBuffer());
-  Resize(published, capacity, elements);
+
+  Resize(*published, elements, elements);
+
+  tBlackboardManager::GetInstance()->Init();
 }
 
 template<typename T>
-tBlackboardServer<T>::tBlackboardServer(const util::tString& description, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
+tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int elements, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
     tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
     write(new core::tInterfaceServerPort("write", this, type.GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
     locked(),
@@ -73,7 +76,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, core::
     published(),
     read_port()
 {
-  core::tPortCreationInfo read_pci = core::tPortCreationInfo("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1);
+  core::tPortCreationInfo read_pci = core::tPortCreationInfo("read", this, this->GetBlackboardMethodType(type), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1);
 
   read_port.reset(new core::tPort<tBBVector>(read_pci));
 
@@ -81,6 +84,10 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, core::
   ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(type);
   this->write_port_raw = write;
   SetPublished(read_port->GetDefaultBuffer());
+
+  Resize(*published, elements, elements);
+
+  tBlackboardManager::GetInstance()->Init();
 }
 
 template<typename T>

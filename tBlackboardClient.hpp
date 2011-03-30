@@ -39,6 +39,22 @@ tBlackboardClient<T>::tBlackboardClient(const util::tString& description, core::
 }
 
 template<typename T>
+bool tBlackboardClient<T>::CommitAsynchChange(tChangeTransactionVar& change_buf, int index, int offset)
+{
+  try
+  {
+    assert(!change_buf.GetManager()->IsUnused() && "Obtain buffer from getUnusedChangeBuffer()");
+    tAbstractBlackboardServer<T>::cASYNCH_CHANGE.Call(*wrapped->GetWritePort(), static_cast<tConstChangeTransactionVar&>(change_buf), index, offset, true);
+
+    return true;
+  }
+  catch (const core::tMethodCallException& e)
+  {
+    return false;
+  }
+}
+
+template<typename T>
 void tBlackboardClient<T>::Publish(tBBVectorVar& buffer)
 {
   assert((wrapped->lock_type == tRawBlackboardClient::eNONE));
@@ -165,6 +181,11 @@ void tBlackboardClient<T>::Unlock()
 template<typename T>
 typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::WriteLock(int timeout)
 {
+  if (timeout <= 0)
+  {
+    timeout = 60000;  // wait one minute for method to complete if no time is specified
+  }
+
   assert((locked == NULL && wrapped->lock_type == tRawBlackboardClient::eNONE));
   assert((wrapped->cur_lock_iD == -1));
   assert((wrapped->IsReady()));

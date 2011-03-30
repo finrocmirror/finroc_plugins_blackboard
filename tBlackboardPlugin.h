@@ -25,15 +25,17 @@
 
 #include "rrlib/finroc_core_utils/definitions.h"
 
-#include "rrlib/serialization/tDataTypeBase.h"
 #include "core/portdatabase/tRPCInterfaceType.h"
-#include "plugins/blackboard/tAbstractBlackboardServer.h"
+#include "rrlib/serialization/tDataTypeBase.h"
 #include "core/plugin/tPlugin.h"
 
 namespace finroc
 {
 namespace blackboard
 {
+template<typename T>
+class tAbstractBlackboardServer;
+
 /*!
  * \author Max Reichardt
  *
@@ -96,20 +98,7 @@ public:
    * \return Blackboard buffer type
    */
   template <typename T>
-  inline static rrlib::serialization::tDataTypeBase RegisterBlackboardType(rrlib::serialization::tDataTypeBase dt, const util::tString& name)
-  {
-    util::tString bb_name = util::tStringBuilder("Blackboard<") + name + ">";
-    rrlib::serialization::tDataTypeBase dtbb = rrlib::serialization::tDataTypeBase::FindType(bb_name);
-    if (dtbb == NULL)
-    {
-      core::tRPCInterfaceType rpct(bb_name, &tAbstractBlackboardServer<T>::cMETHODS);
-      dtbb = rpct;
-      dt.SetRelatedType(dtbb);
-      dtbb.SetRelatedType(dt);
-    }
-
-    return dtbb;
-  }
+  static rrlib::serialization::tDataTypeBase RegisterBlackboardType(rrlib::serialization::tDataTypeBase dt, const util::tString& name);
 
   /*!
    * Registers blackboard data type
@@ -125,6 +114,31 @@ public:
   }
 
 };
+
+} // namespace finroc
+} // namespace blackboard
+
+#include "plugins/blackboard/tAbstractBlackboardServer.h"
+
+namespace finroc
+{
+namespace blackboard
+{
+template <typename T>
+rrlib::serialization::tDataTypeBase tBlackboardPlugin::RegisterBlackboardType(rrlib::serialization::tDataTypeBase dt, const util::tString& name)
+{
+  util::tString bb_name = util::tStringBuilder("Blackboard<") + name + ">";
+  rrlib::serialization::tDataTypeBase dtbb = rrlib::serialization::tDataTypeBase::FindType(bb_name);
+  if (dtbb == NULL)
+  {
+    core::tRPCInterfaceType rpct(bb_name, &tAbstractBlackboardServer<T>::cMETHODS);
+    dtbb = rpct;
+    dt.SetRelatedType(dtbb);
+    dtbb.SetRelatedType(dt);
+  }
+
+  return dtbb;
+}
 
 } // namespace finroc
 } // namespace blackboard

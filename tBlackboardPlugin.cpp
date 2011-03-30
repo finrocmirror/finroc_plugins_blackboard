@@ -22,6 +22,7 @@
 #include "plugins/blackboard/tBlackboardPlugin.h"
 #include "rrlib/serialization/tMemoryBuffer.h"
 #include "plugins/blackboard/tBlackboardBuffer.h"
+#include "plugins/blackboard/tAbstractBlackboardServer.h"
 
 namespace finroc
 {

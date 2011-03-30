@@ -40,7 +40,7 @@ const int64 tSingleBufferedBlackboardServer<T>::cUNLOCK_TIMEOUT;
 template<typename T>
 tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::tString& description, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
     tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, type.GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
+    write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
     buffer(write->GetBufferForReturn<tBBVector>()),
     locks(0),
     lock_time(0),
@@ -52,18 +52,22 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
     read_copy_revision(-1),
     thread_waiting_for_copy(false)
 {
-  // this(description,parent,shared,type);
+  // this(description,elements,parent,shared,type);
   this->read_port_raw = new tBBReadPort(this, core::tPortCreationInfo("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
   this->read_port_raw->SetPullRequestHandler(this);
   ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(type);
   this->write_port_raw = write;
-  Resize(buffer, capacity, elements);
+
+  Resize(*buffer, elements, elements);
+
+  tBlackboardManager::GetInstance()->Init();
+  //resize(buffer, capacity, elements/*, elemSize, false*/);
 }
 
 template<typename T>
-tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::tString& description, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
+tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::tString& description, int elements, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
     tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, type.GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
+    write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
     buffer(write->GetBufferForReturn<tBBVector>()),
     locks(0),
     lock_time(0),
@@ -79,6 +83,10 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
   this->read_port_raw->SetPullRequestHandler(this);
   ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(type);
   this->write_port_raw = write;
+
+  Resize(*buffer, elements, elements);
+
+  tBlackboardManager::GetInstance()->Init();
 }
 
 template<typename T>

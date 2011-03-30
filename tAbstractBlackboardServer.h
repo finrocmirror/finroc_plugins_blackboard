@@ -32,6 +32,7 @@
 #include "core/port/rpc/method/tVoid3Method.h"
 #include "core/port/rpc/method/tPort0Method.h"
 #include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
+#include "rrlib/serialization/tDataTypeBase.h"
 #include "rrlib/finroc_core_utils/container/tSimpleList.h"
 #include "plugins/blackboard/tBlackboardTask.h"
 #include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
@@ -202,6 +203,14 @@ protected:
    * \param buf New Buffer
    */
   virtual void DirectCommit(tBBVectorVar& buf) = 0;
+
+  /*!
+   * Helper for constructor
+   *
+   * \param dt DataType T
+   * \return Blackboard method type of write ports
+   */
+  rrlib::serialization::tDataTypeBase GetBlackboardMethodType(rrlib::serialization::tDataTypeBase dt);
 
   /*!
    * \return Is blackboard currently locked?
