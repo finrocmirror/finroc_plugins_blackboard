@@ -49,7 +49,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int ca
     published(),
     read_port()
 {
-  // this(description,elements,parent,shared,type);
+  // this(description,1,parent,shared,type);
   core::tPortCreationInfo read_pci = core::tPortCreationInfo("read", this, this->GetBlackboardMethodType(type), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1);
 
   read_port.reset(new core::tPort<tBBVector>(read_pci));
@@ -62,6 +62,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int ca
   Resize(*published, elements, elements);
 
   tBlackboardManager::GetInstance()->Init();
+  ClassicBlackboardResize(&((*published)[0]), capacity, elements, elem_size);
 }
 
 template<typename T>

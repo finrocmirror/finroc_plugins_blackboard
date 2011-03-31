@@ -31,6 +31,7 @@
 #include "plugins/blackboard/tBlackboardTask.h"
 #include "rrlib/serialization/tDataTypeBase.h"
 #include "core/portdatabase/tFinrocTypeInfo.h"
+#include "plugins/blackboard/tBlackboardBuffer.h"
 #include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
 #include "plugins/blackboard/tBlackboardManager.h"
 #include "core/tFrameworkElement.h"
@@ -85,6 +86,26 @@ public:
   RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "blackboard");
 
 protected:
+
+  /*!
+   * Resize for Blackboards based on BlackboardBuffer (such as class MCA-style ones)
+   *
+   * \param buffer Blackboard buffer to resize
+   * \param capacity Blackboard capacity (see BlackboardBuffer)
+   * \param elements Number of element (see BlackboardBuffer)
+   * \param elem_size Element size (see BlackboardBuffer)
+   */
+  inline void ClassicBlackboardResize(tBlackboardBuffer* buffer, int capacity, int elements, int elem_size)
+  {
+    buffer->Resize(capacity, elements, elem_size, true);
+  }
+
+  /*!
+   * Overload for non-blackboard-types
+   */
+  inline void ClassicBlackboardResize(void* o, int capacity, int elements, int elem_size)
+  {
+  }
 
   /*!
    * (only call in synchronized context)
@@ -183,19 +204,6 @@ public:
    * Check whether lock has timed out
    */
   virtual void LockCheck() = 0;
-
-//    /**
-//     * (Only works in C++)
-//     * Retrieve size information for blackboard
-//     */
-//    @Virtual
-//    public void getSizeInfo(@SizeT @Ref int elementSize, @SizeT @Ref int elements, @SizeT @Ref int capacity) {
-//        @Const PortDataManagerRaw buf = (BlackboardBuffer)readPort.getLockedUnsafeRaw();
-//        elementSize = buf.getElementSize();
-//        elements = buf.getElements();
-//        capacity = buf.getBbCapacity();
-//        buf.getManager().releaseLock();
-//    }
 
 };
 

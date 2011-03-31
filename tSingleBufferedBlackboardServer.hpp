@@ -61,7 +61,7 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
   Resize(*buffer, elements, elements);
 
   tBlackboardManager::GetInstance()->Init();
-  //resize(buffer, capacity, elements/*, elemSize, false*/);
+  ClassicBlackboardResize(&((*buffer)[0]), capacity, elements, elem_size);
 }
 
 template<typename T>
