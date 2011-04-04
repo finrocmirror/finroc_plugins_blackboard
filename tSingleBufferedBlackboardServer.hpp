@@ -20,6 +20,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #include "plugins/blackboard/tBlackboardManager.h"
+#include "core/portdatabase/tFinrocTypeInfo.h"
 #include "core/port/tPortFlags.h"
 #include "core/tCoreFlags.h"
 #include "core/tLockOrderLevels.h"
@@ -52,14 +53,13 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
     read_copy_revision(-1),
     thread_waiting_for_copy(false)
 {
-  // this(description,elements,parent,shared,type);
+  assert(((!core::tFinrocTypeInfo::IsMethodType(type))) && "Please provide data type of content here");
   this->read_port_raw = new tBBReadPort(this, core::tPortCreationInfo("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
   this->read_port_raw->SetPullRequestHandler(this);
   ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(type);
   this->write_port_raw = write;
 
-  Resize(*buffer, elements, elements);
-
+  Resize(*buffer, 1, 1);
   tBlackboardManager::GetInstance()->Init();
   ClassicBlackboardResize(&((*buffer)[0]), capacity, elements, elem_size);
 }
@@ -79,6 +79,7 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
     read_copy_revision(-1),
     thread_waiting_for_copy(false)
 {
+  assert(((!core::tFinrocTypeInfo::IsMethodType(type))) && "Please provide data type of content here");
   this->read_port_raw = new tBBReadPort(this, core::tPortCreationInfo("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
   this->read_port_raw->SetPullRequestHandler(this);
   ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(type);

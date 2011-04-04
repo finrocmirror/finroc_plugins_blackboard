@@ -119,6 +119,10 @@ tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(const util::tStr
 
 tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(const util::tString& name, int start_cat, int end_cat, rrlib::serialization::tDataTypeBase type)
 {
+  if (type.GetListType() != NULL)
+  {
+    type = type.GetListType();
+  }
   for (int c = start_cat; c <= end_cat; c++)
   {
     tBlackboardCategory* cat = categories[c];

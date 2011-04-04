@@ -20,6 +20,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #include "plugins/blackboard/tBlackboardManager.h"
+#include "core/portdatabase/tFinrocTypeInfo.h"
 #include "core/port/tPortCreationInfo.h"
 #include "core/port/tPortFlags.h"
 #include "core/tCoreFlags.h"
@@ -50,6 +51,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int ca
     read_port()
 {
   // this(description,1,parent,shared,type);
+  assert(((!core::tFinrocTypeInfo::IsMethodType(type))) && "Please provide data type of content here");
   core::tPortCreationInfo read_pci = core::tPortCreationInfo("read", this, this->GetBlackboardMethodType(type), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1);
 
   read_port.reset(new core::tPort<tBBVector>(read_pci));
@@ -59,7 +61,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int ca
   this->write_port_raw = write;
   SetPublished(read_port->GetDefaultBuffer());
 
-  Resize(*published, elements, elements);
+  Resize(*published, 1, 1);
 
   tBlackboardManager::GetInstance()->Init();
   ClassicBlackboardResize(&((*published)[0]), capacity, elements, elem_size);
@@ -77,6 +79,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int el
     published(),
     read_port()
 {
+  assert(((!core::tFinrocTypeInfo::IsMethodType(type))) && "Please provide data type of content here");
   core::tPortCreationInfo read_pci = core::tPortCreationInfo("read", this, this->GetBlackboardMethodType(type), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1);
 
   read_port.reset(new core::tPort<tBBVector>(read_pci));

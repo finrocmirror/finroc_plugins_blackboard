@@ -179,7 +179,7 @@ public:
    *
    * \param name Blackboard name
    * \param category Blackboard Category (-1 all categories)
-   * \param type Data type of blackboard (null all types)
+   * \param type Data type of blackboard (null = all types)
    * \return Blackboard - or null if no blackboard could be found
    */
   tAbstractBlackboardServerRaw* GetBlackboard(const util::tString& name, int category, rrlib::serialization::tDataTypeBase type);
@@ -190,7 +190,7 @@ public:
    * \param name Blackboard name
    * \param start_cat category index to start looking (inclusive)
    * \param end_cat end category index (inclusive)
-   * \param type Data type of blackboard (null all types)
+   * \param type Data type of blackboard (null = all types)
    * \return Blackboard - or null if no blackboard could be found
    */
   tAbstractBlackboardServerRaw* GetBlackboard(const util::tString& name, int start_cat, int end_cat, rrlib::serialization::tDataTypeBase type);

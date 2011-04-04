@@ -28,6 +28,14 @@ namespace finroc
 {
 namespace blackboard
 {
+void tBlackboardBuffer::CopyFromBlackboardBuffer(const tBlackboardBuffer& source)
+{
+  ::rrlib::serialization::tMemoryBuffer::CopyFrom(source);
+  bb_capacity = source.bb_capacity;
+  elements = source.elements;
+  element_size = source.element_size;
+}
+
 void tBlackboardBuffer::Deserialize(rrlib::serialization::tInputStream& is)
 {
   //lockID = is.readInt();

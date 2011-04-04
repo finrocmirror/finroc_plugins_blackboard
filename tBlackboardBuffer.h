@@ -63,6 +63,18 @@ public:
       element_size(0)
   {}
 
+  inline void CopyFrom(rrlib::serialization::tMemoryBuffer* source)
+  {
+    CopyFromBlackboardBuffer(*static_cast<tBlackboardBuffer*>(source));
+  }
+
+  /*!
+   * Implementation of copy operation
+   *
+   * \param source Source to copy data from
+   */
+  void CopyFromBlackboardBuffer(const tBlackboardBuffer& source);
+
   tBlackboardBuffer(tBlackboardBuffer && o) :
       rrlib::serialization::tMemoryBuffer(std::forward<rrlib::serialization::tMemoryBuffer>(o)),
       bb_capacity(0),
