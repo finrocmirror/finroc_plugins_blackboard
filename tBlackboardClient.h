@@ -293,4 +293,14 @@ public:
 #include "plugins/blackboard/tBlackboardReadAccess.h"
 #include "plugins/blackboard/tBlackboardWriteAccess.h"
 
+namespace finroc
+{
+namespace blackboard
+{
+extern template class tBlackboardClient<tBlackboardBuffer>;
+extern template class tBlackboardClient<rrlib::serialization::tMemoryBuffer>;
+
+} // namespace finroc
+} // namespace blackboard
+
 #endif // plugins__blackboard__tBlackboardClient_h__

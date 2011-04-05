@@ -212,4 +212,14 @@ public:
 
 #include "plugins/blackboard/tBlackboardServer.hpp"
 
+namespace finroc
+{
+namespace blackboard
+{
+extern template class tBlackboardServer<tBlackboardBuffer>;
+extern template class tBlackboardServer<rrlib::serialization::tMemoryBuffer>;
+
+} // namespace finroc
+} // namespace blackboard
+
 #endif // plugins__blackboard__tBlackboardServer_h__
