@@ -257,7 +257,7 @@ public:
    */
   inline bool IsConnected() const
   {
-    bool w = (write_port == NULL) ? true : write_port->IsConnected();
+    bool w = (write_port.get() == NULL) ? true : write_port->IsConnected();
     return w && read_port->IsConnected();
   }
 

@@ -52,7 +52,7 @@ bool tRawBlackboardClient::CheckConnect(tAbstractBlackboardServerRaw* server)
   {
     return false;  // data types don't fit
   }
-  if (write_port != NULL && server->write_port_raw->GetDataType() != write_port->GetDataType())
+  if (write_port.get() != NULL && server->write_port_raw->GetDataType() != write_port->GetDataType())
   {
     return false;  // data types don't fit
   }
@@ -66,7 +66,7 @@ bool tRawBlackboardClient::CheckConnect(tAbstractBlackboardServerRaw* server)
   {
     read_port->ConnectToSource(server->read_port_raw);
   }
-  if (write_port != NULL)
+  if (write_port.get() != NULL)
   {
     write_port->ConnectToSource(server->write_port_raw);
   }
@@ -133,7 +133,7 @@ tRawBlackboardClient::tReadPort::tReadPort(tRawBlackboardClient* const outer_cla
 void tRawBlackboardClient::tReadPort::NewConnection(core::tAbstractPort* partner)
 {
   ::finroc::core::tAbstractPort::NewConnection(partner);
-  if (outer_class_ptr->write_port != NULL)
+  if (outer_class_ptr->write_port.get() != NULL)
   {
     ::finroc::core::tFrameworkElement* w = partner->GetParent()->GetChild("write");
     if (w != NULL)
