@@ -101,6 +101,7 @@ void tBlackboardManager::CreateBlackboardManager()
     if (instance == NULL)
     {
       instance = new tBlackboardManager();
+      instance->Init();
       core::tRuntimeEnvironment::GetInstance()->AddListener(instance);
 
       // TODO do this properly
