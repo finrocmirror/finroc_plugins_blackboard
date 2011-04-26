@@ -154,6 +154,14 @@ public:
   bool CommitAsynchChange(tChangeTransactionVar& change_buf, int index, int offset);
 
   /*!
+   * \return Blackboard name/description
+   */
+  inline util::tString GetDescription()
+  {
+    return wrapped->GetDescription();
+  }
+
+  /*!
    * \return unused buffer - may be published/committed directly
    */
   inline tBBVectorVar GetUnusedBuffer()
