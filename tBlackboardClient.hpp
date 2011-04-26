@@ -210,6 +210,7 @@ typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::WriteLoc
       wrapped->lock_type = tRawBlackboardClient::eWRITE;
 
       wrapped->cur_lock_iD = ret.GetManager()->lock_iD;
+      assert((wrapped->cur_lock_iD >= 0));
       locked = std::move(ret);
 
       // acknowledge lock
