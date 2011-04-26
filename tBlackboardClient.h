@@ -89,6 +89,14 @@ public:
 private:
 
   /*!
+   * Make sure specified type is registered for blackboards
+   *
+   * \param dt Type
+   * \return The same as parameter type
+   */
+  rrlib::serialization::tDataTypeBase InitBlackboardType(rrlib::serialization::tDataTypeBase dt);
+
+  /*!
    * Reset variables after unlock
    */
   inline void ResetVariables()

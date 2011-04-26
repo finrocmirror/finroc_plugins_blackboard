@@ -22,6 +22,7 @@
 #include "core/port/tPortCreationInfo.h"
 #include "core/port/tPortFlags.h"
 #include "core/port/rpc/tMethodCallException.h"
+#include "plugins/blackboard/tBlackboardPlugin.h"
 #include "core/port/rpc/method/tPort2Method.h"
 #include "plugins/blackboard/tAbstractBlackboardServer.h"
 #include "core/port/rpc/method/tPort1Method.h"
@@ -32,7 +33,7 @@ namespace blackboard
 {
 template<typename T>
 tBlackboardClient<T>::tBlackboardClient(const util::tString& description, core::tFrameworkElement* parent, bool auto_connect, int auto_connect_category, bool read_port, bool write_port, rrlib::serialization::tDataTypeBase type) :
-    wrapped(new tRawBlackboardClient(core::tPortCreationInfo(description, parent, type, (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0)), static_cast<T*>(NULL), auto_connect, auto_connect_category)),
+    wrapped(new tRawBlackboardClient(core::tPortCreationInfo(description, parent, InitBlackboardType(type), (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0)), static_cast<T*>(NULL), auto_connect, auto_connect_category)),
     locked(),
     read_locked()
 {
@@ -52,6 +53,17 @@ bool tBlackboardClient<T>::CommitAsynchChange(tChangeTransactionVar& change_buf,
   {
     return false;
   }
+}
+
+template<typename T>
+rrlib::serialization::tDataTypeBase tBlackboardClient<T>::InitBlackboardType(rrlib::serialization::tDataTypeBase dt)
+{
+  rrlib::serialization::tDataTypeBase dtb = dt.GetRelatedType();
+  if (dtb == NULL)
+  {
+    tBlackboardPlugin::RegisterBlackboardType<T>(dt);
+  }
+  return dt;
 }
 
 template<typename T>
