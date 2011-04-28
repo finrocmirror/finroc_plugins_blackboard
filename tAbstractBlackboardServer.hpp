@@ -29,16 +29,16 @@ template<typename T>
 core::tPortInterface tAbstractBlackboardServer<T>::cMETHODS("Blackboard Interface", true);
 
 template<typename T>
-typename core::tPort1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar, int> tAbstractBlackboardServer<T>::cLOCK(tAbstractBlackboardServer::cMETHODS, "Lock", "timeout", true);
+typename core::tPort1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar, int> tAbstractBlackboardServer<T>::cLOCK(tAbstractBlackboardServer::cMETHODS, "Write Lock", "timeout", true);
 
 template<typename T>
-typename core::tPort2Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tConstBBVectorVar, int, int> tAbstractBlackboardServer<T>::cREAD_LOCK(tAbstractBlackboardServer::cMETHODS, "Lock", "timeout", "dummy", true);
+typename core::tPort2Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tConstBBVectorVar, int, int> tAbstractBlackboardServer<T>::cREAD_LOCK(tAbstractBlackboardServer::cMETHODS, "Read Lock", "timeout", "dummy", true);
 
 template<typename T>
-typename core::tVoid1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar> tAbstractBlackboardServer<T>::cUNLOCK(tAbstractBlackboardServer::cMETHODS, "Unlock", "Blackboard Buffer", false);
+typename core::tVoid1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar> tAbstractBlackboardServer<T>::cUNLOCK(tAbstractBlackboardServer::cMETHODS, "Write Unlock", "Blackboard Buffer", false);
 
 template<typename T>
-core::tVoid1Method<tAbstractBlackboardServer<T>*, int> tAbstractBlackboardServer<T>::cREAD_UNLOCK(tAbstractBlackboardServer::cMETHODS, "Unlock", "Lock ID", false);
+core::tVoid1Method<tAbstractBlackboardServer<T>*, int> tAbstractBlackboardServer<T>::cREAD_UNLOCK(tAbstractBlackboardServer::cMETHODS, "Read Unlock", "Lock ID", false);
 
 template<typename T>
 typename core::tVoid3Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar, int, int> tAbstractBlackboardServer<T>::cASYNCH_CHANGE(tAbstractBlackboardServer::cMETHODS, "Asynchronous Change", "Blackboard Buffer", "Start Index", "Custom Offset", false);
@@ -75,6 +75,15 @@ rrlib::serialization::tDataTypeBase tAbstractBlackboardServer<T>::GetBlackboardM
   }
   tBlackboardPlugin::RegisterBlackboardType<T>(dt);
   return dt.GetRelatedType();
+}
+
+template<typename T>
+void tAbstractBlackboardServer<T>::PostChildInit()
+{
+  // check that methods have correct indices
+  assert((cLOCK.GetMethodId() == 0));
+  assert((cREAD_LOCK.GetMethodId() == 1));
+  ::finroc::blackboard::tAbstractBlackboardServerRaw::PostChildInit();
 }
 
 template<typename T>

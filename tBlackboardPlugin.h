@@ -131,7 +131,18 @@ rrlib::serialization::tDataTypeBase tBlackboardPlugin::RegisterBlackboardType(rr
   rrlib::serialization::tDataTypeBase dtbb = rrlib::serialization::tDataTypeBase::FindType(bb_name);
   if (dtbb == NULL)
   {
-    core::tRPCInterfaceType rpct(bb_name, &tAbstractBlackboardServer<T>::cMETHODS);
+    core::tPortInterface* methods = &tAbstractBlackboardServer<T>::cMETHODS;
+    methods->Clear();
+    methods->AddMethod(&tAbstractBlackboardServer<T>::cLOCK);
+    methods->AddMethod(&tAbstractBlackboardServer<T>::cREAD_LOCK);
+    methods->AddMethod(&tAbstractBlackboardServer<T>::cUNLOCK);
+    methods->AddMethod(&tAbstractBlackboardServer<T>::cREAD_UNLOCK);
+    methods->AddMethod(&tAbstractBlackboardServer<T>::cASYNCH_CHANGE);
+    methods->AddMethod(&tAbstractBlackboardServer<T>::cDIRECT_COMMIT);
+    methods->AddMethod(&tAbstractBlackboardServer<T>::cIS_SINGLE_BUFFERED);
+    methods->AddMethod(&tAbstractBlackboardServer<T>::cKEEP_ALIVE);
+
+    core::tRPCInterfaceType rpct(bb_name, methods);
     dtbb = rpct;
     dt.SetRelatedType(dtbb);
     dtbb.SetRelatedType(dt);

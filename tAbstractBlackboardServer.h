@@ -239,6 +239,8 @@ protected:
     return (this->pending_major_tasks.Size() > 0) || (this->wakeup_thread != -1);
   }
 
+  virtual void PostChildInit();
+
   /*!
    * (only call in synchronized context)
    * Process pending asynch change commands (good idea when unlocking blackboard)
