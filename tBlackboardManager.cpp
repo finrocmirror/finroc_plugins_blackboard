@@ -228,7 +228,7 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
   if (change_type == ::finroc::core::tRuntimeListener::cADD)
   {
     // Is this a remote blackboard? -> Create proxy
-    if (element->GetFlag(core::tCoreFlags::cNETWORK_ELEMENT) && element->GetFlag(core::tCoreFlags::cIS_PORT))
+    if (element->GetFlag(core::tCoreFlags::cNETWORK_ELEMENT) && element->GetFlag(core::tCoreFlags::cIS_PORT) && (!element->IsChildOf(this)))
     {
       element->GetQualifiedLink(temp_buffer);
       util::tString qname = temp_buffer.ToString();
@@ -249,14 +249,14 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
         if (read && info->read_port_raw == NULL)
         {
           core::tPortBase* port = static_cast<core::tPortBase*>(element);
-          info->read_port_raw = new core::tPortBase(core::tPortCreationInfo(cREAD_PORT_NAME, info, port->GetDataType(), core::tPortFlags::cOUTPUT_PROXY));
+          info->read_port_raw = new core::tPortBase(core::tPortCreationInfo(cREAD_PORT_NAME, info, port->GetDataType(), core::tPortFlags::cOUTPUT_PROXY | core::tCoreFlags::cNETWORK_ELEMENT));
           info->Init();
           info->read_port_raw->ConnectToSource(qname);
         }
         else if (write && info->write_port_raw == NULL)
         {
           core::tInterfacePort* port = static_cast<core::tInterfacePort*>(element);
-          info->write_port_raw = new core::tInterfacePort(cWRITE_PORT_NAME, info, port->GetDataType(), core::tInterfacePort::eRouting);
+          info->write_port_raw = new core::tInterfacePort(cWRITE_PORT_NAME, info, port->GetDataType(), core::tInterfacePort::eRouting, core::tCoreFlags::cNETWORK_ELEMENT);
           info->Init();
           info->write_port_raw->ConnectToSource(qname);
         }
