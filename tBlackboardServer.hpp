@@ -41,7 +41,7 @@ const int64 tBlackboardServer<T>::cUNLOCK_TIMEOUT;
 template<typename T>
 tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
     tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, type.GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
+    write(new core::tInterfaceServerPort("write", this, ::finroc::blackboard::tAbstractBlackboardServerRaw::GetBlackboardTypeInfo(type)->blackboard_type, this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
     locked(),
     lock_time(0),
     last_keep_alive(0),
@@ -70,7 +70,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int ca
 template<typename T>
 tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int elements, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
     tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, type.GetRelatedType(), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
+    write(new core::tInterfaceServerPort("write", this, ::finroc::blackboard::tAbstractBlackboardServerRaw::GetBlackboardTypeInfo(type)->blackboard_type, this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
     locked(),
     lock_time(0),
     last_keep_alive(0),

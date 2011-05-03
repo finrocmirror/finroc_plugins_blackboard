@@ -144,8 +144,16 @@ rrlib::serialization::tDataTypeBase tBlackboardPlugin::RegisterBlackboardType(rr
 
     core::tRPCInterfaceType rpct(bb_name, methods);
     dtbb = rpct;
-    dt.SetRelatedType(dtbb);
-    dtbb.SetRelatedType(dt);
+
+    // add annotation to element type
+    tBlackboardTypeInfo* bti = new tBlackboardTypeInfo();
+    bti->blackboard_type = dtbb;
+    dt.AddAnnotation(bti);
+
+    // add annotation to blackboard type
+    tBlackboardTypeInfo* btibb = new tBlackboardTypeInfo();
+    btibb->element_type = dt;
+    dtbb.AddAnnotation(btibb);
   }
 
   return dtbb;

@@ -22,6 +22,8 @@
 #include "core/port/tPortCreationInfo.h"
 #include "core/port/tPortFlags.h"
 #include "core/port/rpc/tMethodCallException.h"
+#include "plugins/blackboard/tBlackboardTypeInfo.h"
+#include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
 #include "plugins/blackboard/tBlackboardPlugin.h"
 #include "core/port/rpc/method/tPort2Method.h"
 #include "plugins/blackboard/tAbstractBlackboardServer.h"
@@ -58,8 +60,8 @@ bool tBlackboardClient<T>::CommitAsynchChange(tChangeTransactionVar& change_buf,
 template<typename T>
 rrlib::serialization::tDataTypeBase tBlackboardClient<T>::InitBlackboardType(rrlib::serialization::tDataTypeBase dt)
 {
-  rrlib::serialization::tDataTypeBase dtb = dt.GetRelatedType();
-  if (dtb == NULL)
+  tBlackboardTypeInfo* bti = tAbstractBlackboardServerRaw::GetBlackboardTypeInfo(dt);
+  if (bti == NULL || bti->blackboard_type == NULL)
   {
     tBlackboardPlugin::RegisterBlackboardType<T>(dt);
   }
@@ -210,7 +212,6 @@ typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::WriteLoc
       wrapped->lock_type = tRawBlackboardClient::eWRITE;
 
       wrapped->cur_lock_iD = ret.GetManager()->lock_iD;
-      assert((wrapped->cur_lock_iD >= 0));
       locked = std::move(ret);
 
       // acknowledge lock

@@ -2,7 +2,7 @@
  * You received this file as part of an advanced experimental
  * robotics framework prototype ('finroc')
  *
- * Copyright (C) 2007-2010 Max Reichardt,
+ * Copyright (C) 2011 Max Reichardt,
  *   Robotics Research Lab, University of Kaiserslautern
  *
  * This program is free software; you can redistribute it and/or
@@ -19,27 +19,41 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "plugins/blackboard/tBlackboardPlugin.h"
-#include "rrlib/serialization/tMemoryBuffer.h"
-#include "plugins/blackboard/tBlackboardBuffer.h"
-#include "plugins/blackboard/tAbstractBlackboardServer.h"
-#include "plugins/blackboard/tBlackboardTypeInfo.h"
+
+#ifndef plugins__blackboard__tBlackboardTypeInfo_h__
+#define plugins__blackboard__tBlackboardTypeInfo_h__
+
+#include "rrlib/finroc_core_utils/definitions.h"
+
+#include "rrlib/serialization/tDataTypeBase.h"
+#include "rrlib/serialization/tDataTypeAnnotation.h"
 
 namespace finroc
 {
 namespace blackboard
 {
-rrlib::serialization::tDataTypeBase tBlackboardPlugin::cBB_MEM_BUFFER = RegisterBlackboardType(util::tTypedClass<rrlib::serialization::tMemoryBuffer>());
-rrlib::serialization::tDataTypeBase tBlackboardPlugin::cBB_BLACKBOARD_BUFFER = RegisterBlackboardType(util::tTypedClass<tBlackboardBuffer>());
-
-void tBlackboardPlugin::Init()
+/*!
+ * \author Max Reichardt
+ *
+ * Additional type info for blackboards
+ */
+class tBlackboardTypeInfo : public rrlib::serialization::tDataTypeAnnotation
 {
-  //        taskPool = new ReusablesPoolCR<BlackboardTask>();
-  //        AutoDeleter.addStatic(taskPool);
-  //        taskPool = new ReusablesPoolCR<BlackboardTask>();
-  //        AutoDeleter.addStatic(taskPool);
-}
+public:
+
+  /*! Blackboard (method) type */
+  rrlib::serialization::tDataTypeBase blackboard_type;
+
+  /*! Blackboard element type */
+  rrlib::serialization::tDataTypeBase element_type;
+
+  tBlackboardTypeInfo() :
+      blackboard_type(),
+      element_type()
+  {}
+};
 
 } // namespace finroc
 } // namespace blackboard
 
+#endif // plugins__blackboard__tBlackboardTypeInfo_h__

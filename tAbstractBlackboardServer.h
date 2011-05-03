@@ -51,7 +51,9 @@ namespace finroc
 {
 namespace blackboard
 {
-/*! Blackboard info */
+/*!
+ * Abstract base class of all blackboard servers - typed version
+ */
 template<typename T>
 struct tAbstractBlackboardServer : public tAbstractBlackboardServerRaw
 {

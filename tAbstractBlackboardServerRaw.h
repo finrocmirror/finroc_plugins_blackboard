@@ -26,6 +26,7 @@
 #include "rrlib/finroc_core_utils/definitions.h"
 
 #include "core/port/rpc/tInterfacePort.h"
+#include "plugins/blackboard/tBlackboardTypeInfo.h"
 #include "core/tLockOrderLevels.h"
 #include "rrlib/finroc_core_utils/container/tSimpleList.h"
 #include "plugins/blackboard/tBlackboardTask.h"
@@ -190,7 +191,17 @@ public:
    */
   inline static void CheckType(rrlib::serialization::tDataTypeBase dt)
   {
-    assert(((dt.GetRelatedType() != NULL && core::tFinrocTypeInfo::IsMethodType(dt.GetRelatedType()))) && "Please register Blackboard types using Blackboard2Plugin class");
+    tBlackboardTypeInfo* ti = GetBlackboardTypeInfo(dt);
+    assert(((ti != NULL && ti->blackboard_type != NULL && core::tFinrocTypeInfo::IsMethodType(ti->blackboard_type))) && "Please register Blackboard types using BlackboardPlugin class");
+  }
+
+  /*!
+   * \param dt Data type
+   * \return Blackboard type info for data type
+   */
+  inline static tBlackboardTypeInfo* GetBlackboardTypeInfo(rrlib::serialization::tDataTypeBase dt)
+  {
+    return dt.GetAnnotation<tBlackboardTypeInfo>();
   }
 
   // Call handling

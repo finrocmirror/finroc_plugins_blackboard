@@ -25,6 +25,7 @@
 
 #include "rrlib/finroc_core_utils/definitions.h"
 
+#include "rrlib/serialization/tDataTypeBase.h"
 #include "rrlib/serialization/tMemoryBuffer.h"
 
 namespace rrlib
@@ -56,6 +57,9 @@ public:
 
   /*! Number of entries and entry size */
   int bb_capacity, elements, element_size;
+
+  /*! Data type of this class */
+  static const rrlib::serialization::tDataTypeBase cTYPE;
 
   tBlackboardBuffer() :
       bb_capacity(0),

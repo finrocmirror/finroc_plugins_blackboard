@@ -189,7 +189,7 @@ public:
       core::tFrameworkElement(pci.parent, pci.description),
       is_single_buffered_func(CallIsSingleBuffered<T>),
       keep_alive_func(CallKeepAlive<T>),
-      write_port(pci.GetFlag(core::tPortFlags::cEMITS_DATA) ? new tWritePort(this, pci.data_type.GetRelatedType()) : NULL),
+      write_port(pci.GetFlag(core::tPortFlags::cEMITS_DATA) ? new tWritePort(this, tAbstractBlackboardServerRaw::GetBlackboardTypeInfo(pci.data_type)->blackboard_type) : NULL),
       read_port(pci.GetFlag(core::tPortFlags::cACCEPTS_DATA) ? new tReadPort(this, core::tPortCreationInfo("read", this, pci.data_type.GetListType(), core::tPortFlags::cACCEPTS_DATA | (pci.flags & core::tPortFlags::cPUSH_STRATEGY))) : NULL),
       lock_type(eNONE),
       cur_lock_iD(-1),
