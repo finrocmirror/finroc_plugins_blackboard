@@ -58,6 +58,17 @@ bool tBlackboardClient<T>::CommitAsynchChange(tChangeTransactionVar& change_buf,
 }
 
 template<typename T>
+bool tBlackboardClient<T>::HasChanged() const
+{
+  assert((wrapped->GetReadPort() != NULL));
+  if (!wrapped->GetReadPort()->GetFlag(core::tPortFlags::cPUSH_STRATEGY))
+  {
+    FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG_WARNING, log_domain, "This method only works properly, when push strategy is used.");
+  }
+  return wrapped->GetReadPort()->HasChanged();
+}
+
+template<typename T>
 rrlib::serialization::tDataTypeBase tBlackboardClient<T>::InitBlackboardType(rrlib::serialization::tDataTypeBase dt)
 {
   tBlackboardTypeInfo* bti = tAbstractBlackboardServerRaw::GetBlackboardTypeInfo(dt);
@@ -146,6 +157,17 @@ const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::Re
       return NULL;
     }
   }
+}
+
+template<typename T>
+void tBlackboardClient<T>::ResetChanged()
+{
+  assert((wrapped->GetReadPort() != NULL));
+  if (!wrapped->GetReadPort()->GetFlag(core::tPortFlags::cPUSH_STRATEGY))
+  {
+    FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG_WARNING, log_domain, "This method only works properly, when push strategy is used.");
+  }
+  wrapped->GetReadPort()->ResetChanged();
 }
 
 template<typename T>

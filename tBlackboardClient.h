@@ -195,6 +195,13 @@ public:
   }
 
   /*!
+   * (only works properly if pushUpdates in constructor was set to true)
+   *
+   * \return Has port changed since last changed-flag-reset?
+   */
+  bool HasChanged() const;
+
+  /*!
    * \return Is client currently holding read or write lock?
    */
   inline bool HasLock()
@@ -262,6 +269,13 @@ public:
    * \param timeout Timeout for call
    */
   const typename tAbstractBlackboardServer<T>::tBBVector* ReadLock(bool force_read_copy_to_avoid_blocking = false, int timeout = 60000);
+
+  /*!
+   * (only works properly if pushUpdates in constructor was set to true)
+   *
+   * Reset changed flag.
+   */
+  void ResetChanged();
 
   /*!
    * Commit changes of previously locked buffer
