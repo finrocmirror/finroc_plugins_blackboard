@@ -123,13 +123,14 @@ public:
   /*!
    * \param description Name/Uid of blackboard
    * \param parent Parent of blackboard client
+   * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
    * \param auto_connect Auto-Connect blackboard client to matching server?
    * \param auto_connect_category If auto-connect is active: Limit auto-connecting to a specific blackboard category? (-1 is no)
    * \param read_port Create read port?
    * \param write_port Create write port?
    * \param type Data Type of blackboard content
    */
-  tBlackboardClient(const util::tString& description, core::tFrameworkElement* parent = NULL, bool auto_connect = true, int auto_connect_category = -1, bool read_port = true, bool write_port = true, rrlib::serialization::tDataTypeBase type = rrlib::serialization::tDataType<T>());
+  tBlackboardClient(const util::tString& description, core::tFrameworkElement* parent = NULL, bool push_updates = false, bool auto_connect = true, int auto_connect_category = -1, bool read_port = true, bool write_port = true, rrlib::serialization::tDataTypeBase type = rrlib::serialization::tDataType<T>());
 
   //
   //    /**
