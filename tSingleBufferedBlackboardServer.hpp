@@ -281,7 +281,7 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboa
     // there's a copy... use this
     GetManager(read_copy)->AddLock();
 
-    return GetManager(read_copy);
+    return tConstBBVectorVar(GetManager(read_copy));
   }
 
   if (locks >= 0)
@@ -293,7 +293,7 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboa
       assert((read_copy_revision >= current_revision));
       GetManager(read_copy)->AddLock();
 
-      return GetManager(read_copy);
+      return tConstBBVectorVar(GetManager(read_copy));
     }
     else    // no one waiting... simply lock buffer
     {
@@ -306,7 +306,7 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboa
       locks++;
       GetManager(buffer)->AddLock();
 
-      return GetManager(buffer);
+      return tConstBBVectorVar(GetManager(buffer));
     }
   }
 
@@ -449,7 +449,7 @@ typename tAbstractBlackboardServer<T>::tBBVectorVar tSingleBufferedBlackboardSer
 
     GetManager(buffer)->AddLock();
 
-    return GetManager(buffer);
+    return tBBVectorVar(GetManager(buffer));
   }
 }
 
