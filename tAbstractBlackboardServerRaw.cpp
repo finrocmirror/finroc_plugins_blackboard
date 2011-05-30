@@ -20,6 +20,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
+#include "core/portdatabase/tFinrocTypeInfo.h"
 #include "rrlib/finroc_core_utils/tTime.h"
 #include "rrlib/finroc_core_utils/log/tLogUser.h"
 
@@ -38,6 +39,13 @@ tAbstractBlackboardServerRaw::tAbstractBlackboardServerRaw(const util::tString& 
     my_category(tBlackboardManager::GetInstance()->GetCategory(category))
 {
   // this(bbName,category,BlackboardManager.getInstance().getCategory(category).defaultFlags,parent);
+}
+
+void tAbstractBlackboardServerRaw::CheckType(rrlib::serialization::tDataTypeBase dt)
+{
+  __attribute__((unused))
+  tBlackboardTypeInfo* ti = GetBlackboardTypeInfo(dt);
+  assert(((ti != NULL && ti->blackboard_type != NULL && core::tFinrocTypeInfo::IsMethodType(ti->blackboard_type))) && "Please register Blackboard types using BlackboardPlugin class");
 }
 
 void tAbstractBlackboardServerRaw::PrepareDelete()

@@ -31,7 +31,6 @@
 #include "rrlib/finroc_core_utils/container/tSimpleList.h"
 #include "plugins/blackboard/tBlackboardTask.h"
 #include "rrlib/serialization/tDataTypeBase.h"
-#include "core/portdatabase/tFinrocTypeInfo.h"
 #include "plugins/blackboard/tBlackboardBuffer.h"
 #include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
 #include "plugins/blackboard/tBlackboardManager.h"
@@ -189,11 +188,7 @@ public:
    *
    * \param dt Data type to check
    */
-  inline static void CheckType(rrlib::serialization::tDataTypeBase dt)
-  {
-    tBlackboardTypeInfo* ti = GetBlackboardTypeInfo(dt);
-    assert(((ti != NULL && ti->blackboard_type != NULL && core::tFinrocTypeInfo::IsMethodType(ti->blackboard_type))) && "Please register Blackboard types using BlackboardPlugin class");
-  }
+  static void CheckType(rrlib::serialization::tDataTypeBase dt);
 
   /*!
    * \param dt Data type
