@@ -120,6 +120,15 @@ protected:
 
 public:
 
+  // Empty constructor for blackboard clients that are not initialized in
+  // class initializer list (but later)
+  tBlackboardClient() :
+      wrapped(NULL),
+      locked(),
+      read_locked()
+  {
+  }
+
   /*!
    * \param description Name/Uid of blackboard
    * \param parent Parent of blackboard client
@@ -132,24 +141,15 @@ public:
    */
   tBlackboardClient(const util::tString& description, core::tFrameworkElement* parent = NULL, bool push_updates = false, bool auto_connect = true, int auto_connect_category = -1, bool read_port = true, bool write_port = true, rrlib::serialization::tDataTypeBase type = rrlib::serialization::tDataType<T>());
 
-  //
-  //    /**
-  //     * same as read(long) with automatic locking of buffer.
-  //     * (needs to be released by calling ThreadLocalCache.getFast().releaseAllLocks())
-  //     */
-  //    @Inline
-  //    @Const public BlackboardBuffer readAutoLocked(long timeout) {
-  //        @Const BlackboardBuffer bb = read(timeout);
-  //        ThreadLocalCache.getFast().addAutoLock(bb);
-  //        return bb;
-  //    }
-  //
-  //    @Inline
-  //    @Const public BlackboardBuffer readAutoLocked() {
-  //        return readAutoLocked(2000);
-  //    }
-  //
-  //
+  // move assignment
+  tBlackboardClient& operator=(tBlackboardClient && o)
+  {
+    std::swap(wrapped, o.wrapped);
+    std::swap(locked, o.locked);
+    std::swap(read_locked, o.read_locked);
+    return *this;
+  }
+
   /*!
    * Commit asynchronous change to blackboard. Blackboard does
    * not need to be locked for this operation.
@@ -269,6 +269,11 @@ public:
    * \param timeout Timeout for call
    */
   const typename tAbstractBlackboardServer<T>::tBBVector* ReadLock(bool force_read_copy_to_avoid_blocking = false, int timeout = 60000);
+
+  operator bool()
+  {
+    return wrapped != NULL;
+  }
 
   /*!
    * (only works properly if pushUpdates in constructor was set to true)
