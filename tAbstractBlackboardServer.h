@@ -115,11 +115,6 @@ public:
    */
   std::vector<tAsynchChangeTask> pending_asynch_change_tasks;
 
-  // Methods...
-
-  /*! Blackboard interface */
-  static core::tPortInterface cMETHODS;
-
   /*! Write Lock */
   static typename core::tPort1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar, int> cLOCK;
 
@@ -317,6 +312,12 @@ public:
   inline void CopyBlackboardBuffer(const tBBVector& src, tBBVector& target)
   {
     rrlib::serialization::sSerialization::DeepCopy(src, target, NULL);
+  }
+
+  inline static core::tPortInterface& GetBlackboardInterface()
+  {
+    static core::tPortInterface pi("Blackboard Interface", true);
+    return pi;
   }
 
   void HandleVoidCall(core::tAbstractMethod* method, tBBVectorVar& p1)

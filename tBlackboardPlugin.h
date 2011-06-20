@@ -131,7 +131,7 @@ rrlib::serialization::tDataTypeBase tBlackboardPlugin::RegisterBlackboardType(rr
   rrlib::serialization::tDataTypeBase dtbb = rrlib::serialization::tDataTypeBase::FindType(bb_name);
   if (dtbb == NULL)
   {
-    core::tPortInterface* methods = &tAbstractBlackboardServer<T>::cMETHODS;
+    core::tPortInterface* methods = &tAbstractBlackboardServer<T>::GetBlackboardInterface();
     methods->Clear();
     methods->AddMethod(&tAbstractBlackboardServer<T>::cLOCK);
     methods->AddMethod(&tAbstractBlackboardServer<T>::cREAD_LOCK);
