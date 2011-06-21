@@ -28,6 +28,7 @@
 #include "plugins/blackboard/tBBLockException.h"
 #include "rrlib/serialization/sSerialization.h"
 #include "plugins/blackboard/tBlackboardClient.h"
+#include "rrlib/finroc_core_utils/tTime.h"
 
 namespace finroc
 {
@@ -43,11 +44,33 @@ class tBlackboardWriteAccess
 {
 private:
 
+  // no heap allocation permitted
+  void *operator new(size_t);
+  void *operator new[](size_t);
+
   /*! Locked blackboard */
   tBlackboardClient<T>& blackboard;
 
   /*! not null - if buffer is currently locked for writing */
   typename tBlackboardClient<T>::tBBVector* locked;
+
+public:
+
+  /*! Log domain for this class */
+  RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "blackboard");
+
+private:
+
+  inline const char* GetLogDescription()
+  {
+    return "BlackboardWriteAccess";
+  }
+
+  inline typename tBlackboardClient<T>::tBBVector* WriteLock(int timeout = 60000)
+  {
+    FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG_VERBOSE_1, log_domain, "Acquiring write lock on blackboard '", blackboard.GetDescription(), "' at ", util::tTime::GetPrecise());
+    return blackboard.WriteLock(timeout);
+  }
 
 public:
 
@@ -57,7 +80,7 @@ public:
    */
   tBlackboardWriteAccess(tBlackboardClient<T>& blackboard_, int timeout = 60000) :
       blackboard(blackboard_),
-      locked(blackboard_.WriteLock(timeout))
+      locked(WriteLock(timeout))
   {
     if (locked == NULL)
     {
@@ -69,6 +92,7 @@ public:
   {
     if (locked != NULL)
     {
+      FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG_VERBOSE_1, log_domain, "Releasing write lock on blackboard '", blackboard.GetDescription(), "' at ", util::tTime::GetPrecise());
       blackboard.Unlock();
     }
   }
