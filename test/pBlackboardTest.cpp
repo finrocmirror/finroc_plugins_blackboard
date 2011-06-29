@@ -75,7 +75,7 @@ void StartUp()
 //----------------------------------------------------------------------
 // InitMainGroup
 //----------------------------------------------------------------------
-void InitMainGroup(finroc::core::tThreadContainer *main_thread, const rrlib::getopt::tOption& option)
+void InitMainGroup(finroc::core::tThreadContainer *main_thread)
 {
   std::string bb_name("Float Blackboard");
 
