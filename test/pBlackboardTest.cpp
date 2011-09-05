@@ -75,7 +75,7 @@ void StartUp()
 //----------------------------------------------------------------------
 // InitMainGroup
 //----------------------------------------------------------------------
-void InitMainGroup(finroc::core::tThreadContainer *main_thread)
+void InitMainGroup(finroc::core::tThreadContainer *main_thread, std::vector<char*> remaining_args)
 {
   std::string bb_name("Float Blackboard");
 
