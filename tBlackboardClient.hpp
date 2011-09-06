@@ -63,7 +63,7 @@ bool tBlackboardClient<T>::HasChanged() const
   assert((wrapped->GetReadPort() != NULL));
   if (!wrapped->GetReadPort()->GetFlag(core::tPortFlags::cPUSH_STRATEGY))
   {
-    FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG_WARNING, log_domain, "This method only works properly, when push strategy is used.");
+    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_WARNING, log_domain, "This method only works properly, when push strategy is used.");
   }
   return wrapped->GetReadPort()->HasChanged();
 }
@@ -95,7 +95,7 @@ void tBlackboardClient<T>::Publish(tBBVectorVar& buffer)
   }
   catch (const core::tMethodCallException& e)
   {
-    FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, "warning: Blackboard direct commit failed");
+    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, log_domain, "warning: Blackboard direct commit failed");
   }
 }
 
@@ -165,7 +165,7 @@ void tBlackboardClient<T>::ResetChanged()
   assert((wrapped->GetReadPort() != NULL));
   if (!wrapped->GetReadPort()->GetFlag(core::tPortFlags::cPUSH_STRATEGY))
   {
-    FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG_WARNING, log_domain, "This method only works properly, when push strategy is used.");
+    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_WARNING, log_domain, "This method only works properly, when push strategy is used.");
   }
   wrapped->GetReadPort()->ResetChanged();
 }
@@ -175,7 +175,7 @@ void tBlackboardClient<T>::Unlock()
 {
   if (wrapped->lock_type == tRawBlackboardClient::eNONE)
   {
-    FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, "BlackboardClient warning: nothing to unlock");
+    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, log_domain, "BlackboardClient warning: nothing to unlock");
     ResetVariables();
     return;  // nothing to unlock
   }
@@ -191,7 +191,7 @@ void tBlackboardClient<T>::Unlock()
       }
       catch (const core::tMethodCallException& e)
       {
-        FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, "warning: Unlocking blackboard (read) failed", e);
+        FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, log_domain, "warning: Unlocking blackboard (read) failed", e);
       }
     }
 
@@ -208,7 +208,7 @@ void tBlackboardClient<T>::Unlock()
   }
   catch (const core::tMethodCallException& e)
   {
-    FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING, log_domain, "warning: Unlocking blackboard failed");
+    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, log_domain, "warning: Unlocking blackboard failed");
     //e.printStackTrace();
   }
   ResetVariables();

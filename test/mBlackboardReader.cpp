@@ -79,17 +79,17 @@ void mBlackboardReader::Update()
     tBlackboardClient<float>::tReadAccess acc(bb_client);
 
     // Print blackboard contents
-    rrlib::logging::tLogStream output = FINROC_LOG_STREAM(rrlib::logging::eLL_USER);
+    std::stringstream output;
     output << "Current blackboard content:";
     for (size_t i = 0; i < acc.Size(); i++)
     {
       output << " " << acc[i];
     }
-
+    FINROC_LOG_PRINT(rrlib::logging::eLL_USER, output.str());
   }
   catch (tBBLockException& e)
   {
-    FINROC_LOG_STREAM(rrlib::logging::eLL_WARNING) << "Could not lock blackboard";
+    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "Could not lock blackboard");
   }
 }
 

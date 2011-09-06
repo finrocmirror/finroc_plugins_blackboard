@@ -67,7 +67,7 @@ private:
 
   inline const typename tBlackboardClient<T>::tBBVector* ReadLock(int timeout = 60000)
   {
-    FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG_VERBOSE_1, log_domain, "Acquiring read lock on blackboard '", blackboard.GetDescription(), "' at ", util::tTime::GetPrecise());
+    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, log_domain, "Acquiring read lock on blackboard '", blackboard.GetDescription(), "' at ", util::tTime::GetPrecise());
     return blackboard.ReadLock(false, timeout);
   }
 
@@ -91,7 +91,7 @@ public:
   {
     if (locked != NULL)
     {
-      FINROC_LOG_STREAM(rrlib::logging::eLL_DEBUG_VERBOSE_1, log_domain, "Releasing read lock on blackboard '", blackboard.GetDescription(), "' at ", util::tTime::GetPrecise());
+      FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, log_domain, "Releasing read lock on blackboard '", blackboard.GetDescription(), "' at ", util::tTime::GetPrecise());
       blackboard.Unlock();
     }
   }
