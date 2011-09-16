@@ -35,7 +35,7 @@ namespace blackboard
 {
 template<typename T>
 tBlackboardClient<T>::tBlackboardClient(const util::tString& description, core::tFrameworkElement* parent, bool push_updates, bool auto_connect, int auto_connect_category, bool read_port, bool write_port, rrlib::serialization::tDataTypeBase type) :
-    wrapped(new tRawBlackboardClient(core::tPortCreationInfo(description, parent, InitBlackboardType(type), (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), auto_connect, auto_connect_category)),
+    wrapped(new tRawBlackboardClient(core::tPortCreationInfoBase(description, parent, InitBlackboardType(type), (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), auto_connect, auto_connect_category)),
     locked(),
     read_locked()
 {

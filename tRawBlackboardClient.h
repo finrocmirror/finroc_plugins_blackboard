@@ -27,7 +27,7 @@
 
 #include "rrlib/serialization/tMemoryBuffer.h"
 #include "plugins/blackboard/tAbstractBlackboardServer.h"
-#include "core/port/tPortCreationInfo.h"
+#include "core/port/tPortCreationInfoBase.h"
 #include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
 #include "core/port/tPortFlags.h"
 #include "rrlib/serialization/tDataTypeBase.h"
@@ -83,7 +83,7 @@ public:
 
   public:
 
-    tReadPort(tRawBlackboardClient* const outer_class_ptr_, core::tPortCreationInfo pci);
+    tReadPort(tRawBlackboardClient* const outer_class_ptr_, core::tPortCreationInfoBase pci);
 
     inline tRawBlackboardClient* GetBBClient()
     {
@@ -185,12 +185,12 @@ public:
    * \param auto_connect_category If auto-connect is active: Limit auto-connecting to a specific blackboard category? (-1 is no)
    */
   template <typename T>
-  tRawBlackboardClient(core::tPortCreationInfo pci, T* t, bool auto_connect_ = true, int auto_connect_category_ = -1) :
+  tRawBlackboardClient(core::tPortCreationInfoBase pci, T* t, bool auto_connect_ = true, int auto_connect_category_ = -1) :
       core::tFrameworkElement(pci.parent, pci.description),
       is_single_buffered_func(CallIsSingleBuffered<T>),
       keep_alive_func(CallKeepAlive<T>),
       write_port(pci.GetFlag(core::tPortFlags::cEMITS_DATA) ? new tWritePort(this, tAbstractBlackboardServerRaw::GetBlackboardTypeInfo(pci.data_type)->blackboard_type) : NULL),
-      read_port(pci.GetFlag(core::tPortFlags::cACCEPTS_DATA) ? new tReadPort(this, core::tPortCreationInfo("read", this, pci.data_type.GetListType(), core::tPortFlags::cACCEPTS_DATA | (pci.flags & core::tPortFlags::cPUSH_STRATEGY))) : NULL),
+      read_port(pci.GetFlag(core::tPortFlags::cACCEPTS_DATA) ? new tReadPort(this, core::tPortCreationInfoBase("read", this, pci.data_type.GetListType(), core::tPortFlags::cACCEPTS_DATA | (pci.flags & core::tPortFlags::cPUSH_STRATEGY))) : NULL),
       lock_type(eNONE),
       cur_lock_iD(-1),
       auto_connect(auto_connect_),
@@ -219,9 +219,9 @@ public:
   /*!
    * \return Default ProtCreationInfo for Blackboard clients (creates both read write ports)
    */
-  inline static core::tPortCreationInfo GetDefaultPci()
+  inline static core::tPortCreationInfoBase GetDefaultPci()
   {
-    static core::tPortCreationInfo default_pci(rrlib::serialization::tMemoryBuffer::cTYPE, core::tPortFlags::cEMITS_DATA | core::tPortFlags::cACCEPTS_DATA);
+    static core::tPortCreationInfoBase default_pci(rrlib::serialization::tMemoryBuffer::cTYPE, core::tPortFlags::cEMITS_DATA | core::tPortFlags::cACCEPTS_DATA);
     return default_pci;
   }
 

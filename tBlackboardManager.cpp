@@ -249,7 +249,7 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
         if (read && info->read_port_raw == NULL)
         {
           core::tPortBase* port = static_cast<core::tPortBase*>(element);
-          info->read_port_raw = new core::tPortBase(core::tPortCreationInfo(cREAD_PORT_NAME, info, port->GetDataType(), core::tPortFlags::cOUTPUT_PROXY | core::tCoreFlags::cNETWORK_ELEMENT));
+          info->read_port_raw = new core::tPortBase(core::tPortCreationInfoBase(cREAD_PORT_NAME, info, port->GetDataType(), core::tPortFlags::cOUTPUT_PROXY | core::tCoreFlags::cNETWORK_ELEMENT));
           info->Init();
           info->read_port_raw->ConnectToSource(qname);
         }

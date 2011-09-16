@@ -296,7 +296,7 @@ public:
 
   public:
 
-    tBBReadPort(tSingleBufferedBlackboardServer* const outer_class_ptr_, core::tPortCreationInfo pci);
+    tBBReadPort(tSingleBufferedBlackboardServer* const outer_class_ptr_, core::tPortCreationInfoBase pci);
 
   };
 

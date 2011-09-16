@@ -124,7 +124,7 @@ void tRawBlackboardClient::SendKeepAlive()
   }
 }
 
-tRawBlackboardClient::tReadPort::tReadPort(tRawBlackboardClient* const outer_class_ptr_, core::tPortCreationInfo pci) :
+tRawBlackboardClient::tReadPort::tReadPort(tRawBlackboardClient* const outer_class_ptr_, core::tPortCreationInfoBase pci) :
     core::tPortBase(pci),
     outer_class_ptr(outer_class_ptr_)
 {

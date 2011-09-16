@@ -54,7 +54,7 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
     thread_waiting_for_copy(false)
 {
   assert(((!core::tFinrocTypeInfo::IsMethodType(type))) && "Please provide data type of content here");
-  this->read_port_raw = new tBBReadPort(this, core::tPortCreationInfo("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
+  this->read_port_raw = new tBBReadPort(this, core::tPortCreationInfoBase("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
   this->read_port_raw->SetPullRequestHandler(this);
   ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(type);
   this->write_port_raw = write;
@@ -80,7 +80,7 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
     thread_waiting_for_copy(false)
 {
   assert(((!core::tFinrocTypeInfo::IsMethodType(type))) && "Please provide data type of content here");
-  this->read_port_raw = new tBBReadPort(this, core::tPortCreationInfo("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
+  this->read_port_raw = new tBBReadPort(this, core::tPortCreationInfoBase("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
   this->read_port_raw->SetPullRequestHandler(this);
   ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(type);
   this->write_port_raw = write;
@@ -496,7 +496,7 @@ void tSingleBufferedBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
 }
 
 template<typename T>
-tSingleBufferedBlackboardServer<T>::tBBReadPort::tBBReadPort(tSingleBufferedBlackboardServer* const outer_class_ptr_, core::tPortCreationInfo pci) :
+tSingleBufferedBlackboardServer<T>::tBBReadPort::tBBReadPort(tSingleBufferedBlackboardServer* const outer_class_ptr_, core::tPortCreationInfoBase pci) :
     core::tPortBase(pci),
     outer_class_ptr(outer_class_ptr_)
 {
