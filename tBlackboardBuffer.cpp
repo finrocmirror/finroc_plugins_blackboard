@@ -68,7 +68,7 @@ void tBlackboardBuffer::Resize(int new_capacity, int new_elements, int new_eleme
     this->cur_size = new_elements * new_element_size;
     if (old_end < new_end)    // zero new memory out
     {
-      this->backend->ZeroOut(old_end, new_end - old_end);
+      this->backend.ZeroOut(old_end, new_end - old_end);
     }
     return;
   }
@@ -81,7 +81,7 @@ void tBlackboardBuffer::Resize(int new_capacity, int new_elements, int new_eleme
   {
     for (int i = 1; i < copy_elems; i++)
     {
-      this->backend->Put(i * element_size, *this->backend, i * old_elem_size, copy_size);
+      this->backend.Put(i * element_size, this->backend, i * old_elem_size, copy_size);
     }
   }
   else
@@ -92,19 +92,19 @@ void tBlackboardBuffer::Resize(int new_capacity, int new_elements, int new_eleme
       // copy from back to front
       int src_ptr = i * old_elem_size + copy_size;
       int dest_ptr = i * element_size + copy_size;
-      this->backend->ZeroOut(dest_ptr, element_size - old_elem_size);
+      this->backend.ZeroOut(dest_ptr, element_size - old_elem_size);
       for (int j = 0; j < copy_size; j++)
       {
         src_ptr--;
         dest_ptr--;
-        this->backend->PutByte(dest_ptr, this->backend->GetByte(src_ptr));
+        this->backend.PutByte(dest_ptr, this->backend.GetByte(src_ptr));
       }
     }
   }
 
   if (old_end < new_end)    // zero new memory out
   {
-    this->backend->ZeroOut(old_end, new_end - old_end);
+    this->backend.ZeroOut(old_end, new_end - old_end);
   }
 
   this->cur_size = new_elements * new_element_size;
