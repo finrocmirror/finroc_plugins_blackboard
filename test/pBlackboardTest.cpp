@@ -80,12 +80,18 @@ void InitMainGroup(finroc::core::tThreadContainer *main_thread, std::vector<char
   std::string bb_name("Float Blackboard");
 
   // create single-buffered float blackboard with capacity 20
-  new tSingleBufferedBlackboardServer<float>(bb_name, 20);
+  tBlackboard<float> blackboard(bb_name, main_thread, false, 20, false, 0, 0);
 
   // create modules that access blackboard
-  new mBlackboardReader(main_thread, bb_name);
-  new mBlackboardWriter(main_thread, bb_name);
-  new mBlackboardWriterAsync(main_thread, bb_name);
+  mBlackboardReader* reader = new mBlackboardReader(main_thread);
+  mBlackboardWriter* writer = new mBlackboardWriter(main_thread);
+  mBlackboardWriterAsync* async_writer = new mBlackboardWriterAsync(main_thread);
+
+  // connect modules with blackboard
+  blackboard.GetWritePort()->ConnectToTarget(writer->bb_client.GetOutsideWritePort());
+  blackboard.GetWritePort()->ConnectToTarget(async_writer->bb_client.GetOutsideWritePort());
+  blackboard.GetWritePort()->ConnectToTarget(reader->bb_client.GetOutsideWritePort());
+  blackboard.GetReadPort()->ConnectToTarget(reader->bb_client.GetOutsideReadPort());
 
   main_thread->SetCycleTime(500);
 }

@@ -27,16 +27,10 @@
 
 #include "rrlib/serialization/tDataTypeBase.h"
 #include "plugins/blackboard/tRawBlackboardClient.h"
-
+#include "core/structure/tGroup.h"
+#include "core/structure/tModule.h"
+#include "core/structure/tSenseControlModule.h"
 #include "core/port/tPortUtil.h"
-
-namespace finroc
-{
-namespace core
-{
-class tFrameworkElement;
-} // namespace finroc
-} // namespace core
 
 namespace finroc
 {
@@ -46,6 +40,8 @@ template<typename T>
 class tBlackboardReadAccess;
 template<typename T>
 class tBlackboardWriteAccess;
+template <typename T>
+class tBlackboard;
 
 /*!
  * \author Max Reichardt
@@ -55,8 +51,6 @@ class tBlackboardWriteAccess;
 template<typename T>
 class tBlackboardClient : public util::tObject
 {
-private:
-
 public:
   typedef typename tAbstractBlackboardServer<T>::tBBVector tBBVector;
   typedef typename tAbstractBlackboardServer<T>::tBBVectorVar tBBVectorVar;
@@ -64,6 +58,12 @@ public:
   typedef typename tAbstractBlackboardServer<T>::tChangeTransaction tChangeTransaction;
   typedef typename tAbstractBlackboardServer<T>::tChangeTransactionVar tChangeTransactionVar;
   typedef typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar tConstChangeTransactionVar;
+
+  typedef tBlackboardWriteAccess<T> tWriteAccess;
+  typedef tBlackboardReadAccess<T> tReadAccess;
+
+  /*! Log domain for this class */
+  RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "blackboard");
 
 private:
 
@@ -78,13 +78,8 @@ protected:
   /*! not null - if buffer is currently locked for writing */
   tConstBBVectorVar read_locked;
 
-public:
-
-  typedef tBlackboardWriteAccess<T> tWriteAccess;
-  typedef tBlackboardReadAccess<T> tReadAccess;
-
-  /*! Log domain for this class */
-  RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "blackboard");
+  /*! Replicated ports in group's/module's tPortGroups */
+  core::tAbstractPort* read_port, * write_port1, * write_port2;
 
 private:
 
@@ -97,6 +92,11 @@ private:
   rrlib::serialization::tDataTypeBase InitBlackboardType(rrlib::serialization::tDataTypeBase dt);
 
   /*!
+   * Check whether these ports can be connected - if yes, do so
+   */
+  void CheckConnect(core::tAbstractPort* p1, core::tAbstractPort* p2);
+
+  /*!
    * Reset variables after unlock
    */
   inline void ResetVariables()
@@ -106,6 +106,22 @@ private:
 
     locked.reset();
     read_locked.reset();
+  }
+
+  /*!
+   * Create blackboard write port in specified port group and connect it to
+   * (original blackboard client) write port.
+   *
+   * \param write_port Port to connect newly created port to
+   * \param pg Port group to create port in
+   * \param name Name of new port
+   * \return Created Port
+   */
+  static core::tAbstractPort* ReplicateWritePort(core::tAbstractPort* write_port, core::tFrameworkElement* pg, const util::tString& name)
+  {
+    core::tInterfacePort* new_port = new core::tInterfacePort(name, pg, write_port->GetDataType(), core::tInterfacePort::eRouting);
+    write_port->ConnectToSource(new_port);
+    return new_port;
   }
 
 protected:
@@ -130,6 +146,8 @@ public:
   }
 
   /*!
+   * Connects to global blackboards.
+   *
    * \param description Name/Uid of blackboard
    * \param parent Parent of blackboard client
    * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
@@ -140,6 +158,48 @@ public:
    * \param type Data Type of blackboard content
    */
   tBlackboardClient(const util::tString& description, core::tFrameworkElement* parent = NULL, bool push_updates = false, bool auto_connect = true, int auto_connect_category = -1, bool read_port = true, bool write_port = true, rrlib::serialization::tDataTypeBase type = rrlib::serialization::tDataType<T>());
+
+  /*!
+   * Connects to local blackboard
+   *
+   * \param parent Parent of blackboard client
+   * \param server Blackboard server to connect to (in case it is available as object)
+   * \param non_default_name Default name is "<server name> Client". Specifiy non-empty string for other name
+   * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
+   * \param read_port Create read port?
+   * \param write_port Create write port?
+   */
+  tBlackboardClient(const tAbstractBlackboardServerRaw* server, core::tFrameworkElement* parent, const util::tString& non_default_name = "", bool push_updates = false, bool read_port = true, bool write_port = true);
+
+  /*!
+   * Constructor for use in tGroup, tModule and tSenseControlModule.
+   * Does NOT connect to global blackboards - but rather uses group's/module's input/output port groups.
+   *
+   * (per default, full-blackboard-access-ports are created in Output/ControllerOutput.
+   *  If this is not desired, the last two constructor parameters can be used to specify alternatives.)
+   *
+   * \param description Name of blackboard
+   * \param parent Parent of blackboard
+   * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
+   * \param create_read_port Create read port for blackboard? (0 = no, 1 = in internal client, 2 = also in (Sensor)Output)
+   * \param create_write_port_in If not NULL, creates write port in specified port group instead of Input/ControllerInput
+   * \param create_write_port_in2 If not NULL, creates another write port in specified port group
+   */
+  tBlackboardClient(const util::tString& description, core::structure::tModuleBase* parent, bool push_updates = false, int create_read_port = 2, core::tPortGroup* create_write_port_in = NULL, core::tPortGroup* create_write_port_in2 = NULL);
+
+  /*!
+   * Constructor to replicate access to inner tBlackboardClient in tGroup.
+   * (per default, full-blackboard-access-ports are created in the same port groups as in the inner group/module.
+   *  In case of a plain tModule, ports in tSensorOutput and tControllerInput are created by default.)
+   *
+   * \param replicated_bb Blackboard to provide access to
+   * \param parent Parent of blackboard
+   * \param create_read_port_in_ci In case we have a plain tModule: Create read port in Controller Input (rather than Sensor Input?)
+   * \param forward_write_port_in_controller Forward write ports in controller port groups?
+   * \param forward_write_port_in_sensor Forward write ports in sensor port groups?
+   */
+  tBlackboardClient(const tBlackboardClient& replicated_bb, core::structure::tGroup* parent, bool create_read_port_in_ci = false, bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false);
+
 
   // move assignment
   tBlackboardClient& operator=(tBlackboardClient && o)
@@ -163,11 +223,50 @@ public:
   bool CommitAsynchChange(tChangeTransactionVar& change_buf, int index, int offset);
 
   /*!
+   * Connect to outside ports of specified blackboard
+   *
+   * \param blackboard Blackboard to connect to
+   */
+  void ConnectTo(const tBlackboard<T>& blackboard);
+
+  /*!
    * \return Blackboard name/description
    */
   inline util::tString GetDescription()
   {
     return wrapped->GetDescription();
+  }
+
+  /*!
+   * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's read port
+   */
+  core::tAbstractPort* GetOutsideReadPort() const
+  {
+    return read_port;
+  }
+
+  /*!
+   * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's primary write port
+   */
+  core::tAbstractPort* GetOutsideWritePort() const
+  {
+    return write_port1;
+  }
+
+  /*!
+   * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's secondary write port
+   */
+  core::tAbstractPort* GetOutsideWritePort2() const
+  {
+    return write_port2;
+  }
+
+  /*!
+   * \return Handle of server that handles calls (can be used to detect whether we're connected to a different blackboard). 0 if not connected to a server.
+   */
+  int GetServerHandle() const
+  {
+    return wrapped->GetWritePort()->GetServerHandle();
   }
 
   /*!
@@ -189,7 +288,7 @@ public:
   /*!
    * \return Wrapped raw blackboard client
    */
-  inline tRawBlackboardClient* GetWrapped()
+  inline tRawBlackboardClient* GetWrapped() const
   {
     return wrapped;
   }
@@ -324,6 +423,7 @@ public:
 } // namespace finroc
 } // namespace blackboard
 
+#include "plugins/blackboard/tBlackboard.h"
 #include "plugins/blackboard/tBlackboardClient.hpp"
 
 #include "plugins/blackboard/tBlackboardReadAccess.h"

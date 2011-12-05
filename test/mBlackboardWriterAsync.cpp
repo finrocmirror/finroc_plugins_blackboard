@@ -63,9 +63,9 @@ finroc::core::tStandardCreateModuleAction<mBlackboardWriterAsync> mBlackboardWri
 //----------------------------------------------------------------------
 // mBlackboardWriterAsync constructors
 //----------------------------------------------------------------------
-mBlackboardWriterAsync::mBlackboardWriterAsync(finroc::core::tFrameworkElement *parent, const std::string& bb_name, const finroc::util::tString &name)
+mBlackboardWriterAsync::mBlackboardWriterAsync(finroc::core::tFrameworkElement *parent, const finroc::util::tString &name)
     : tModule(parent, name),
-    bb_client(bb_name, this),
+    bb_client("blackboard", this),
     update_counter(0)
 {}
 

@@ -38,9 +38,12 @@ namespace blackboard
  * \author Max Reichardt
  *
  * Object to use for write-accessing blackboard
+ *
+ * Derived from tBlackboardReadAccess so that it can also be used in places
+ * where only read access is required.
  */
 template<typename T>
-class tBlackboardWriteAccess
+class tBlackboardWriteAccess : public tBlackboardReadAccess<T>
 {
 private:
 
@@ -48,23 +51,11 @@ private:
   void *operator new(size_t);
   void *operator new[](size_t);
 
-  /*! Locked blackboard */
-  tBlackboardClient<T>& blackboard;
-
   /*! not null - if buffer is currently locked for writing */
   typename tBlackboardClient<T>::tBBVector* locked;
 
-public:
-
-  /*! Log domain for this class */
-  RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "blackboard");
-
-private:
-
-  inline const char* GetLogDescription()
-  {
-    return "BlackboardWriteAccess";
-  }
+  using tBlackboardReadAccess<T>::log_domain;
+  using tBlackboardReadAccess<T>::blackboard;
 
   inline typename tBlackboardClient<T>::tBBVector* WriteLock(int timeout = 60000)
   {
@@ -78,18 +69,35 @@ public:
    * \param blackboard Blackboard to access
    * \param timeout Timeout for lock (in ms)
    */
-  tBlackboardWriteAccess(tBlackboardClient<T>& blackboard_, int timeout = 60000) :
-      blackboard(blackboard_),
+  tBlackboardWriteAccess(tBlackboardClient<T>& blackboard, int timeout = 60000) :
+      tBlackboardReadAccess<T>(blackboard, blackboard),
       locked(WriteLock(timeout))
   {
     if (locked == NULL)
     {
       throw tBBLockException();
     }
+    tBlackboardReadAccess<T>::locked = locked;
+  }
+
+  /*!
+   * \param blackboard Blackboard to access
+   * \param timeout Timeout for lock (in ms)
+   */
+  tBlackboardWriteAccess(tBlackboard<T>& blackboard, int timeout = 60000) :
+      tBlackboardReadAccess<T>(blackboard.GetClient(), blackboard.GetClient()),
+      locked(WriteLock(timeout))
+  {
+    if (locked == NULL)
+    {
+      throw tBBLockException();
+    }
+    tBlackboardReadAccess<T>::locked = locked;
   }
 
   virtual ~tBlackboardWriteAccess()
   {
+    tBlackboardReadAccess<T>::locked = NULL;
     if (locked != NULL)
     {
       FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, log_domain, "Releasing write lock on blackboard '", blackboard.GetDescription(), "' at ", util::tTime::GetPrecise());

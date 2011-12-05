@@ -68,21 +68,25 @@ class mBlackboardReader : public finroc::core::structure::tModule
 {
   static finroc::core::tStandardCreateModuleAction<mBlackboardReader> cCREATE_ACTION;
 
+//----------------------------------------------------------------------
+// Ports (These are the only variables that may be declared public)
+//----------------------------------------------------------------------
+public:
+
   tBlackboardClient<float> bb_client;
+
+//----------------------------------------------------------------------
+// Public methods and typedefs (no fields/variables)
+//----------------------------------------------------------------------
+public:
+
+  mBlackboardReader(finroc::core::tFrameworkElement *parent, const finroc::util::tString &name = "BlackboardReader");
 
 //----------------------------------------------------------------------
 // Protected methods
 //----------------------------------------------------------------------
 
   virtual void Update();
-
-//----------------------------------------------------------------------
-// Public methods
-//----------------------------------------------------------------------
-public:
-
-  mBlackboardReader(finroc::core::tFrameworkElement *parent, const std::string& bb_name, const finroc::util::tString &name = "BlackboardReader");
-
 };
 
 //----------------------------------------------------------------------

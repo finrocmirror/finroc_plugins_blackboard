@@ -27,6 +27,7 @@
 
 #include "plugins/blackboard/tBBLockException.h"
 #include "plugins/blackboard/tBlackboardClient.h"
+#include "plugins/blackboard/tBlackboard.h"
 #include "rrlib/finroc_core_utils/tTime.h"
 
 namespace finroc
@@ -47,23 +48,30 @@ private:
   void *operator new(size_t);
   void *operator new[](size_t);
 
+protected:
+
   /*! Locked blackboard */
   tBlackboardClient<T>& blackboard;
 
   /*! not null - if buffer is currently locked for writing */
   const typename tBlackboardClient<T>::tBBVector* locked;
 
-public:
-
   /*! Log domain for this class */
   RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "blackboard");
-
-private:
 
   inline const char* GetLogDescription()
   {
     return "BlackboardWriteAccess";
   }
+
+  /*! for tBlackboardWriteAccess */
+  tBlackboardReadAccess(tBlackboardClient<T>& blackboard, tBlackboardClient<T>& dummy_for_non_ambiguous_overloads) :
+      blackboard(blackboard),
+      locked(NULL)
+  {
+  }
+
+private:
 
   inline const typename tBlackboardClient<T>::tBBVector* ReadLock(int timeout = 60000)
   {
@@ -77,8 +85,22 @@ public:
    * \param blackboard Blackboard to access
    * \param timeout Timeout for lock (in ms)
    */
-  tBlackboardReadAccess(tBlackboardClient<T>& blackboard_, int timeout = 60000) :
-      blackboard(blackboard_),
+  tBlackboardReadAccess(tBlackboardClient<T>& blackboard, int timeout = 60000) :
+      blackboard(blackboard),
+      locked(ReadLock(timeout))
+  {
+    if (locked == NULL)
+    {
+      throw tBBLockException();
+    }
+  }
+
+  /*!
+   * \param blackboard Blackboard to access
+   * \param timeout Timeout for lock (in ms)
+   */
+  tBlackboardReadAccess(tBlackboard<T>& blackboard, int timeout = 60000) :
+      blackboard(blackboard.GetClient()),
       locked(ReadLock(timeout))
   {
     if (locked == NULL)

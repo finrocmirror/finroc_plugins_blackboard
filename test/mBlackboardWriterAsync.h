@@ -72,9 +72,19 @@ class mBlackboardWriterAsync : public finroc::core::structure::tModule
 {
   static finroc::core::tStandardCreateModuleAction<mBlackboardWriterAsync> cCREATE_ACTION;
 
+//----------------------------------------------------------------------
+// Ports (These are the only variables that may be declared public)
+//----------------------------------------------------------------------
+public:
+
   tBlackboardClient<float> bb_client;
 
-  int update_counter;
+//----------------------------------------------------------------------
+// Public methods and typedefs (no fields/variables)
+//----------------------------------------------------------------------
+public:
+
+  mBlackboardWriterAsync(finroc::core::tFrameworkElement *parent, const finroc::util::tString &name = "BlackboardWriterAsync");
 
 //----------------------------------------------------------------------
 // Protected methods
@@ -83,12 +93,11 @@ class mBlackboardWriterAsync : public finroc::core::structure::tModule
   virtual void Update();
 
 //----------------------------------------------------------------------
-// Public methods
+// Private fields and methods
 //----------------------------------------------------------------------
-public:
+private:
 
-  mBlackboardWriterAsync(finroc::core::tFrameworkElement *parent, const std::string& bb_name, const finroc::util::tString &name = "BlackboardWriterAsync");
-
+  int update_counter;
 };
 
 //----------------------------------------------------------------------
