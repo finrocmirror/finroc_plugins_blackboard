@@ -91,7 +91,7 @@ void InitMainGroup(finroc::core::tThreadContainer *main_thread, std::vector<char
   blackboard.GetWritePort()->ConnectToTarget(writer->bb_client.GetOutsideWritePort());
   blackboard.GetWritePort()->ConnectToTarget(async_writer->bb_client.GetOutsideWritePort());
   blackboard.GetWritePort()->ConnectToTarget(reader->bb_client.GetOutsideWritePort());
-  blackboard.GetReadPort()->ConnectToTarget(reader->bb_client.GetOutsideReadPort());
+  blackboard.GetReadPort()->ConnectToTarget(reader->bb_client.GetOutsideReadPort()->GetWrapped());
 
   main_thread->SetCycleTime(500);
 }

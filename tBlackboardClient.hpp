@@ -38,9 +38,9 @@ tBlackboardClient<T>::tBlackboardClient(const util::tString& description, core::
     wrapped(new tRawBlackboardClient(core::tPortCreationInfoBase(description, parent, InitBlackboardType(type), (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), auto_connect, auto_connect_category)),
     locked(),
     read_locked(),
-    read_port(NULL),
     write_port1(NULL),
-    write_port2(NULL)
+    write_port2(NULL),
+    read_port()
 {
 }
 
@@ -49,9 +49,9 @@ tBlackboardClient<T>::tBlackboardClient(const tAbstractBlackboardServerRaw* serv
     wrapped(new tRawBlackboardClient(core::tPortCreationInfoBase(non_default_name.Length() > 0 ? non_default_name : (server->GetDescription() + " Client").ToString(), parent, InitBlackboardType(rrlib::serialization::tDataType<T>()), (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), false)),
     locked(),
     read_locked(),
-    read_port(NULL),
     write_port1(NULL),
-    write_port2(NULL)
+    write_port2(NULL),
+    read_port()
 {
   assert(server != NULL);
   if (read_port)
@@ -69,9 +69,9 @@ tBlackboardClient<T>::tBlackboardClient(const util::tString& description, core::
     wrapped(new tRawBlackboardClient(core::tPortCreationInfoBase(description, parent->GetChild("Blackboards") ? parent->GetChild("Blackboards") : new core::tFrameworkElement(parent, "Blackboards"), InitBlackboardType(rrlib::serialization::tDataType<T>()), core::tPortFlags::cEMITS_DATA | (create_read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), false)),
     locked(),
     read_locked(),
-    read_port(NULL),
     write_port1(NULL),
-    write_port2(NULL)
+    write_port2(NULL),
+    read_port()
 {
   bool plain_module = (parent->GetChild("Sensor Input") == NULL);
 
@@ -80,15 +80,13 @@ tBlackboardClient<T>::tBlackboardClient(const util::tString& description, core::
   {
     if (!plain_module)
     {
-      core::structure::tSenseControlModule::tSensorInput<std::vector<T>> read_port_tmp(description, parent, core::tPortFlags::cINPUT_PROXY);
-      read_port = read_port_tmp.GetWrapped();
+      read_port.reset(new core::structure::tSenseControlModule::tSensorInput<std::vector<T>>(description, parent, core::tPortFlags::cINPUT_PROXY));
     }
     else
     {
-      core::structure::tModule::tInput<std::vector<T>> read_port_tmp(description, parent, core::tPortFlags::cINPUT_PROXY);
-      read_port = read_port_tmp.GetWrapped();
+      read_port.reset(new core::structure::tModule::tInput<std::vector<T>>(description, parent, core::tPortFlags::cINPUT_PROXY));
     }
-    wrapped->GetReadPort()->ConnectToSource(read_port);
+    wrapped->GetReadPort()->ConnectToSource(read_port->GetWrapped());
   }
 
   // create write/full-access ports
@@ -105,9 +103,9 @@ tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, 
     wrapped(),
     locked(),
     read_locked(),
-    read_port(NULL),
     write_port1(NULL),
-    write_port2(NULL)
+    write_port2(NULL),
+    read_port()
 {
   // forward read port
   if (replicated_bb.GetOutsideReadPort())
@@ -130,15 +128,13 @@ tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, 
     // create port
     if (create_read_port_in_ci)
     {
-      core::structure::tGroup::tControllerOutput<std::vector<T>> read_port_tmp(replicated_bb.GetOutsideReadPort()->GetDescription());
-      read_port = read_port_tmp.GetWrapped();
+      read_port.reset(new core::structure::tGroup::tControllerOutput<std::vector<T>>(replicated_bb.GetOutsideReadPort()->GetDescription()));
     }
     else
     {
-      core::structure::tGroup::tSensorOutput<std::vector<T>> read_port_tmp(replicated_bb.GetOutsideReadPort()->GetDescription());
-      read_port = read_port_tmp.GetWrapped();
+      read_port.reset(new core::structure::tGroup::tSensorOutput<std::vector<T>>(replicated_bb.GetOutsideReadPort()->GetDescription()));
     }
-    replicated_bb.read_port->ConnectToSource(read_port);
+    replicated_bb.read_port->ConnectToSource(*read_port);
   }
 
   // forward write ports
@@ -227,7 +223,10 @@ bool tBlackboardClient<T>::CommitAsynchChange(tChangeTransactionVar& change_buf,
 template<typename T>
 void tBlackboardClient<T>::ConnectTo(const tBlackboard<T>& blackboard)
 {
-  CheckConnect(blackboard.GetOutsideReadPort(), GetOutsideReadPort());
+  if (blackboard.GetOutsideReadPort() && GetOutsideReadPort())
+  {
+    CheckConnect(blackboard.GetOutsideReadPort()->GetWrapped(), GetOutsideReadPort()->GetWrapped());
+  }
   CheckConnect(blackboard.GetOutsideWritePort(), GetOutsideWritePort());
   CheckConnect(blackboard.GetOutsideWritePort2(), GetOutsideWritePort());
   CheckConnect(blackboard.GetOutsideWritePort(), GetOutsideWritePort2());

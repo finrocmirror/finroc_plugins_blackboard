@@ -43,7 +43,7 @@ namespace internal
 template <typename T, bool MOD, bool SCMOD, bool GRP>
 struct tGetReadPortTypeBase
 {
-  typedef core::tPort<T> type;
+  typedef core::tPort<std::vector<T>> type;
 };
 
 template <typename T>
@@ -78,13 +78,12 @@ class tBlackboardBase
 protected:
 
   /*! Replicated ports in group's/module's tPortGroups */
-  core::tAbstractPort* read_port, * write_port1, * write_port2;
+  core::tAbstractPort * write_port1, * write_port2;
 
   /*! default parameter for tBlackboard constructor */
   static core::tPortGroup* default_port_group;
 
   tBlackboardBase() :
-      read_port(NULL),
       write_port1(NULL),
       write_port2(NULL)
   {}
@@ -168,6 +167,9 @@ private:
   /*! Wrapped blackboard client - contains NULL pointer if no such client was created */
   tBlackboardClient<T> wrapped_client;
 
+  /*! Replicated read port in group's/module's tPortGroups */
+  std::unique_ptr<core::tPort<std::vector<T>>> read_port;
+
 public:
 
   /*!
@@ -220,9 +222,8 @@ public:
     if (create_read_port >= 2 && GetWritePortGroup(parent) != NULL)
     {
       typedef typename internal::tGetReadPortType<T, typename std::remove_pointer<P>::type>::type tReadPort;
-      tReadPort read_port_tmp(description, parent, core::tPortFlags::cOUTPUT_PROXY);
-      read_port = read_port_tmp.GetWrapped();
-      wrapped_server->read_port_raw->ConnectToTarget(read_port);
+      read_port.reset(new tReadPort(description, parent, core::tPortFlags::cOUTPUT_PROXY));
+      wrapped_server->read_port_raw->ConnectToTarget(read_port->GetWrapped());
     }
 
     // create write/full-access ports
@@ -273,13 +274,11 @@ public:
       // create port
       if (create_read_port_in_co)
       {
-        core::structure::tGroup::tControllerOutput<std::vector<T>> read_port_tmp(replicated_bb.read_port->GetDescription());
-        read_port = read_port_tmp.GetWrapped();
+        read_port.reset(new core::structure::tGroup::tControllerOutput<std::vector<T>>(replicated_bb.read_port->GetDescription()));
       }
       else
       {
-        core::structure::tGroup::tSensorOutput<std::vector<T>> read_port_tmp(replicated_bb.read_port->GetDescription());
-        read_port = read_port_tmp.GetWrapped();
+        read_port.reset(new core::structure::tGroup::tSensorOutput<std::vector<T>>(replicated_bb.read_port->GetDescription()));
       }
       replicated_bb.read_port->ConnectToTarget(read_port);
     }
@@ -308,9 +307,9 @@ public:
   /*!
    * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's read port
    */
-  core::tAbstractPort* GetOutsideReadPort() const
+  core::tPort<std::vector<T>>* GetOutsideReadPort() const
   {
-    return read_port;
+    return read_port.get();
   }
 
   /*!

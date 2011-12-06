@@ -79,7 +79,10 @@ protected:
   tConstBBVectorVar read_locked;
 
   /*! Replicated ports in group's/module's tPortGroups */
-  core::tAbstractPort* read_port, * write_port1, * write_port2;
+  core::tAbstractPort * write_port1, * write_port2;
+
+  /*! Replicated read port in group's/module's tPortGroups */
+  std::unique_ptr<core::tPort<std::vector<T>>> read_port;
 
 private:
 
@@ -141,7 +144,10 @@ public:
   tBlackboardClient() :
       wrapped(NULL),
       locked(),
-      read_locked()
+      read_locked(),
+      write_port1(NULL),
+      write_port2(NULL),
+      read_port()
   {
   }
 
@@ -240,9 +246,9 @@ public:
   /*!
    * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's read port
    */
-  core::tAbstractPort* GetOutsideReadPort() const
+  core::tPort<std::vector<T>>* GetOutsideReadPort() const
   {
-    return read_port;
+    return read_port.get();
   }
 
   /*!

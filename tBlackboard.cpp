@@ -31,7 +31,6 @@ namespace internal
 core::tPortGroup* tBlackboardBase::default_port_group = (core::tPortGroup*)1;
 
 tBlackboardBase::tBlackboardBase(const tBlackboardBase& replicated_bb, core::structure::tGroup* parent, bool create_read_port_in_co, bool forward_write_port_in_controller, bool forward_write_port_in_sensor) :
-    read_port(NULL),
     write_port1(NULL),
     write_port2(NULL)
 {
