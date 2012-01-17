@@ -98,7 +98,7 @@ bool tAbstractBlackboardServerRaw::WaitForLock(util::tLock& passed_lock, int64 t
     catch (const util::tInterruptedException& e)
     {
       //e.printStackTrace();
-      FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, log_domain, "Wait interrupted in AbstractBlackboardServer - shouldn't happen... usually");
+      FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "Wait interrupted in AbstractBlackboardServer - shouldn't happen... usually");
     }
     wait_for = timeout - (util::tTime::GetCoarse() - start_time);
     //System.out.println(createThreadString() + ": left wait; waitFor = " + waitFor + "; wakeupThread = " + wakeupThread);

@@ -60,8 +60,6 @@ private:
   typedef typename tAbstractBlackboardServer<T>::tChangeTransactionVar tChangeTransactionVar;
   typedef typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar tConstChangeTransactionVar;
 
-  using tAbstractBlackboardServer<T>::log_domain;
-
   /*! Unlock timeout in ms - if no keep-alive signal occurs in this period of time */
   static const int64 cUNLOCK_TIMEOUT = 1000;
 
@@ -145,13 +143,13 @@ protected:
 
   virtual typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLock(int64 timeout)
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, log_domain, "warning: Client must not attempt read lock on multi-buffered blackboard - Call failed");
+    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "warning: Client must not attempt read lock on multi-buffered blackboard - Call failed");
     throw core::tMethodCallException(core::tMethodCallException::eINVALID_PARAM, CODE_LOCATION_MACRO);
   }
 
   virtual void ReadUnlock(int lock_id_)
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, log_domain, "warning: Client must not attempt read unlock on multi-buffered blackboard - Call failed");
+    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "warning: Client must not attempt read unlock on multi-buffered blackboard - Call failed");
     throw core::tMethodCallException(core::tMethodCallException::eINVALID_PARAM, CODE_LOCATION_MACRO);
   }
 

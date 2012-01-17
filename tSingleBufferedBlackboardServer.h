@@ -62,8 +62,6 @@ private:
   typedef typename tAbstractBlackboardServer<T>::tChangeTransactionVar tChangeTransactionVar;
   typedef typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar tConstChangeTransactionVar;
 
-  using tAbstractBlackboardServer<T>::log_domain;
-
   /*! Unlock timeout in ms - if no keep-alive signal occurs in this period of time */
   static const int64 cUNLOCK_TIMEOUT = 1000;
 

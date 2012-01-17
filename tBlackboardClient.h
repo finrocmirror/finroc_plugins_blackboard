@@ -62,9 +62,6 @@ public:
   typedef tBlackboardWriteAccess<T> tWriteAccess;
   typedef tBlackboardReadAccess<T> tReadAccess;
 
-  /*! Log domain for this class */
-  RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "blackboard");
-
 private:
 
   /*! Wrapped raw blackboard client */
