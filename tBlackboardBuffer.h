@@ -62,9 +62,9 @@ public:
   static const rrlib::serialization::tDataTypeBase cTYPE;
 
   tBlackboardBuffer() :
-      bb_capacity(0),
-      elements(0),
-      element_size(0)
+    bb_capacity(0),
+    elements(0),
+    element_size(0)
   {}
 
   inline void CopyFrom(rrlib::serialization::tMemoryBuffer* source)
@@ -80,10 +80,10 @@ public:
   void CopyFromBlackboardBuffer(const tBlackboardBuffer& source);
 
   tBlackboardBuffer(tBlackboardBuffer && o) :
-      rrlib::serialization::tMemoryBuffer(std::forward<rrlib::serialization::tMemoryBuffer>(o)),
-      bb_capacity(0),
-      elements(0),
-      element_size(0)
+    rrlib::serialization::tMemoryBuffer(std::forward<rrlib::serialization::tMemoryBuffer>(o)),
+    bb_capacity(0),
+    elements(0),
+    element_size(0)
   {
     std::swap(bb_capacity, o.bb_capacity);
     std::swap(elements, o.elements);

@@ -139,12 +139,12 @@ public:
   // Empty constructor for blackboard clients that are not initialized in
   // class initializer list (but later)
   tBlackboardClient() :
-      wrapped(NULL),
-      locked(),
-      read_locked(),
-      write_port1(NULL),
-      write_port2(NULL),
-      read_port()
+    wrapped(NULL),
+    locked(),
+    read_locked(),
+    write_port1(NULL),
+    write_port2(NULL),
+    read_port()
   {
   }
 

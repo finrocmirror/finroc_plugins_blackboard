@@ -125,8 +125,8 @@ void tRawBlackboardClient::SendKeepAlive()
 }
 
 tRawBlackboardClient::tReadPort::tReadPort(tRawBlackboardClient* const outer_class_ptr_, core::tPortCreationInfoBase pci) :
-    core::tPortBase(pci),
-    outer_class_ptr(outer_class_ptr_)
+  core::tPortBase(pci),
+  outer_class_ptr(outer_class_ptr_)
 {
 }
 
@@ -145,8 +145,8 @@ void tRawBlackboardClient::tReadPort::NewConnection(core::tAbstractPort* partner
 }
 
 tRawBlackboardClient::tWritePort::tWritePort(tRawBlackboardClient* const outer_class_ptr_, rrlib::serialization::tDataTypeBase type) :
-    core::tInterfaceClientPort("write", outer_class_ptr_, type),
-    outer_class_ptr(outer_class_ptr_)
+  core::tInterfaceClientPort("write", outer_class_ptr_, type),
+  outer_class_ptr(outer_class_ptr_)
 {
 }
 

@@ -43,7 +43,7 @@ public:
   int64 thread_uid;
 
   tBlackboardTask() :
-      thread_uid(0)
+    thread_uid(0)
   {}
 
   bool operator==(const tBlackboardTask& other) const

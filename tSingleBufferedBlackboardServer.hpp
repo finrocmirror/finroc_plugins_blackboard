@@ -40,18 +40,18 @@ const int64 tSingleBufferedBlackboardServer<T>::cUNLOCK_TIMEOUT;
 
 template<typename T>
 tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::tString& description, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
-    tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
-    buffer(write->GetBufferForReturn<tBBVector>()),
-    locks(0),
-    lock_time(0),
-    last_keep_alive(0),
-    lock_iDGen(0),
-    lock_id(0),
-    revision(0),
-    read_copy(),
-    read_copy_revision(-1),
-    thread_waiting_for_copy(false)
+  tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
+  write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
+  buffer(write->GetBufferForReturn<tBBVector>()),
+  locks(0),
+  lock_time(0),
+  last_keep_alive(0),
+  lock_iDGen(0),
+  lock_id(0),
+  revision(0),
+  read_copy(),
+  read_copy_revision(-1),
+  thread_waiting_for_copy(false)
 {
   assert(((!core::tFinrocTypeInfo::IsMethodType(type))) && "Please provide data type of content here");
   this->read_port_raw = new tBBReadPort(this, core::tPortCreationInfoBase("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
@@ -66,18 +66,18 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
 
 template<typename T>
 tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::tString& description, int elements, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
-    tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
-    buffer(write->GetBufferForReturn<tBBVector>()),
-    locks(0),
-    lock_time(0),
-    last_keep_alive(0),
-    lock_iDGen(0),
-    lock_id(0),
-    revision(0),
-    read_copy(),
-    read_copy_revision(-1),
-    thread_waiting_for_copy(false)
+  tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
+  write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
+  buffer(write->GetBufferForReturn<tBBVector>()),
+  locks(0),
+  lock_time(0),
+  last_keep_alive(0),
+  lock_iDGen(0),
+  lock_id(0),
+  revision(0),
+  read_copy(),
+  read_copy_revision(-1),
+  thread_waiting_for_copy(false)
 {
   assert(((!core::tFinrocTypeInfo::IsMethodType(type))) && "Please provide data type of content here");
   this->read_port_raw = new tBBReadPort(this, core::tPortCreationInfoBase("read", this, type.GetListType(), core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0)).LockOrderDerive(core::tLockOrderLevels::cREMOTE_PORT + 1));
@@ -497,8 +497,8 @@ void tSingleBufferedBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
 
 template<typename T>
 tSingleBufferedBlackboardServer<T>::tBBReadPort::tBBReadPort(tSingleBufferedBlackboardServer* const outer_class_ptr_, core::tPortCreationInfoBase pci) :
-    core::tPortBase(pci),
-    outer_class_ptr(outer_class_ptr_)
+  core::tPortBase(pci),
+  outer_class_ptr(outer_class_ptr_)
 {
 }
 

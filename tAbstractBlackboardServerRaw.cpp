@@ -29,14 +29,14 @@ namespace finroc
 namespace blackboard
 {
 tAbstractBlackboardServerRaw::tAbstractBlackboardServerRaw(const util::tString& bb_name, int category, core::tFrameworkElement* parent) :
-    core::tFrameworkElement(parent == NULL ? tBlackboardManager::GetInstance()->GetCategory(category) : parent, bb_name, tBlackboardManager::GetInstance()->GetCategory(category)->default_flags, -1),
-    pending_major_tasks(),
-    wakeup_thread(-1),
-    bb_lock(core::tLockOrderLevels::cINNER_MOST - 1000),
-    read_port_raw(NULL),
-    write_port_raw(NULL),
-    category_index(category),
-    my_category(tBlackboardManager::GetInstance()->GetCategory(category))
+  core::tFrameworkElement(parent == NULL ? tBlackboardManager::GetInstance()->GetCategory(category) : parent, bb_name, tBlackboardManager::GetInstance()->GetCategory(category)->default_flags, -1),
+  pending_major_tasks(),
+  wakeup_thread(-1),
+  bb_lock(core::tLockOrderLevels::cINNER_MOST - 1000),
+  read_port_raw(NULL),
+  write_port_raw(NULL),
+  category_index(category),
+  my_category(tBlackboardManager::GetInstance()->GetCategory(category))
 {
   // this(bbName,category,BlackboardManager.getInstance().getCategory(category).defaultFlags,parent);
 }

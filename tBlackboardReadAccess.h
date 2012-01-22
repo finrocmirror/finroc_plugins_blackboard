@@ -63,8 +63,8 @@ protected:
 
   /*! for tBlackboardWriteAccess */
   tBlackboardReadAccess(tBlackboardClient<T>& blackboard, tBlackboardClient<T>& dummy_for_non_ambiguous_overloads) :
-      blackboard(blackboard),
-      locked(NULL)
+    blackboard(blackboard),
+    locked(NULL)
   {
   }
 
@@ -83,8 +83,8 @@ public:
    * \param timeout Timeout for lock (in ms)
    */
   tBlackboardReadAccess(tBlackboardClient<T>& blackboard, int timeout = 60000) :
-      blackboard(blackboard),
-      locked(ReadLock(timeout))
+    blackboard(blackboard),
+    locked(ReadLock(timeout))
   {
     if (locked == NULL)
     {
@@ -97,8 +97,8 @@ public:
    * \param timeout Timeout for lock (in ms)
    */
   tBlackboardReadAccess(tBlackboard<T>& blackboard, int timeout = 60000) :
-      blackboard(blackboard.GetClient()),
-      locked(ReadLock(timeout))
+    blackboard(blackboard.GetClient()),
+    locked(ReadLock(timeout))
   {
     if (locked == NULL)
     {

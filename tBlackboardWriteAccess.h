@@ -69,8 +69,8 @@ public:
    * \param timeout Timeout for lock (in ms)
    */
   tBlackboardWriteAccess(tBlackboardClient<T>& blackboard, int timeout = 60000) :
-      tBlackboardReadAccess<T>(blackboard, blackboard),
-      locked(WriteLock(timeout))
+    tBlackboardReadAccess<T>(blackboard, blackboard),
+    locked(WriteLock(timeout))
   {
     if (locked == NULL)
     {
@@ -84,8 +84,8 @@ public:
    * \param timeout Timeout for lock (in ms)
    */
   tBlackboardWriteAccess(tBlackboard<T>& blackboard, int timeout = 60000) :
-      tBlackboardReadAccess<T>(blackboard.GetClient(), blackboard.GetClient()),
-      locked(WriteLock(timeout))
+    tBlackboardReadAccess<T>(blackboard.GetClient(), blackboard.GetClient()),
+    locked(WriteLock(timeout))
   {
     if (locked == NULL)
     {

@@ -48,8 +48,8 @@ public:
   rrlib::serialization::tDataTypeBase element_type;
 
   tBlackboardTypeInfo() :
-      blackboard_type(),
-      element_type()
+    blackboard_type(),
+    element_type()
   {}
 };
 

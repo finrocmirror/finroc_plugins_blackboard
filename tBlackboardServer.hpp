@@ -40,15 +40,15 @@ const int64 tBlackboardServer<T>::cUNLOCK_TIMEOUT;
 
 template<typename T>
 tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
-    tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
-    locked(),
-    lock_time(0),
-    last_keep_alive(0),
-    lock_iDGen(0),
-    lock_id(0),
-    published(),
-    read_port()
+  tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
+  write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
+  locked(),
+  lock_time(0),
+  last_keep_alive(0),
+  lock_iDGen(0),
+  lock_id(0),
+  published(),
+  read_port()
 {
   // this(description,1,parent,shared,type);
   assert(((!core::tFinrocTypeInfo::IsMethodType(type))) && "Please provide data type of content here");
@@ -67,15 +67,15 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int ca
 
 template<typename T>
 tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int elements, core::tFrameworkElement* parent, bool shared, rrlib::serialization::tDataTypeBase type) :
-    tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
-    write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
-    locked(),
-    lock_time(0),
-    last_keep_alive(0),
-    lock_iDGen(0),
-    lock_id(0),
-    published(),
-    read_port()
+  tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
+  write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
+  locked(),
+  lock_time(0),
+  last_keep_alive(0),
+  lock_iDGen(0),
+  lock_id(0),
+  published(),
+  read_port()
 {
   assert(((!core::tFinrocTypeInfo::IsMethodType(type))) && "Please provide data type of content here");
   read_port.reset(new core::tPort<tBBVector>("read", this, core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0), core::tLockOrder(core::tLockOrderLevels::cREMOTE_PORT + 1)));

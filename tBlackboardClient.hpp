@@ -35,23 +35,23 @@ namespace blackboard
 {
 template<typename T>
 tBlackboardClient<T>::tBlackboardClient(const util::tString& description, core::tFrameworkElement* parent, bool push_updates, bool auto_connect, int auto_connect_category, bool read_port, bool write_port, rrlib::serialization::tDataTypeBase type) :
-    wrapped(new tRawBlackboardClient(core::tPortCreationInfoBase(description, parent, InitBlackboardType(type), (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), auto_connect, auto_connect_category)),
-    locked(),
-    read_locked(),
-    write_port1(NULL),
-    write_port2(NULL),
-    read_port()
+  wrapped(new tRawBlackboardClient(core::tPortCreationInfoBase(description, parent, InitBlackboardType(type), (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), auto_connect, auto_connect_category)),
+  locked(),
+  read_locked(),
+  write_port1(NULL),
+  write_port2(NULL),
+  read_port()
 {
 }
 
 template<typename T>
 tBlackboardClient<T>::tBlackboardClient(const tAbstractBlackboardServerRaw* server, core::tFrameworkElement* parent, const util::tString& non_default_name, bool push_updates, bool read_port, bool write_port) :
-    wrapped(new tRawBlackboardClient(core::tPortCreationInfoBase(non_default_name.Length() > 0 ? non_default_name : (server->GetDescription() + " Client").ToString(), parent, InitBlackboardType(rrlib::serialization::tDataType<T>()), (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), false)),
-    locked(),
-    read_locked(),
-    write_port1(NULL),
-    write_port2(NULL),
-    read_port()
+  wrapped(new tRawBlackboardClient(core::tPortCreationInfoBase(non_default_name.Length() > 0 ? non_default_name : (server->GetDescription() + " Client").ToString(), parent, InitBlackboardType(rrlib::serialization::tDataType<T>()), (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), false)),
+  locked(),
+  read_locked(),
+  write_port1(NULL),
+  write_port2(NULL),
+  read_port()
 {
   assert(server != NULL);
   if (read_port)
@@ -66,12 +66,12 @@ tBlackboardClient<T>::tBlackboardClient(const tAbstractBlackboardServerRaw* serv
 
 template<typename T>
 tBlackboardClient<T>::tBlackboardClient(const util::tString& description, core::structure::tModuleBase* parent, bool push_updates, int create_read_port, core::tPortGroup* create_write_port_in, core::tPortGroup* create_write_port_in2) :
-    wrapped(new tRawBlackboardClient(core::tPortCreationInfoBase(description, parent->GetChild("Blackboards") ? parent->GetChild("Blackboards") : new core::tFrameworkElement(parent, "Blackboards"), InitBlackboardType(rrlib::serialization::tDataType<T>()), core::tPortFlags::cEMITS_DATA | (create_read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), false)),
-    locked(),
-    read_locked(),
-    write_port1(NULL),
-    write_port2(NULL),
-    read_port()
+  wrapped(new tRawBlackboardClient(core::tPortCreationInfoBase(description, parent->GetChild("Blackboards") ? parent->GetChild("Blackboards") : new core::tFrameworkElement(parent, "Blackboards"), InitBlackboardType(rrlib::serialization::tDataType<T>()), core::tPortFlags::cEMITS_DATA | (create_read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), false)),
+  locked(),
+  read_locked(),
+  write_port1(NULL),
+  write_port2(NULL),
+  read_port()
 {
   bool plain_module = (parent->GetChild("Sensor Input") == NULL);
 
@@ -100,12 +100,12 @@ tBlackboardClient<T>::tBlackboardClient(const util::tString& description, core::
 
 template<typename T>
 tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, core::structure::tGroup* parent, bool create_read_port_in_ci, bool forward_write_port_in_controller, bool forward_write_port_in_sensor) :
-    wrapped(),
-    locked(),
-    read_locked(),
-    write_port1(NULL),
-    write_port2(NULL),
-    read_port()
+  wrapped(),
+  locked(),
+  read_locked(),
+  write_port1(NULL),
+  write_port2(NULL),
+  read_port()
 {
   // forward read port
   if (replicated_bb.GetOutsideReadPort())

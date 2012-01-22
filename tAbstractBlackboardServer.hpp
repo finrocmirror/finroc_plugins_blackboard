@@ -52,8 +52,8 @@ core::tVoid1Method<tAbstractBlackboardServer<T>*, int> tAbstractBlackboardServer
 
 template<typename T>
 tAbstractBlackboardServer<T>::tAbstractBlackboardServer(const util::tString& bb_name, int category, core::tFrameworkElement* parent) :
-    tAbstractBlackboardServerRaw(bb_name, category, parent),
-    pending_asynch_change_tasks()
+  tAbstractBlackboardServerRaw(bb_name, category, parent),
+  pending_asynch_change_tasks()
 {
 }
 

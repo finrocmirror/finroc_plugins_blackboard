@@ -64,7 +64,7 @@ finroc::core::tStandardCreateModuleAction<mBlackboardReader> mBlackboardReader::
 // mBlackboardReader constructors
 //----------------------------------------------------------------------
 mBlackboardReader::mBlackboardReader(finroc::core::tFrameworkElement *parent, const finroc::util::tString &name)
-    : tModule(parent, name),
+  : tModule(parent, name),
     bb_client("blackboard", this)
 {}
 

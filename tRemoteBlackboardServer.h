@@ -95,7 +95,7 @@ protected:
 public:
 
   tRemoteBlackboardServer(const util::tString& name) :
-      tAbstractBlackboardServer<core::tNumber>(name, tBlackboardManager::cREMOTE, NULL)
+    tAbstractBlackboardServer<core::tNumber>(name, tBlackboardManager::cREMOTE, NULL)
   {
   }
 

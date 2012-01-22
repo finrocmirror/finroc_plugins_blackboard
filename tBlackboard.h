@@ -84,8 +84,8 @@ protected:
   static core::tPortGroup* default_port_group;
 
   tBlackboardBase() :
-      write_port1(NULL),
-      write_port2(NULL)
+    write_port1(NULL),
+    write_port2(NULL)
   {}
 
   /*!
@@ -177,8 +177,8 @@ public:
    * class initializer list (but later)
    */
   tBlackboard() :
-      wrapped_server(NULL),
-      wrapped_client()
+    wrapped_server(NULL),
+    wrapped_client()
   {}
 
   /*!
@@ -197,8 +197,8 @@ public:
    */
   template <typename P>
   tBlackboard(const util::tString& description, P* parent, bool multi_buffered = false, int elements = 0, bool create_client = true, int create_read_port = 2, core::tPortGroup* create_write_port_in = default_port_group, core::tPortGroup* create_write_port_in2 = NULL) :
-      wrapped_server(NULL),
-      wrapped_client()
+    wrapped_server(NULL),
+    wrapped_client()
   {
     // Get/create Framework element to put blackboard stuff beneath
     core::tFrameworkElement* bbs = parent->GetChild("Blackboards");
@@ -249,9 +249,9 @@ public:
    * \param forward_write_port_in_sensor Forward write ports in sensor port groups?
    */
   tBlackboard(const tBlackboard& replicated_bb, core::structure::tGroup* parent, bool create_read_port_in_co = false, bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false) :
-      tBlackboardBase(replicated_bb, parent, create_read_port_in_co, forward_write_port_in_controller, forward_write_port_in_sensor),
-      wrapped_server(NULL),
-      wrapped_client()
+    tBlackboardBase(replicated_bb, parent, create_read_port_in_co, forward_write_port_in_controller, forward_write_port_in_sensor),
+    wrapped_server(NULL),
+    wrapped_client()
   {
     // forward read port
     if (replicated_bb.read_port)

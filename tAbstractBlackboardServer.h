@@ -82,17 +82,17 @@ public:
     int64_t index;
 
     tAsynchChangeTask(tConstChangeTransactionVar && buffer_, int64_t offset_, int64_t index_) :
-        buffer(),
-        offset(offset_),
-        index(index_)
+      buffer(),
+      offset(offset_),
+      index(index_)
     {
       buffer = std::move(buffer);
     }
 
     tAsynchChangeTask(tAsynchChangeTask && o) :
-        buffer(),
-        offset(0),
-        index(0)
+      buffer(),
+      offset(0),
+      index(0)
     {
       std::swap(buffer, o.buffer);
       std::swap(offset, o.offset);

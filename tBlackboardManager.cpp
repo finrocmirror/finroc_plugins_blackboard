@@ -44,11 +44,11 @@ util::tString tBlackboardManager::cREAD_POSTFIX = util::tStringBuilder("/") + tB
 tBlackboardManager* volatile tBlackboardManager::instance;
 
 tBlackboardManager::tBlackboardManager() :
-    core::tFrameworkElement(core::tRuntimeEnvironment::GetInstance(), cNAME),
-    categories(cDIMENSION),
-    temp_buffer(),
-    bb_clients(10u, 4u),
-    auto_connect_clients(core::tLockOrderLevels::cINNER_MOST - 50)
+  core::tFrameworkElement(core::tRuntimeEnvironment::GetInstance(), cNAME),
+  categories(cDIMENSION),
+  temp_buffer(),
+  bb_clients(10u, 4u),
+  auto_connect_clients(core::tLockOrderLevels::cINNER_MOST - 50)
 {
   categories[cLOCAL] = new tBlackboardCategory(this, "Local", core::tCoreFlags::cALLOWS_CHILDREN);
   categories[cSHARED] = new tBlackboardCategory(this, "Shared", core::tCoreFlags::cALLOWS_CHILDREN | core::tCoreFlags::cSHARED | core::tCoreFlags::cGLOBALLY_UNIQUE_LINK);
@@ -267,10 +267,10 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
 }
 
 tBlackboardManager::tBlackboardCategory::tBlackboardCategory(tBlackboardManager* const outer_class_ptr_, const util::tString& category_name, int default_flags_) :
-    core::tFrameworkElement(outer_class_ptr_, category_name, default_flags_, -1),
-    outer_class_ptr(outer_class_ptr_),
-    default_flags(default_flags_),
-    blackboards(100u, 4u)
+  core::tFrameworkElement(outer_class_ptr_, category_name, default_flags_, -1),
+  outer_class_ptr(outer_class_ptr_),
+  default_flags(default_flags_),
+  blackboards(100u, 4u)
 {
 }
 
@@ -307,8 +307,8 @@ void tBlackboardManager::tBlackboardCategory::Remove(tAbstractBlackboardServerRa
 const int tBlackboardManager::tLockCheckerThread::cCYCLE_TIME;
 
 tBlackboardManager::tLockCheckerThread::tLockCheckerThread(tBlackboardManager* const outer_class_ptr_) :
-    core::tCoreLoopThreadBase(cCYCLE_TIME),
-    outer_class_ptr(outer_class_ptr_)
+  core::tCoreLoopThreadBase(cCYCLE_TIME),
+  outer_class_ptr(outer_class_ptr_)
 {
   SetName("Blackboard Lock-Checker Thread");
   SetDaemon(true);

@@ -64,7 +64,7 @@ finroc::core::tStandardCreateModuleAction<mBlackboardWriter> mBlackboardWriter::
 // mBlackboardWriter constructors
 //----------------------------------------------------------------------
 mBlackboardWriter::mBlackboardWriter(finroc::core::tFrameworkElement *parent, const finroc::util::tString &name)
-    : tModule(parent, name),
+  : tModule(parent, name),
     bb_client("blackboard", this),
     update_counter(0)
 {}
