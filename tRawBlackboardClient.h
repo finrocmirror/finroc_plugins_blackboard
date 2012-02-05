@@ -179,14 +179,14 @@ protected:
 public:
 
   /*!
-   * \param pci PortCreationInfo (relevant info: description (blackboard name), parent (of client), type (data type of blackboard content),
+   * \param pci PortCreationInfo (relevant info: name (of blackboard), parent (of client), type (data type of blackboard content),
    * flags (emit data => write port, accept data => read port
    * \param auto_connect Auto-Connect blackboard client to matching server?
    * \param auto_connect_category If auto-connect is active: Limit auto-connecting to a specific blackboard category? (-1 is no)
    */
   template <typename T>
   tRawBlackboardClient(core::tPortCreationInfoBase pci, T* t, bool auto_connect_ = true, int auto_connect_category_ = -1) :
-    core::tFrameworkElement(pci.parent, pci.description),
+    core::tFrameworkElement(pci.parent, pci.name),
     is_single_buffered_func(CallIsSingleBuffered<T>),
     keep_alive_func(CallKeepAlive<T>),
     write_port(pci.GetFlag(core::tPortFlags::cEMITS_DATA) ? new tWritePort(this, tAbstractBlackboardServerRaw::GetBlackboardTypeInfo(pci.data_type)->blackboard_type) : NULL),

@@ -43,31 +43,31 @@ tBlackboardBase::tBlackboardBase(const tBlackboardBase& replicated_bb, core::str
     {
       // where do we create ports?
       core::tFrameworkElement* pg = port->GetParent();
-      if (pg->DescriptionEquals("Input"))
+      if (pg->NameEquals("Input"))
       {
         if (forward_write_port_in_sensor)
         {
-          new_ports.push_back(ReplicateWritePort(port, &parent->GetSensorInputs(), port->GetDescription()));
+          new_ports.push_back(ReplicateWritePort(port, &parent->GetSensorInputs(), port->GetName()));
         }
         if (forward_write_port_in_controller)
         {
-          new_ports.push_back(ReplicateWritePort(port, &parent->GetControllerInputs(), port->GetDescription()));
+          new_ports.push_back(ReplicateWritePort(port, &parent->GetControllerInputs(), port->GetName()));
         }
       }
-      else if (pg->DescriptionEquals("Output"))
+      else if (pg->NameEquals("Output"))
       {
         if (forward_write_port_in_sensor)
         {
-          new_ports.push_back(ReplicateWritePort(port, &parent->GetSensorOutputs(), port->GetDescription()));
+          new_ports.push_back(ReplicateWritePort(port, &parent->GetSensorOutputs(), port->GetName()));
         }
         if (forward_write_port_in_controller)
         {
-          new_ports.push_back(ReplicateWritePort(port, &parent->GetControllerOutputs(), port->GetDescription()));
+          new_ports.push_back(ReplicateWritePort(port, &parent->GetControllerOutputs(), port->GetName()));
         }
       }
-      else if ((pg->GetDescription().StartsWith("Sensor") && forward_write_port_in_sensor) || (pg->GetDescription().StartsWith("Controller") && forward_write_port_in_controller))
+      else if ((pg->GetName().StartsWith("Sensor") && forward_write_port_in_sensor) || (pg->GetName().StartsWith("Controller") && forward_write_port_in_controller))
       {
-        new_ports.push_back(ReplicateWritePort(port, parent->GetChild(pg->GetCDescription()), port->GetDescription()));
+        new_ports.push_back(ReplicateWritePort(port, parent->GetChild(pg->GetCName()), port->GetName()));
       }
     }
   }

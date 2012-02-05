@@ -56,9 +56,9 @@ bool tRawBlackboardClient::CheckConnect(tAbstractBlackboardServerRaw* server)
   {
     return false;  // data types don't fit
   }
-  if (!GetDescription().Equals(server->GetDescription()))
+  if (!GetName().Equals(server->GetName()))
   {
-    return false;  // descriptions don't match
+    return false;  // names don't match
   }
 
   // checks passed => connect

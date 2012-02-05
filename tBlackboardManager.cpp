@@ -131,7 +131,7 @@ tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(const util::tStr
     for (size_t i = 0u; i < it->Size(); i++)
     {
       tAbstractBlackboardServerRaw* info = it->Get(i);
-      if (info->GetDescription().Equals(name) && (type == NULL || info->read_port_raw->GetDataType() == type))
+      if (info->GetName().Equals(name) && (type == NULL || info->read_port_raw->GetDataType() == type))
       {
         return info;
       }

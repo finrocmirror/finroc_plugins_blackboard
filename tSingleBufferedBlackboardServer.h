@@ -224,7 +224,7 @@ protected:
 public:
 
   /*!
-   * \param description Name/Uid of blackboard
+   * \param name Name/Uid of blackboard
    * \param capacity Blackboard capacity (see BlackboardBuffer)
    * \param elements Number of element (see BlackboardBuffer)
    * \param elem_size Element size (see BlackboardBuffer)
@@ -232,16 +232,16 @@ public:
    * \param shared Share blackboard with other runtime environments?
    * \param type Data Type of blackboard content
    */
-  tSingleBufferedBlackboardServer(const util::tString& description, int capacity, int elements, int elem_size, core::tFrameworkElement* parent = NULL, bool shared = true, rrlib::rtti::tDataTypeBase type = rrlib::rtti::tDataType<T>());
+  tSingleBufferedBlackboardServer(const util::tString& name, int capacity, int elements, int elem_size, core::tFrameworkElement* parent = NULL, bool shared = true, rrlib::rtti::tDataTypeBase type = rrlib::rtti::tDataType<T>());
 
   /*!
-   * \param description Name/Uid of blackboard
+   * \param name Name/Uid of blackboard
    * \param elements Initial number of elements
    * \param parent parent of BlackboardServer
    * \param shared Share blackboard with other runtime environments?
    * \param type Data Type of blackboard content
    */
-  tSingleBufferedBlackboardServer(const util::tString& description, int elements = 0, core::tFrameworkElement* parent = NULL, bool shared = true, rrlib::rtti::tDataTypeBase type = rrlib::rtti::tDataType<T>());
+  tSingleBufferedBlackboardServer(const util::tString& name, int elements = 0, core::tFrameworkElement* parent = NULL, bool shared = true, rrlib::rtti::tDataTypeBase type = rrlib::rtti::tDataType<T>());
 
   virtual ~tSingleBufferedBlackboardServer();
 

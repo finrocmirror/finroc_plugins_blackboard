@@ -151,7 +151,7 @@ public:
   /*!
    * Connects to global blackboards.
    *
-   * \param description Name/Uid of blackboard
+   * \param name Name/Uid of blackboard
    * \param parent Parent of blackboard client
    * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
    * \param auto_connect Auto-Connect blackboard client to matching server?
@@ -160,7 +160,7 @@ public:
    * \param write_port Create write port?
    * \param type Data Type of blackboard content
    */
-  tBlackboardClient(const util::tString& description, core::tFrameworkElement* parent = NULL, bool push_updates = false, bool auto_connect = true, int auto_connect_category = -1, bool read_port = true, bool write_port = true, rrlib::rtti::tDataTypeBase type = rrlib::rtti::tDataType<T>());
+  tBlackboardClient(const util::tString& name, core::tFrameworkElement* parent = NULL, bool push_updates = false, bool auto_connect = true, int auto_connect_category = -1, bool read_port = true, bool write_port = true, rrlib::rtti::tDataTypeBase type = rrlib::rtti::tDataType<T>());
 
   /*!
    * Connects to local blackboard
@@ -181,14 +181,14 @@ public:
    * (per default, full-blackboard-access-ports are created in Output/ControllerOutput.
    *  If this is not desired, the last two constructor parameters can be used to specify alternatives.)
    *
-   * \param description Name of blackboard
+   * \param name Name of blackboard
    * \param parent Parent of blackboard
    * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
    * \param create_read_port Create read port for blackboard? (0 = no, 1 = in internal client, 2 = also in (Sensor)Output)
    * \param create_write_port_in If not NULL, creates write port in specified port group instead of Input/ControllerInput
    * \param create_write_port_in2 If not NULL, creates another write port in specified port group
    */
-  tBlackboardClient(const util::tString& description, core::structure::tModuleBase* parent, bool push_updates = false, int create_read_port = 2, core::tPortGroup* create_write_port_in = NULL, core::tPortGroup* create_write_port_in2 = NULL);
+  tBlackboardClient(const util::tString& name, core::structure::tModuleBase* parent, bool push_updates = false, int create_read_port = 2, core::tPortGroup* create_write_port_in = NULL, core::tPortGroup* create_write_port_in2 = NULL);
 
   /*!
    * Constructor to replicate access to inner tBlackboardClient in tGroup.
@@ -233,11 +233,11 @@ public:
   void ConnectTo(const tBlackboard<T>& blackboard);
 
   /*!
-   * \return Blackboard name/description
+   * \return Blackboard name
    */
-  inline util::tString GetDescription()
+  inline util::tString GetName()
   {
-    return wrapped->GetDescription();
+    return wrapped->GetName();
   }
 
   /*!

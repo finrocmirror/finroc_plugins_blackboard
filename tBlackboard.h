@@ -186,7 +186,7 @@ public:
    * (per default, full-blackboard-access-ports are created in Input/ControllerInput.
    *  If this is not desired, the last two constructor parameters can be used to specify alternatives.)
    *
-   * \param description Name of blackboard
+   * \param name Name of blackboard
    * \param parent Parent of blackboard
    * \param multi_buffered Create multi-buffered blackboard?
    * \param elements Initial number of elements
@@ -196,7 +196,7 @@ public:
    * \param create_write_port_in2 If not NULL, creates another write port in specified port group
    */
   template <typename P>
-  tBlackboard(const util::tString& description, P* parent, bool multi_buffered = false, int elements = 0, bool create_client = true, int create_read_port = 2, core::tPortGroup* create_write_port_in = default_port_group, core::tPortGroup* create_write_port_in2 = NULL) :
+  tBlackboard(const util::tString& name, P* parent, bool multi_buffered = false, int elements = 0, bool create_client = true, int create_read_port = 2, core::tPortGroup* create_write_port_in = default_port_group, core::tPortGroup* create_write_port_in2 = NULL) :
     wrapped_server(NULL),
     wrapped_client()
   {
@@ -209,8 +209,8 @@ public:
 
     // Create blackboard server
     wrapped_server = multi_buffered ?
-                     static_cast<tAbstractBlackboardServer<T>*>(new tBlackboardServer<T>(description, elements, bbs, false)) :
-                     static_cast<tAbstractBlackboardServer<T>*>(new tSingleBufferedBlackboardServer<T>(description, elements, bbs, false));
+                     static_cast<tAbstractBlackboardServer<T>*>(new tBlackboardServer<T>(name, elements, bbs, false)) :
+                     static_cast<tAbstractBlackboardServer<T>*>(new tSingleBufferedBlackboardServer<T>(name, elements, bbs, false));
 
     // Create blackboard client
     if (create_client)
@@ -222,18 +222,18 @@ public:
     if (create_read_port >= 2 && GetWritePortGroup(parent) != NULL)
     {
       typedef typename internal::tGetReadPortType<T, typename std::remove_pointer<P>::type>::type tReadPort;
-      read_port.reset(new tReadPort(description, parent, core::tPortFlags::cOUTPUT_PROXY));
+      read_port.reset(new tReadPort(name, parent, core::tPortFlags::cOUTPUT_PROXY));
       wrapped_server->read_port_raw->ConnectToTarget(read_port->GetWrapped());
     }
 
     // create write/full-access ports
     if (create_write_port_in != NULL && GetWritePortGroup(parent) != NULL)
     {
-      write_port1 = ReplicateWritePort(wrapped_server->write_port_raw, create_write_port_in != default_port_group ? create_write_port_in : GetWritePortGroup(parent), description);
+      write_port1 = ReplicateWritePort(wrapped_server->write_port_raw, create_write_port_in != default_port_group ? create_write_port_in : GetWritePortGroup(parent), name);
     }
     if (create_write_port_in2 != NULL && GetWritePortGroup(parent) != NULL)
     {
-      write_port2 = ReplicateWritePort(wrapped_server->write_port_raw, create_write_port_in2, description);
+      write_port2 = ReplicateWritePort(wrapped_server->write_port_raw, create_write_port_in2, name);
     }
   }
 
@@ -258,27 +258,27 @@ public:
     {
       // where do we create port?
       core::tFrameworkElement* pg = replicated_bb.read_port->GetParent();
-      if (pg->DescriptionEquals("Sensor Output"))
+      if (pg->NameEquals("Sensor Output"))
       {
         create_read_port_in_co = false;
       }
-      else if (pg->DescriptionEquals("Controller Output"))
+      else if (pg->NameEquals("Controller Output"))
       {
         create_read_port_in_co = true;
       }
       else
       {
-        assert(pg->DescriptionEquals("Output") && "Have descriptions changed?");
+        assert(pg->NameEquals("Output") && "Have names changed?");
       }
 
       // create port
       if (create_read_port_in_co)
       {
-        read_port.reset(new core::structure::tGroup::tControllerOutput<std::vector<T>>(replicated_bb.read_port->GetDescription()));
+        read_port.reset(new core::structure::tGroup::tControllerOutput<std::vector<T>>(replicated_bb.read_port->GetName()));
       }
       else
       {
-        read_port.reset(new core::structure::tGroup::tSensorOutput<std::vector<T>>(replicated_bb.read_port->GetDescription()));
+        read_port.reset(new core::structure::tGroup::tSensorOutput<std::vector<T>>(replicated_bb.read_port->GetName()));
       }
       replicated_bb.read_port->ConnectToTarget(read_port);
     }
@@ -292,16 +292,16 @@ public:
     return wrapped_client;
   }
 
-  /*! same as tFrameworkElement::GetCDescription() */
-  const char* GetCDescription() const
+  /*! same as tFrameworkElement::GetCName() */
+  const char* GetCName() const
   {
-    return wrapped_server->GetCDescription();
+    return wrapped_server->GetCName();
   }
 
-  /*! same as tFrameworkElement::GetDescription() */
-  util::tString GetDescription() const
+  /*! same as tFrameworkElement::GetName() */
+  util::tString GetName() const
   {
-    return wrapped_server->GetDescription();
+    return wrapped_server->GetName();
   }
 
   /*!
