@@ -30,7 +30,7 @@
 #include "core/port/tPortCreationInfoBase.h"
 #include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
 #include "core/port/tPortFlags.h"
-#include "rrlib/serialization/tDataTypeBase.h"
+#include "rrlib/rtti/tDataTypeBase.h"
 #include "core/tFrameworkElement.h"
 #include "core/port/std/tPortBase.h"
 #include "core/port/rpc/tInterfaceClientPort.h"
@@ -112,7 +112,7 @@ public:
 
   public:
 
-    tWritePort(tRawBlackboardClient* const outer_class_ptr_, rrlib::serialization::tDataTypeBase type);
+    tWritePort(tRawBlackboardClient* const outer_class_ptr_, rrlib::rtti::tDataTypeBase type);
 
     inline tRawBlackboardClient* GetBBClient()
     {
@@ -221,7 +221,7 @@ public:
    */
   inline static core::tPortCreationInfoBase GetDefaultPci()
   {
-    static core::tPortCreationInfoBase default_pci(rrlib::serialization::tMemoryBuffer::cTYPE, core::tPortFlags::cEMITS_DATA | core::tPortFlags::cACCEPTS_DATA);
+    static core::tPortCreationInfoBase default_pci(rrlib::rtti::tDataType<rrlib::serialization::tMemoryBuffer>(), core::tPortFlags::cEMITS_DATA | core::tPortFlags::cACCEPTS_DATA);
     return default_pci;
   }
 

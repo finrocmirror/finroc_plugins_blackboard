@@ -20,16 +20,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #include "plugins/blackboard/tBlackboardBuffer.h"
-#include "rrlib/serialization/tDataType.h"
-#include "rrlib/serialization/tInputStream.h"
-#include "rrlib/serialization/tFixedBuffer.h"
-#include "rrlib/serialization/tOutputStream.h"
+#include "rrlib/rtti/rtti.h"
 
 namespace finroc
 {
 namespace blackboard
 {
-const rrlib::serialization::tDataTypeBase tBlackboardBuffer::cTYPE = rrlib::serialization::tDataType<tBlackboardBuffer>();
+const rrlib::rtti::tDataTypeBase tBlackboardBuffer::cTYPE = rrlib::rtti::tDataType<tBlackboardBuffer>();
 
 void tBlackboardBuffer::CopyFromBlackboardBuffer(const tBlackboardBuffer& source)
 {

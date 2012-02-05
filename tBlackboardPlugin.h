@@ -26,7 +26,7 @@
 #include "rrlib/finroc_core_utils/definitions.h"
 
 #include "core/portdatabase/tRPCInterfaceType.h"
-#include "rrlib/serialization/tDataTypeBase.h"
+#include "rrlib/rtti/rtti.h"
 #include "core/plugin/tPlugin.h"
 
 namespace finroc
@@ -45,9 +45,9 @@ class tBlackboardPlugin : public util::tUncopyableObject, public core::tPlugin
 {
 public:
 
-  static rrlib::serialization::tDataTypeBase cBB_MEM_BUFFER;
+  static rrlib::rtti::tDataTypeBase cBB_MEM_BUFFER;
 
-  static rrlib::serialization::tDataTypeBase cBB_BLACKBOARD_BUFFER;
+  static rrlib::rtti::tDataTypeBase cBB_BLACKBOARD_BUFFER;
 
   tBlackboardPlugin() {}
 
@@ -55,7 +55,7 @@ public:
 
   //wrapper for below
   template <typename T>
-  static rrlib::serialization::tDataTypeBase RegisterBlackboardType(const finroc::util::tString& name)
+  static rrlib::rtti::tDataTypeBase RegisterBlackboardType(const finroc::util::tString& name)
   {
     return RegisterBlackboardType<T>(finroc::util::tTypedClass<T>(), name);
   }
@@ -69,9 +69,9 @@ public:
    * \return Blackboard buffer type
    */
   template <typename T>
-  inline static rrlib::serialization::tDataTypeBase RegisterBlackboardType(finroc::util::tTypedClass<T> clazz, const util::tString& name)
+  inline static rrlib::rtti::tDataTypeBase RegisterBlackboardType(finroc::util::tTypedClass<T> clazz, const util::tString& name)
   {
-    rrlib::serialization::tDataType<T> dt;
+    rrlib::rtti::tDataType<T> dt;
 
     return tBlackboardPlugin::RegisterBlackboardType<T>(dt, name);
   }
@@ -84,7 +84,7 @@ public:
    * \return Blackboard buffer type
    */
   template <typename T>
-  inline static rrlib::serialization::tDataTypeBase RegisterBlackboardType(rrlib::serialization::tDataTypeBase dt)
+  inline static rrlib::rtti::tDataTypeBase RegisterBlackboardType(rrlib::rtti::tDataTypeBase dt)
   {
     return tBlackboardPlugin::RegisterBlackboardType<T>(dt, dt.GetName());
   }
@@ -98,7 +98,7 @@ public:
    * \return Blackboard buffer type
    */
   template <typename T>
-  static rrlib::serialization::tDataTypeBase RegisterBlackboardType(rrlib::serialization::tDataTypeBase dt, const util::tString& name);
+  static rrlib::rtti::tDataTypeBase RegisterBlackboardType(rrlib::rtti::tDataTypeBase dt, const util::tString& name);
 
   /*!
    * Registers blackboard data type
@@ -108,9 +108,9 @@ public:
    * \return Blackboard buffer type
    */
   template <typename T>
-  inline static rrlib::serialization::tDataTypeBase RegisterBlackboardType(finroc::util::tTypedClass<T> clazz)
+  inline static rrlib::rtti::tDataTypeBase RegisterBlackboardType(finroc::util::tTypedClass<T> clazz)
   {
-    return RegisterBlackboardType(clazz, rrlib::serialization::tDataTypeBase::GetDataTypeNameFromRtti(typeid(T).name()));
+    return RegisterBlackboardType(clazz, rrlib::rtti::tDataTypeBase::GetDataTypeNameFromRtti(typeid(T).name()));
   }
 
 };
@@ -125,10 +125,10 @@ namespace finroc
 namespace blackboard
 {
 template <typename T>
-rrlib::serialization::tDataTypeBase tBlackboardPlugin::RegisterBlackboardType(rrlib::serialization::tDataTypeBase dt, const util::tString& name)
+rrlib::rtti::tDataTypeBase tBlackboardPlugin::RegisterBlackboardType(rrlib::rtti::tDataTypeBase dt, const util::tString& name)
 {
   util::tString bb_name = util::tStringBuilder("Blackboard<") + name + ">";
-  rrlib::serialization::tDataTypeBase dtbb = rrlib::serialization::tDataTypeBase::FindType(bb_name);
+  rrlib::rtti::tDataTypeBase dtbb = rrlib::rtti::tDataTypeBase::FindType(bb_name);
   if (dtbb == NULL)
   {
     core::tPortInterface* methods = &tAbstractBlackboardServer<T>::GetBlackboardInterface();

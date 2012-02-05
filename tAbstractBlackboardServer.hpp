@@ -64,7 +64,7 @@ void tAbstractBlackboardServer<T>::ClearAsyncChangeTasks()
 }
 
 template<typename T>
-rrlib::serialization::tDataTypeBase tAbstractBlackboardServer<T>::GetBlackboardMethodType(rrlib::serialization::tDataTypeBase dt)
+rrlib::rtti::tDataTypeBase tAbstractBlackboardServer<T>::GetBlackboardMethodType(rrlib::rtti::tDataTypeBase dt)
 {
   tBlackboardTypeInfo* ti = GetBlackboardTypeInfo(dt);
   if (ti != NULL && ti->blackboard_type != NULL)

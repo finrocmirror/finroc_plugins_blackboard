@@ -144,7 +144,7 @@ void tRawBlackboardClient::tReadPort::NewConnection(core::tAbstractPort* partner
   outer_class_ptr->server_buffers = tRawBlackboardClient::eUNKNOWN;
 }
 
-tRawBlackboardClient::tWritePort::tWritePort(tRawBlackboardClient* const outer_class_ptr_, rrlib::serialization::tDataTypeBase type) :
+tRawBlackboardClient::tWritePort::tWritePort(tRawBlackboardClient* const outer_class_ptr_, rrlib::rtti::tDataTypeBase type) :
   core::tInterfaceClientPort("write", outer_class_ptr_, type),
   outer_class_ptr(outer_class_ptr_)
 {

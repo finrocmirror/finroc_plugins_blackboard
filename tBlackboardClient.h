@@ -25,7 +25,7 @@
 
 #include "rrlib/finroc_core_utils/definitions.h"
 
-#include "rrlib/serialization/tDataTypeBase.h"
+#include "rrlib/rtti/tDataTypeBase.h"
 #include "plugins/blackboard/tRawBlackboardClient.h"
 #include "core/structure/tGroup.h"
 #include "core/structure/tModule.h"
@@ -89,7 +89,7 @@ private:
    * \param dt Type
    * \return The same as parameter type
    */
-  rrlib::serialization::tDataTypeBase InitBlackboardType(rrlib::serialization::tDataTypeBase dt);
+  rrlib::rtti::tDataTypeBase InitBlackboardType(rrlib::rtti::tDataTypeBase dt);
 
   /*!
    * Check whether these ports can be connected - if yes, do so
@@ -160,7 +160,7 @@ public:
    * \param write_port Create write port?
    * \param type Data Type of blackboard content
    */
-  tBlackboardClient(const util::tString& description, core::tFrameworkElement* parent = NULL, bool push_updates = false, bool auto_connect = true, int auto_connect_category = -1, bool read_port = true, bool write_port = true, rrlib::serialization::tDataTypeBase type = rrlib::serialization::tDataType<T>());
+  tBlackboardClient(const util::tString& description, core::tFrameworkElement* parent = NULL, bool push_updates = false, bool auto_connect = true, int auto_connect_category = -1, bool read_port = true, bool write_port = true, rrlib::rtti::tDataTypeBase type = rrlib::rtti::tDataType<T>());
 
   /*!
    * Connects to local blackboard

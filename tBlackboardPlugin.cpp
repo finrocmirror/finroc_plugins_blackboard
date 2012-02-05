@@ -29,8 +29,8 @@ namespace finroc
 {
 namespace blackboard
 {
-rrlib::serialization::tDataTypeBase tBlackboardPlugin::cBB_MEM_BUFFER = RegisterBlackboardType(util::tTypedClass<rrlib::serialization::tMemoryBuffer>());
-rrlib::serialization::tDataTypeBase tBlackboardPlugin::cBB_BLACKBOARD_BUFFER = RegisterBlackboardType(util::tTypedClass<tBlackboardBuffer>());
+rrlib::rtti::tDataTypeBase tBlackboardPlugin::cBB_MEM_BUFFER = RegisterBlackboardType(util::tTypedClass<rrlib::serialization::tMemoryBuffer>());
+rrlib::rtti::tDataTypeBase tBlackboardPlugin::cBB_BLACKBOARD_BUFFER = RegisterBlackboardType(util::tTypedClass<tBlackboardBuffer>());
 
 void tBlackboardPlugin::Init()
 {

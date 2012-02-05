@@ -111,14 +111,14 @@ void tBlackboardManager::CreateBlackboardManager()
   }
 }
 
-tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(const util::tString& name, int category, rrlib::serialization::tDataTypeBase type)
+tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(const util::tString& name, int category, rrlib::rtti::tDataTypeBase type)
 {
   int start_cat = category < 0 ? 0 : category;
   int end_cat = category < 0 ? cDIMENSION - 1 : start_cat;
   return GetBlackboard(name, start_cat, end_cat, type);
 }
 
-tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(const util::tString& name, int start_cat, int end_cat, rrlib::serialization::tDataTypeBase type)
+tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(const util::tString& name, int start_cat, int end_cat, rrlib::rtti::tDataTypeBase type)
 {
   if (type.GetListType() != NULL)
   {

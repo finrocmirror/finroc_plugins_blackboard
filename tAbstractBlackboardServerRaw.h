@@ -30,7 +30,7 @@
 #include "core/tLockOrderLevels.h"
 #include "rrlib/finroc_core_utils/container/tSimpleList.h"
 #include "plugins/blackboard/tBlackboardTask.h"
-#include "rrlib/serialization/tDataTypeBase.h"
+#include "rrlib/rtti/tDataTypeBase.h"
 #include "plugins/blackboard/tBlackboardBuffer.h"
 #include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
 #include "plugins/blackboard/tBlackboardManager.h"
@@ -185,13 +185,13 @@ public:
    *
    * \param dt Data type to check
    */
-  static void CheckType(rrlib::serialization::tDataTypeBase dt);
+  static void CheckType(rrlib::rtti::tDataTypeBase dt);
 
   /*!
    * \param dt Data type
    * \return Blackboard type info for data type
    */
-  inline static tBlackboardTypeInfo* GetBlackboardTypeInfo(rrlib::serialization::tDataTypeBase dt)
+  inline static tBlackboardTypeInfo* GetBlackboardTypeInfo(rrlib::rtti::tDataTypeBase dt)
   {
     return dt.GetAnnotation<tBlackboardTypeInfo>();
   }

@@ -25,16 +25,8 @@
 
 #include "rrlib/finroc_core_utils/definitions.h"
 
-#include "rrlib/serialization/tDataTypeBase.h"
-#include "rrlib/serialization/tMemoryBuffer.h"
-
-namespace rrlib
-{
-namespace serialization
-{
-class tInputStream;
-} // namespace rrlib
-} // namespace serialization
+#include "rrlib/rtti/tDataTypeBase.h"
+#include "rrlib/serialization/serialization.h"
 
 namespace finroc
 {
@@ -59,7 +51,7 @@ public:
   int bb_capacity, elements, element_size;
 
   /*! Data type of this class */
-  static const rrlib::serialization::tDataTypeBase cTYPE;
+  static const rrlib::rtti::tDataTypeBase cTYPE;
 
   tBlackboardBuffer() :
     bb_capacity(0),

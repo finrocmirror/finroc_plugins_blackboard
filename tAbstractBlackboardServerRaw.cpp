@@ -41,7 +41,7 @@ tAbstractBlackboardServerRaw::tAbstractBlackboardServerRaw(const util::tString& 
   // this(bbName,category,BlackboardManager.getInstance().getCategory(category).defaultFlags,parent);
 }
 
-void tAbstractBlackboardServerRaw::CheckType(rrlib::serialization::tDataTypeBase dt)
+void tAbstractBlackboardServerRaw::CheckType(rrlib::rtti::tDataTypeBase dt)
 {
   __attribute__((unused))
   tBlackboardTypeInfo* ti = GetBlackboardTypeInfo(dt);

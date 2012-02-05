@@ -32,7 +32,6 @@
 #include "core/port/rpc/method/tVoid3Method.h"
 #include "core/port/rpc/method/tPort0Method.h"
 #include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
-#include "rrlib/serialization/tDataTypeBase.h"
 #include "rrlib/finroc_core_utils/container/tSimpleList.h"
 #include "plugins/blackboard/tBlackboardTask.h"
 #include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
@@ -207,7 +206,7 @@ protected:
    * \param dt DataType T
    * \return Blackboard method type of write ports
    */
-  rrlib::serialization::tDataTypeBase GetBlackboardMethodType(rrlib::serialization::tDataTypeBase dt);
+  rrlib::rtti::tDataTypeBase GetBlackboardMethodType(rrlib::rtti::tDataTypeBase dt);
 
   /*!
    * \return Is blackboard currently locked?
@@ -276,7 +275,7 @@ protected:
    */
   inline void Resize(tBBVector& buf, int new_capacity, int new_elements)
   {
-    rrlib::serialization::sSerialization::ResizeVector(buf, new_elements);
+    rrlib::rtti::ResizeVector(buf, new_elements);
   }
 
   /*!
@@ -311,7 +310,7 @@ public:
    */
   inline void CopyBlackboardBuffer(const tBBVector& src, tBBVector& target)
   {
-    rrlib::serialization::sSerialization::DeepCopy(src, target, NULL);
+    rrlib::rtti::sStaticTypeInfo<tBBVector>::DeepCopy(src, target, NULL);
   }
 
   inline static core::tPortInterface& GetBlackboardInterface()

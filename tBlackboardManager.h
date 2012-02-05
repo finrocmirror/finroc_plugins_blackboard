@@ -28,7 +28,7 @@
 #include "core/tRuntimeEnvironment.h"
 #include "rrlib/finroc_core_utils/container/tSimpleListWithMutex.h"
 #include "core/tLockOrderLevels.h"
-#include "rrlib/serialization/tDataTypeBase.h"
+#include "rrlib/rtti/tDataTypeBase.h"
 #include "core/tFrameworkElement.h"
 #include "core/tRuntimeListener.h"
 #include "core/thread/tCoreLoopThreadBase.h"
@@ -182,7 +182,7 @@ public:
    * \param type Data type of blackboard (null = all types)
    * \return Blackboard - or null if no blackboard could be found
    */
-  tAbstractBlackboardServerRaw* GetBlackboard(const util::tString& name, int category, rrlib::serialization::tDataTypeBase type);
+  tAbstractBlackboardServerRaw* GetBlackboard(const util::tString& name, int category, rrlib::rtti::tDataTypeBase type);
 
   /*!
    * Get blackboard matching the specified features
@@ -193,7 +193,7 @@ public:
    * \param type Data type of blackboard (null = all types)
    * \return Blackboard - or null if no blackboard could be found
    */
-  tAbstractBlackboardServerRaw* GetBlackboard(const util::tString& name, int start_cat, int end_cat, rrlib::serialization::tDataTypeBase type);
+  tAbstractBlackboardServerRaw* GetBlackboard(const util::tString& name, int start_cat, int end_cat, rrlib::rtti::tDataTypeBase type);
 
   /*!
    * Retrieve blackboard with specified index

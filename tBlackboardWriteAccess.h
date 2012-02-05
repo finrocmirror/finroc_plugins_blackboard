@@ -26,7 +26,7 @@
 #include "rrlib/finroc_core_utils/definitions.h"
 
 #include "plugins/blackboard/tBBLockException.h"
-#include "rrlib/serialization/sSerialization.h"
+#include "rrlib/rtti/rtti.h"
 #include "plugins/blackboard/tBlackboardClient.h"
 #include "rrlib/finroc_core_utils/tTime.h"
 
@@ -127,7 +127,7 @@ public:
   {
     if (new_size != Size())
     {
-      rrlib::serialization::sSerialization::ResizeVector(*locked, new_size);
+      rrlib::rtti::ResizeVector(*locked, new_size);
     }
   }
 

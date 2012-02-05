@@ -26,7 +26,7 @@
 #include "rrlib/finroc_core_utils/definitions.h"
 
 #include "core/port/tPort.h"
-#include "rrlib/serialization/tDataTypeBase.h"
+#include "rrlib/rtti/tDataTypeBase.h"
 #include "rrlib/finroc_core_utils/log/tLogUser.h"
 #include "core/port/rpc/tMethodCallException.h"
 #include "plugins/blackboard/tAbstractBlackboardServer.h"
@@ -190,7 +190,7 @@ public:
    * \param shared Share blackboard with other runtime environments?
    * \param type Data Type of blackboard content
    */
-  tBlackboardServer(const util::tString& description, int capacity, int elements, int elem_size, core::tFrameworkElement* parent = NULL, bool shared = true, rrlib::serialization::tDataTypeBase type = rrlib::serialization::tDataType<T>());
+  tBlackboardServer(const util::tString& description, int capacity, int elements, int elem_size, core::tFrameworkElement* parent = NULL, bool shared = true, rrlib::rtti::tDataTypeBase type = rrlib::rtti::tDataType<T>());
 
   /*!
    * \param description Name/Uid of blackboard
@@ -199,7 +199,7 @@ public:
    * \param shared Share blackboard with other runtime environments?
    * \param type Data Type of blackboard content
    */
-  tBlackboardServer(const util::tString& description, int elements = 0, core::tFrameworkElement* parent = NULL, bool shared = true, rrlib::serialization::tDataTypeBase type = rrlib::serialization::tDataType<T>());
+  tBlackboardServer(const util::tString& description, int elements = 0, core::tFrameworkElement* parent = NULL, bool shared = true, rrlib::rtti::tDataTypeBase type = rrlib::rtti::tDataType<T>());
 
   virtual void LockCheck();
 

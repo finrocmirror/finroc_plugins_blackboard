@@ -25,8 +25,8 @@
 
 #include "rrlib/finroc_core_utils/definitions.h"
 
-#include "rrlib/serialization/tDataTypeBase.h"
-#include "rrlib/serialization/tDataTypeAnnotation.h"
+#include "rrlib/rtti/tDataTypeBase.h"
+#include "rrlib/rtti/tDataTypeAnnotation.h"
 
 namespace finroc
 {
@@ -37,15 +37,15 @@ namespace blackboard
  *
  * Additional type info for blackboards
  */
-class tBlackboardTypeInfo : public rrlib::serialization::tDataTypeAnnotation
+class tBlackboardTypeInfo : public rrlib::rtti::tDataTypeAnnotation
 {
 public:
 
   /*! Blackboard (method) type */
-  rrlib::serialization::tDataTypeBase blackboard_type;
+  rrlib::rtti::tDataTypeBase blackboard_type;
 
   /*! Blackboard element type */
-  rrlib::serialization::tDataTypeBase element_type;
+  rrlib::rtti::tDataTypeBase element_type;
 
   tBlackboardTypeInfo() :
     blackboard_type(),
