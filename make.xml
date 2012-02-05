@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <targets>
-  <finrocplugin name="blackboard" libs="finroc_core">
-    <sources>*.cpp</sources>
+  <finrocplugin name="blackboard">
+    <sources>*.cpp *.h</sources>
   </finrocplugin>
 </targets>
