@@ -24,22 +24,14 @@
 #define plugins__blackboard__tBlackboardManager_h__
 
 #include "rrlib/finroc_core_utils/definitions.h"
+#include "rrlib/rtti/tDataTypeBase.h"
+#include "rrlib/finroc_core_utils/container/tSimpleListWithMutex.h"
 
 #include "core/tRuntimeEnvironment.h"
-#include "rrlib/finroc_core_utils/container/tSimpleListWithMutex.h"
 #include "core/tLockOrderLevels.h"
-#include "rrlib/rtti/tDataTypeBase.h"
 #include "core/tFrameworkElement.h"
 #include "core/tRuntimeListener.h"
 #include "core/thread/tCoreLoopThreadBase.h"
-
-namespace finroc
-{
-namespace core
-{
-class tAbstractPort;
-} // namespace finroc
-} // namespace core
 
 namespace finroc
 {

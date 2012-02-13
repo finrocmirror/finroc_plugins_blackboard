@@ -68,14 +68,13 @@ void tBlackboardManager::AddClient(tRawBlackboardClient* client, bool auto_conne
   {
     return;
   }
-  {
-    util::tLock lock2(auto_connect_clients);
-    auto_connect_clients.Add(client);
 
-    for (int j = 0; (j < cDIMENSION) && (!client->IsConnected()); j++)
-    {
-      categories[j]->CheckConnect(client);
-    }
+  util::tLock lock2(auto_connect_clients);
+  auto_connect_clients.Add(client);
+
+  for (int j = 0; (j < cDIMENSION) && (!client->IsConnected()); j++)
+  {
+    categories[j]->CheckConnect(client);
   }
 }
 
@@ -85,29 +84,22 @@ void tBlackboardManager::CheckAutoConnect(tAbstractBlackboardServerRaw* server)
   {
     return;
   }
+
+  util::tLock lock2(auto_connect_clients);
+  for (size_t i = 0u; i < auto_connect_clients.Size(); i++)
   {
-    util::tLock lock2(auto_connect_clients);
-    for (size_t i = 0u; i < auto_connect_clients.Size(); i++)
-    {
-      auto_connect_clients.Get(i)->CheckConnect(server);
-    }
+    auto_connect_clients.Get(i)->CheckConnect(server);
   }
 }
 
 void tBlackboardManager::CreateBlackboardManager()
 {
+  util::tLock lock2(core::tRuntimeEnvironment::GetInstance()->GetRegistryLock());
+  if (instance == NULL)
   {
-    util::tLock lock2(core::tRuntimeEnvironment::GetInstance()->GetRegistryLock());
-    if (instance == NULL)
-    {
-      instance = new tBlackboardManager();
-      instance->Init();
-      core::tRuntimeEnvironment::GetInstance()->AddListener(instance);
-
-      // TODO do this properly
-      core::tPlugins::GetInstance()->AddPlugin(new tBlackboardPlugin());
-      // core::tPlugins::GetInstance()->AddPlugin(new tBlackboard2Plugin());
-    }
+    instance = new tBlackboardManager();
+    instance->Init();
+    core::tRuntimeEnvironment::GetInstance()->AddListener(instance);
   }
 }
 

@@ -178,7 +178,7 @@ protected:
    */
   virtual util::tString CreateThreadString()
   {
-    return util::tStringBuilder("Thread ") + util::tThread::CurrentThread()->ToString() + " (" + util::sThreadUtil::GetCurrentThreadId() + ")";
+    return util::tStringBuilder("Thread ") + util::tThread::CurrentThread()->GetName() + " (" + util::sThreadUtil::GetCurrentThreadId() + ")";
   }
 
   /*!

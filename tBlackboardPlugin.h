@@ -24,10 +24,10 @@
 #define plugins__blackboard__tBlackboardPlugin_h__
 
 #include "rrlib/finroc_core_utils/definitions.h"
-
-#include "core/portdatabase/tRPCInterfaceType.h"
 #include "rrlib/rtti/rtti.h"
+
 #include "core/plugin/tPlugin.h"
+#include "core/portdatabase/tRPCInterfaceType.h"
 
 namespace finroc
 {
@@ -39,15 +39,11 @@ class tAbstractBlackboardServer;
 /*!
  * \author Max Reichardt
  *
- * Object to initialize the blackboard 2 mechanism
+ * Object to initialize the blackboard mechanism
  */
-class tBlackboardPlugin : public util::tUncopyableObject, public core::tPlugin
+class tBlackboardPlugin : public core::tPlugin
 {
 public:
-
-  static rrlib::rtti::tDataTypeBase cBB_MEM_BUFFER;
-
-  static rrlib::rtti::tDataTypeBase cBB_BLACKBOARD_BUFFER;
 
   tBlackboardPlugin() {}
 

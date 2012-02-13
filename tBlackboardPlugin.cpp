@@ -29,15 +29,16 @@ namespace finroc
 {
 namespace blackboard
 {
-rrlib::rtti::tDataTypeBase tBlackboardPlugin::cBB_MEM_BUFFER = RegisterBlackboardType(util::tTypedClass<rrlib::serialization::tMemoryBuffer>());
-rrlib::rtti::tDataTypeBase tBlackboardPlugin::cBB_BLACKBOARD_BUFFER = RegisterBlackboardType(util::tTypedClass<tBlackboardBuffer>());
+namespace internal
+{
+static rrlib::rtti::tDataTypeBase cBB_MEM_BUFFER = tBlackboardPlugin::RegisterBlackboardType(util::tTypedClass<rrlib::serialization::tMemoryBuffer>());
+static rrlib::rtti::tDataTypeBase cBB_BLACKBOARD_BUFFER = tBlackboardPlugin::RegisterBlackboardType(util::tTypedClass<tBlackboardBuffer>());
+
+static tBlackboardPlugin blackboard_plugin;
+}
 
 void tBlackboardPlugin::Init()
 {
-  //        taskPool = new ReusablesPoolCR<BlackboardTask>();
-  //        AutoDeleter.addStatic(taskPool);
-  //        taskPool = new ReusablesPoolCR<BlackboardTask>();
-  //        AutoDeleter.addStatic(taskPool);
 }
 
 } // namespace finroc

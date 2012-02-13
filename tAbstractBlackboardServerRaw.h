@@ -24,18 +24,20 @@
 #define plugins__blackboard__tAbstractBlackboardServerRaw_h__
 
 #include "rrlib/finroc_core_utils/definitions.h"
+#include "rrlib/finroc_core_utils/container/tSimpleList.h"
+#include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
+#include "rrlib/rtti/tDataTypeBase.h"
 
 #include "core/port/rpc/tInterfacePort.h"
-#include "plugins/blackboard/tBlackboardTypeInfo.h"
 #include "core/tLockOrderLevels.h"
-#include "rrlib/finroc_core_utils/container/tSimpleList.h"
-#include "plugins/blackboard/tBlackboardTask.h"
-#include "rrlib/rtti/tDataTypeBase.h"
-#include "plugins/blackboard/tBlackboardBuffer.h"
-#include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
-#include "plugins/blackboard/tBlackboardManager.h"
 #include "core/tFrameworkElement.h"
 #include "core/port/rpc/method/tAbstractMethodCallHandler.h"
+#include "core/port/rpc/method/tAbstractMethod.h"
+
+#include "plugins/blackboard/tBlackboardBuffer.h"
+#include "plugins/blackboard/tBlackboardTask.h"
+#include "plugins/blackboard/tBlackboardTypeInfo.h"
+#include "plugins/blackboard/tBlackboardManager.h"
 
 namespace finroc
 {
@@ -115,7 +117,7 @@ protected:
    */
   virtual util::tString CreateThreadString()
   {
-    return util::tStringBuilder("Thread ") + util::tThread::CurrentThread()->ToString() + " (" + util::sThreadUtil::GetCurrentThreadId() + ")";
+    return util::tStringBuilder("Thread ") + util::tThread::CurrentThread()->GetName() + " (" + util::sThreadUtil::GetCurrentThreadId() + ")";
   }
 
   /*!

@@ -39,8 +39,8 @@ template<typename T>
 const int64 tBlackboardServer<T>::cUNLOCK_TIMEOUT;
 
 template<typename T>
-tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared, rrlib::rtti::tDataTypeBase type) :
-  tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
+tBlackboardServer<T>::tBlackboardServer(const util::tString& name, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared, rrlib::rtti::tDataTypeBase type) :
+  tAbstractBlackboardServer<T>(name, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
   write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
   locked(),
   lock_time(0),
@@ -50,7 +50,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int ca
   published(),
   read_port()
 {
-  // this(description,1,parent,shared,type);
+  // this(name,1,parent,shared,type);
   assert(((!core::tFinrocTypeInfo::IsMethodType(type))) && "Please provide data type of content here");
   read_port.reset(new core::tPort<tBBVector>("read", this, core::tPortFlags::cOUTPUT_PORT | (shared ? core::tCoreFlags::cSHARED : 0), core::tLockOrder(core::tLockOrderLevels::cREMOTE_PORT + 1)));
 
@@ -66,8 +66,8 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int ca
 }
 
 template<typename T>
-tBlackboardServer<T>::tBlackboardServer(const util::tString& description, int elements, core::tFrameworkElement* parent, bool shared, rrlib::rtti::tDataTypeBase type) :
-  tAbstractBlackboardServer<T>(description, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
+tBlackboardServer<T>::tBlackboardServer(const util::tString& name, int elements, core::tFrameworkElement* parent, bool shared, rrlib::rtti::tDataTypeBase type) :
+  tAbstractBlackboardServer<T>(name, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
   write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
   locked(),
   lock_time(0),
@@ -135,7 +135,7 @@ void tBlackboardServer<T>::CheckCurrentLock(util::tLock& passed_lock)
     lock_id = lock_iDGen.IncrementAndGet();
 
     locked.reset();
-    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Thread ", util::tThread::CurrentThread()->ToString(), ": lock = null");
+    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Thread ", util::tThread::CurrentThread()->GetName(), ": lock = null");
     bool p = this->ProcessPendingCommands(passed_lock);
     if ((!p) && (!IsLocked()))
     {
