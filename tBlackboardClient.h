@@ -24,13 +24,14 @@
 #define plugins__blackboard__tBlackboardClient_h__
 
 #include "rrlib/finroc_core_utils/definitions.h"
-
 #include "rrlib/rtti/tDataTypeBase.h"
-#include "plugins/blackboard/tRawBlackboardClient.h"
+
 #include "core/structure/tGroup.h"
 #include "core/structure/tModule.h"
 #include "core/structure/tSenseControlModule.h"
 #include "core/port/tPortUtil.h"
+
+#include "plugins/blackboard/tRawBlackboardClient.h"
 
 namespace finroc
 {

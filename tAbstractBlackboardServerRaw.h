@@ -200,7 +200,7 @@ public:
 
   // Call handling
 
-  inline int8 HandleCall(const core::tAbstractMethod* method)
+  inline int8 HandleCall(const core::tAbstractMethod& method)
   {
     return IsSingleBuffered() ? static_cast<int8>(1) : static_cast<int8>(0);
   }

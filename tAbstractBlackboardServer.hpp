@@ -27,28 +27,28 @@ namespace finroc
 namespace blackboard
 {
 template<typename T>
-typename core::tPort1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar, int> tAbstractBlackboardServer<T>::cLOCK(GetBlackboardInterface(), "Write Lock", "timeout", true);
+typename core::tMethod<tAbstractBlackboardServer<T>, typename tAbstractBlackboardServer<T>::tBBVectorVar, int> tAbstractBlackboardServer<T>::cLOCK(GetBlackboardInterface(), "Write Lock", "timeout", true);
 
 template<typename T>
-typename core::tPort2Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tConstBBVectorVar, int, int> tAbstractBlackboardServer<T>::cREAD_LOCK(GetBlackboardInterface(), "Read Lock", "timeout", "dummy", true);
+typename core::tMethod<tAbstractBlackboardServer<T>, typename tAbstractBlackboardServer<T>::tConstBBVectorVar, int, int> tAbstractBlackboardServer<T>::cREAD_LOCK(GetBlackboardInterface(), "Read Lock", "timeout", "dummy", true);
 
 template<typename T>
-typename core::tVoid1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar> tAbstractBlackboardServer<T>::cUNLOCK(GetBlackboardInterface(), "Write Unlock", "Blackboard Buffer", false);
+typename core::tVoidMethod<tAbstractBlackboardServer<T>, typename tAbstractBlackboardServer<T>::tBBVectorVar&> tAbstractBlackboardServer<T>::cUNLOCK(GetBlackboardInterface(), "Write Unlock", "Blackboard Buffer", false);
 
 template<typename T>
-core::tVoid1Method<tAbstractBlackboardServer<T>*, int> tAbstractBlackboardServer<T>::cREAD_UNLOCK(GetBlackboardInterface(), "Read Unlock", "Lock ID", false);
+core::tVoidMethod<tAbstractBlackboardServer<T>, int> tAbstractBlackboardServer<T>::cREAD_UNLOCK(GetBlackboardInterface(), "Read Unlock", "Lock ID", false);
 
 template<typename T>
-typename core::tVoid3Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar, int, int> tAbstractBlackboardServer<T>::cASYNCH_CHANGE(GetBlackboardInterface(), "Asynchronous Change", "Blackboard Buffer", "Start Index", "Custom Offset", false);
+typename core::tVoidMethod<tAbstractBlackboardServer<T>, typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar&, int, int> tAbstractBlackboardServer<T>::cASYNCH_CHANGE(GetBlackboardInterface(), "Asynchronous Change", "Blackboard Buffer", "Start Index", "Custom Offset", false);
 
 template<typename T>
-typename core::tVoid1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar> tAbstractBlackboardServer<T>::cDIRECT_COMMIT(GetBlackboardInterface(), "Direct Commit", "Buffer", false);
+typename core::tVoidMethod<tAbstractBlackboardServer<T>, typename tAbstractBlackboardServer<T>::tBBVectorVar&> tAbstractBlackboardServer<T>::cDIRECT_COMMIT(GetBlackboardInterface(), "Direct Commit", "Buffer", false);
 
 template<typename T>
-core::tPort0Method<tAbstractBlackboardServer<T>*, int8> tAbstractBlackboardServer<T>::cIS_SINGLE_BUFFERED(GetBlackboardInterface(), "Is Single Buffered?", false);
+core::tMethod<tAbstractBlackboardServer<T>, int8> tAbstractBlackboardServer<T>::cIS_SINGLE_BUFFERED(GetBlackboardInterface(), "Is Single Buffered?", false);
 
 template<typename T>
-core::tVoid1Method<tAbstractBlackboardServer<T>*, int> tAbstractBlackboardServer<T>::cKEEP_ALIVE(GetBlackboardInterface(), "KeepAliveSignal", "Lock ID", false);
+core::tVoidMethod<tAbstractBlackboardServer<T>, int> tAbstractBlackboardServer<T>::cKEEP_ALIVE(GetBlackboardInterface(), "KeepAliveSignal", "Lock ID", false);
 
 template<typename T>
 tAbstractBlackboardServer<T>::tAbstractBlackboardServer(const util::tString& bb_name, int category, core::tFrameworkElement* parent) :

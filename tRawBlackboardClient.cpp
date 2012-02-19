@@ -19,13 +19,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "plugins/blackboard/tRawBlackboardClient.h"
-#include "core/port/rpc/tInterfacePort.h"
-#include "core/port/rpc/method/tPort0Method.h"
-#include "core/port/rpc/tMethodCallException.h"
-#include "plugins/blackboard/tBlackboardManager.h"
 #include "rrlib/finroc_core_utils/log/tLogUser.h"
+
+#include "core/port/rpc/tInterfacePort.h"
+#include "core/port/rpc/tMethodCallException.h"
 #include "core/port/tAbstractPort.h"
+
+#include "plugins/blackboard/tRawBlackboardClient.h"
+#include "plugins/blackboard/tBlackboardManager.h"
 
 namespace finroc
 {

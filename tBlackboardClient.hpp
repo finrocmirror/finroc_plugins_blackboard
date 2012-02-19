@@ -22,12 +22,10 @@
 #include "core/port/tPortCreationInfo.h"
 #include "core/port/tPortFlags.h"
 #include "core/port/rpc/tMethodCallException.h"
+
 #include "plugins/blackboard/tBlackboardTypeInfo.h"
-#include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
-#include "plugins/blackboard/tBlackboardPlugin.h"
-#include "core/port/rpc/method/tPort2Method.h"
 #include "plugins/blackboard/tAbstractBlackboardServer.h"
-#include "core/port/rpc/method/tPort1Method.h"
+#include "plugins/blackboard/tBlackboardPlugin.h"
 
 namespace finroc
 {

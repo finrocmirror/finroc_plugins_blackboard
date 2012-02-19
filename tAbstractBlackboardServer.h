@@ -26,11 +26,8 @@
 #include "rrlib/finroc_core_utils/definitions.h"
 
 #include "core/port/rpc/method/tPortInterface.h"
-#include "core/port/rpc/method/tPort1Method.h"
-#include "core/port/rpc/method/tPort2Method.h"
-#include "core/port/rpc/method/tVoid1Method.h"
-#include "core/port/rpc/method/tVoid3Method.h"
-#include "core/port/rpc/method/tPort0Method.h"
+#include "core/port/rpc/method/tMethod.h"
+#include "core/port/rpc/method/tVoidMethod.h"
 #include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
 #include "rrlib/finroc_core_utils/container/tSimpleList.h"
 #include "plugins/blackboard/tBlackboardTask.h"
@@ -115,32 +112,32 @@ public:
   std::vector<tAsynchChangeTask> pending_asynch_change_tasks;
 
   /*! Write Lock */
-  static typename core::tPort1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar, int> cLOCK;
+  static typename core::tMethod<tAbstractBlackboardServer<T>, typename tAbstractBlackboardServer<T>::tBBVectorVar, int> cLOCK;
 
   /*! Read Lock (only useful for SingleBufferedBlackboardBuffers) */
-  static typename core::tPort2Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tConstBBVectorVar, int, int> cREAD_LOCK;
+  static typename core::tMethod<tAbstractBlackboardServer<T>, typename tAbstractBlackboardServer<T>::tConstBBVectorVar, int, int> cREAD_LOCK;
 
   /*! Write Unlock */
-  static typename core::tVoid1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar> cUNLOCK;
+  static typename core::tVoidMethod<tAbstractBlackboardServer<T>, typename tAbstractBlackboardServer<T>::tBBVectorVar&> cUNLOCK;
 
   /*! Read Unlock */
-  static core::tVoid1Method<tAbstractBlackboardServer<T>*, int> cREAD_UNLOCK;
+  static core::tVoidMethod<tAbstractBlackboardServer<T>, int> cREAD_UNLOCK;
 
   /*! Asynch Change */
-  static typename core::tVoid3Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar, int, int> cASYNCH_CHANGE;
+  static typename core::tVoidMethod<tAbstractBlackboardServer<T>, typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar&, int, int> cASYNCH_CHANGE;
 
   //    /** Read part of blackboard (no extra thread with multi-buffered blackboards) */
   //    @PassByValue public static Port3Method<AbstractBlackboardServer, BlackboardBuffer, Integer, Integer, Integer> READ_PART =
   //        new Port3Method<AbstractBlackboardServer, BlackboardBuffer, Integer, Integer, Integer>(METHODS, "Read Part", "Offset", "Length", "Timeout", true);
 
   /*! Directly commit buffer */
-  static typename core::tVoid1Method<tAbstractBlackboardServer<T>*, typename tAbstractBlackboardServer<T>::tBBVectorVar> cDIRECT_COMMIT;
+  static typename core::tVoidMethod<tAbstractBlackboardServer<T>, typename tAbstractBlackboardServer<T>::tBBVectorVar&> cDIRECT_COMMIT;
 
   /*! Is server a single-buffered blackboard server? */
-  static core::tPort0Method<tAbstractBlackboardServer<T>*, int8> cIS_SINGLE_BUFFERED;
+  static core::tMethod<tAbstractBlackboardServer<T>, int8> cIS_SINGLE_BUFFERED;
 
   /*! Send keep-alive signal for lock */
-  static core::tVoid1Method<tAbstractBlackboardServer<T>*, int> cKEEP_ALIVE;
+  static core::tVoidMethod<tAbstractBlackboardServer<T>, int> cKEEP_ALIVE;
 
 protected:
 
@@ -319,36 +316,34 @@ public:
     return pi;
   }
 
-  void HandleVoidCall(core::tAbstractMethod* method, tBBVectorVar& p1)
+  void HandleVoidCall(core::tAbstractMethod& method, tBBVectorVar& p1)
   {
-    if (method == &cDIRECT_COMMIT)
+    if (method == cDIRECT_COMMIT)
     {
       DirectCommit(p1);
     }
-    else if (method == &cUNLOCK)
+    else if (method == cUNLOCK)
     {
       WriteUnlock(p1);
     }
     else
     {
-      cLOCK.Cleanup(p1);
       throw core::tMethodCallException(core::tMethodCallException::eUNKNOWN_METHOD);
     }
   }
 
-  void HandleVoidCall(core::tAbstractMethod* method, int p1)
+  void HandleVoidCall(core::tAbstractMethod& method, int p1)
   {
-    if (method == &cKEEP_ALIVE)
+    if (method == cKEEP_ALIVE)
     {
       KeepAlive(p1);
     }
-    else if (method == &cREAD_UNLOCK)
+    else if (method == cREAD_UNLOCK)
     {
       ReadUnlock(p1);
     }
     else
     {
-      cLOCK.Cleanup(p1);
       throw core::tMethodCallException(core::tMethodCallException::eUNKNOWN_METHOD);
     }
   }
@@ -359,21 +354,21 @@ public:
   //        return readPart(p1, p2, p3);
   //    }
 
-  inline tBBVectorVar HandleCall(const core::tAbstractMethod* method, int p1)
+  inline tBBVectorVar HandleCall(const core::tAbstractMethod& method, int p1)
   {
-    assert((method == &(cLOCK)));
+    assert(method == cLOCK);
     return WriteLock(p1);
   }
 
-  inline tConstBBVectorVar HandleCall(const core::tAbstractMethod* method, int p1, int dummy)
+  inline tConstBBVectorVar HandleCall(const core::tAbstractMethod& method, int p1, int dummy)
   {
-    assert((method == &(cREAD_LOCK)));
+    assert(method == cREAD_LOCK);
     return ReadLock(p1);
   }
 
-  inline void HandleVoidCall(const core::tAbstractMethod* method, tConstChangeTransactionVar& p2, int index, int offset)
+  inline void HandleVoidCall(const core::tAbstractMethod& method, tConstChangeTransactionVar& p2, int index, int offset)
   {
-    assert((method == &(cASYNCH_CHANGE)));
+    assert(method == cASYNCH_CHANGE);
     AsynchChange(p2, index, offset, true);
   }
 

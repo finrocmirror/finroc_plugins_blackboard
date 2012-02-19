@@ -24,24 +24,18 @@
 #define plugins__blackboard__tRawBlackboardClient_h__
 
 #include "rrlib/finroc_core_utils/definitions.h"
-
 #include "rrlib/serialization/tMemoryBuffer.h"
-#include "plugins/blackboard/tAbstractBlackboardServer.h"
-#include "core/port/tPortCreationInfoBase.h"
-#include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
-#include "core/port/tPortFlags.h"
 #include "rrlib/rtti/tDataTypeBase.h"
+
+#include "core/port/tPortCreationInfoBase.h"
+#include "core/port/tPortFlags.h"
 #include "core/tFrameworkElement.h"
 #include "core/port/std/tPortBase.h"
 #include "core/port/rpc/tInterfaceClientPort.h"
 
-namespace finroc
-{
-namespace core
-{
-class tAbstractPort;
-} // namespace finroc
-} // namespace core
+#include "plugins/blackboard/tAbstractBlackboardServer.h"
+#include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
+
 
 namespace finroc
 {
