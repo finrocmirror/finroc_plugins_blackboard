@@ -130,7 +130,7 @@ protected:
   template <typename T>
   static void CallKeepAlive(tWritePort* port, int lockid)
   {
-    tAbstractBlackboardServer<T>::cKEEP_ALIVE.Call(*port, lockid, false);
+    tAbstractBlackboardServer<T>::cKEEP_ALIVE.Call(*port, lockid);
   }
 
   int8(*is_single_buffered_func)(tWritePort*);

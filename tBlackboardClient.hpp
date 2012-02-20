@@ -208,7 +208,7 @@ bool tBlackboardClient<T>::CommitAsynchChange(tChangeTransactionVar& change_buf,
   try
   {
     assert(!change_buf.GetManager()->IsUnused() && "Obtain buffer from getUnusedChangeBuffer()");
-    tAbstractBlackboardServer<T>::cASYNCH_CHANGE.Call(*wrapped->GetWritePort(), static_cast<tConstChangeTransactionVar&>(change_buf), index, offset, true);
+    tAbstractBlackboardServer<T>::cASYNCH_CHANGE.Call(*wrapped->GetWritePort(), true, static_cast<tConstChangeTransactionVar&>(change_buf), index, offset);
 
     return true;
   }
@@ -265,7 +265,7 @@ void tBlackboardClient<T>::Publish(tBBVectorVar& buffer)
   }*/
   try
   {
-    tAbstractBlackboardServer<T>::cDIRECT_COMMIT.Call(*wrapped->GetWritePort(), buffer, true);
+    tAbstractBlackboardServer<T>::cDIRECT_COMMIT.Call(*wrapped->GetWritePort(), true, buffer);
   }
   catch (const core::tMethodCallException& e)
   {
@@ -305,7 +305,7 @@ const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::Re
     assert((wrapped->IsReady()));
     try
     {
-      tConstBBVectorVar ret = tAbstractBlackboardServer<T>::cREAD_LOCK.Call(*wrapped->GetWritePort(), timeout, 0, static_cast<int>((timeout + tRawBlackboardClient::cNET_TIMEOUT)));
+      tConstBBVectorVar ret = tAbstractBlackboardServer<T>::cREAD_LOCK.Call(*wrapped->GetWritePort(), static_cast<int>(timeout + tRawBlackboardClient::cNET_TIMEOUT), timeout, 0);
 
       if (ret != NULL)
       {
@@ -361,7 +361,7 @@ void tBlackboardClient<T>::Unlock()
     {
       try
       {
-        tAbstractBlackboardServer<T>::cREAD_UNLOCK.Call(*wrapped->GetWritePort(), wrapped->cur_lock_iD, true);
+        tAbstractBlackboardServer<T>::cREAD_UNLOCK.Call(*wrapped->GetWritePort(), true, wrapped->cur_lock_iD);
       }
       catch (const core::tMethodCallException& e)
       {
@@ -378,7 +378,7 @@ void tBlackboardClient<T>::Unlock()
 
   try
   {
-    tAbstractBlackboardServer<T>::cUNLOCK.Call(*wrapped->GetWritePort(), locked, true);
+    tAbstractBlackboardServer<T>::cUNLOCK.Call(*wrapped->GetWritePort(), true, locked);
   }
   catch (const core::tMethodCallException& e)
   {
@@ -401,7 +401,7 @@ typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::WriteLoc
   assert((wrapped->IsReady()));
   try
   {
-    tBBVectorVar ret = tAbstractBlackboardServer<T>::cLOCK.Call(*wrapped->GetWritePort(), timeout, static_cast<int>((timeout + tRawBlackboardClient::cNET_TIMEOUT)));
+    tBBVectorVar ret = tAbstractBlackboardServer<T>::cLOCK.Call(*wrapped->GetWritePort(), static_cast<int>(timeout + tRawBlackboardClient::cNET_TIMEOUT), timeout);
 
     if (ret != NULL)
     {
