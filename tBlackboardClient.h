@@ -73,7 +73,7 @@ protected:
   /*! not null - if buffer is currently locked for writing */
   tBBVectorVar locked;
 
-  /*! not null - if buffer is currently locked for writing */
+  /*! not null - if buffer is currently locked for reading */
   tConstBBVectorVar read_locked;
 
   /*! Replicated ports in group's/module's tPortGroups */
