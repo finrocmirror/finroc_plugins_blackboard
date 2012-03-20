@@ -65,7 +65,7 @@ class tBlackboardManager : public core::tFrameworkElement, public core::tRuntime
     const int default_flags;
 
     /*! List of blackboards in category */
-    util::tSafeConcurrentlyIterableList<tAbstractBlackboardServerRaw*> blackboards;
+    util::tSafeConcurrentlyIterableList<tAbstractBlackboardServerRaw*, util::tNoMutex> blackboards;
 
     /*!
      * \param category_name Name of category
@@ -111,7 +111,7 @@ private:
   util::tStringBuilder temp_buffer;
 
   /*! all blackboard clients */
-  util::tSafeConcurrentlyIterableList<tRawBlackboardClient*> bb_clients;
+  util::tSafeConcurrentlyIterableList<tRawBlackboardClient*, util::tNoMutex> bb_clients;
 
   /*! Clients that wish to autoconnect */
   util::tSimpleListWithMutex<tRawBlackboardClient*> auto_connect_clients;

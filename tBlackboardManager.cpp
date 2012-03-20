@@ -47,7 +47,7 @@ tBlackboardManager::tBlackboardManager() :
   core::tFrameworkElement(core::tRuntimeEnvironment::GetInstance(), cNAME),
   categories(cDIMENSION),
   temp_buffer(),
-  bb_clients(10u, 4u),
+  bb_clients(10),
   auto_connect_clients(core::tLockOrderLevels::cINNER_MOST - 50)
 {
   categories[cLOCAL] = new tBlackboardCategory(this, "Local", core::tCoreFlags::cALLOWS_CHILDREN);
@@ -61,7 +61,7 @@ tBlackboardManager::tBlackboardManager() :
 void tBlackboardManager::AddClient(tRawBlackboardClient* client, bool auto_connect)
 {
   {
-    util::tLock lock2(bb_clients);
+    util::tLock lock2(bb_clients.GetMutex());
     bb_clients.Add(client, false);
   }
   if (!auto_connect)
@@ -202,7 +202,7 @@ void tBlackboardManager::PrepareDelete()
 void tBlackboardManager::RemoveClient(tRawBlackboardClient* client)
 {
   {
-    util::tLock lock2(bb_clients);
+    util::tLock lock2(bb_clients.GetMutex());
     bb_clients.Remove(client);
   }
   if (!client->AutoConnectClient())
@@ -262,7 +262,7 @@ tBlackboardManager::tBlackboardCategory::tBlackboardCategory(tBlackboardManager*
   core::tFrameworkElement(outer_class_ptr_, category_name, default_flags_, -1),
   outer_class_ptr(outer_class_ptr_),
   default_flags(default_flags_),
-  blackboards(100u, 4u)
+  blackboards(100)
 {
 }
 
@@ -303,7 +303,6 @@ tBlackboardManager::tLockCheckerThread::tLockCheckerThread(tBlackboardManager* c
   outer_class_ptr(outer_class_ptr_)
 {
   SetName("Blackboard Lock-Checker Thread");
-  SetDaemon(true);
 }
 
 void tBlackboardManager::tLockCheckerThread::MainLoopCallback()
