@@ -45,7 +45,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& name, int capacity,
   locked(),
   lock_time(0),
   last_keep_alive(0),
-  lock_iDGen(0),
+  lock_id_gen(0),
   lock_id(0),
   published(),
   read_port()
@@ -72,7 +72,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& name, int elements,
   locked(),
   lock_time(0),
   last_keep_alive(0),
-  lock_iDGen(0),
+  lock_id_gen(0),
   lock_id(0),
   published(),
   read_port()
@@ -132,7 +132,7 @@ void tBlackboardServer<T>::CheckCurrentLock(util::tLock& passed_lock)
   {
     FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Blackboard server: Lock timed out... unlocking");
 
-    lock_id = lock_iDGen.IncrementAndGet();
+    lock_id = lock_id_gen.IncrementAndGet();
 
     locked.reset();
     FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Thread ", util::tThread::CurrentThread()->GetName(), ": lock = null");
@@ -154,13 +154,13 @@ void tBlackboardServer<T>::CommitLocked()
 
   // publish new buffer
   core::tPortDataManager* mgr = GetManager(locked);
-  mgr->lock_iD = -1;
+  mgr->lock_id = -1;
 
   published = locked.get();
   read_port->Publish(locked);
   locked.reset();
 
-  lock_id = lock_iDGen.IncrementAndGet();
+  lock_id = lock_id_gen.IncrementAndGet();
   //System.out.println("Thread " + Thread.currentThread().toString() + ": lock = null");
 }
 
@@ -202,7 +202,7 @@ template<typename T>
 void tBlackboardServer<T>::DuplicateAndLock()
 {
   assert((locked == NULL));
-  lock_id = lock_iDGen.IncrementAndGet();
+  lock_id = lock_id_gen.IncrementAndGet();
   lock_time = util::tTime::GetCoarse();
   last_keep_alive = lock_time;
 
@@ -212,7 +212,7 @@ void tBlackboardServer<T>::DuplicateAndLock()
 
   this->CopyBlackboardBuffer(*published, *locked);
 
-  GetManager(locked)->lock_iD = lock_id;
+  GetManager(locked)->lock_id = lock_id;
 }
 
 template<typename T>
@@ -297,7 +297,7 @@ void tBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
   {
     util::tLock lock2(this->bb_lock);
     core::tPortDataManager* bufmgr = GetManager(buf);
-    if (this->lock_id != bufmgr->lock_iD)
+    if (this->lock_id != bufmgr->lock_id)
     {
       FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Skipping outdated unlock");
 

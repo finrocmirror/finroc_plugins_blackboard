@@ -46,7 +46,7 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
   locks(0),
   lock_time(0),
   last_keep_alive(0),
-  lock_iDGen(0),
+  lock_id_gen(0),
   lock_id(0),
   revision(0),
   read_copy(),
@@ -72,7 +72,7 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
   locks(0),
   lock_time(0),
   last_keep_alive(0),
-  lock_iDGen(0),
+  lock_id_gen(0),
   lock_id(0),
   revision(0),
   read_copy(),
@@ -168,7 +168,7 @@ void tSingleBufferedBlackboardServer<T>::DirectCommit(tBBVectorVar& new_buffer)
     // Clear any asynch change commands from queue, since they were for old buffer
     this->ClearAsyncChangeTasks();
 
-    lock_id = lock_iDGen.IncrementAndGet();
+    lock_id = lock_id_gen.IncrementAndGet();
     assert((GetManager(buffer)->IsLocked()));
     locks = 0;
     this->ProcessPendingCommands(lock2);
@@ -205,7 +205,7 @@ void tSingleBufferedBlackboardServer<T>::LockCheck()
 template<typename T>
 void tSingleBufferedBlackboardServer<T>::NewBufferRevision(util::tLock& passed_lock, bool has_changes)
 {
-  lock_id = lock_iDGen.IncrementAndGet();
+  lock_id = lock_id_gen.IncrementAndGet();
   if (has_changes)
   {
     revision++;
@@ -299,9 +299,9 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboa
     {
       if (locks == 0)    // if this is the first lock: increment and set lock id of buffer
       {
-        int lock_iDNew = lock_iDGen.IncrementAndGet();
-        lock_id = lock_iDNew;
-        GetManager(buffer)->lock_iD = lock_iDNew;
+        int lock_id_new = lock_id_gen.IncrementAndGet();
+        lock_id = lock_id_new;
+        GetManager(buffer)->lock_id = lock_id_new;
       }
       locks++;
       GetManager(buffer)->AddLock();
@@ -367,7 +367,7 @@ void tSingleBufferedBlackboardServer<T>::UpdateReadCopy(util::tLock& passed_lock
     this->CopyBlackboardBuffer(*buffer, *read_copy);
 
     core::tPortDataManager* copymgr = GetManager(read_copy);
-    copymgr->lock_iD = -1;
+    copymgr->lock_id = -1;
     this->read_port_raw->Publish(copymgr);
 
     read_copy_revision = revision;
@@ -440,9 +440,9 @@ typename tAbstractBlackboardServer<T>::tBBVectorVar tSingleBufferedBlackboardSer
     assert((!IsLocked()));
 
     // lock current buffer... and return it with a lock
-    int lock_iDNew = lock_iDGen.IncrementAndGet();
-    lock_id = lock_iDNew;
-    GetManager(buffer)->lock_iD = lock_iDNew;
+    int lock_id_new = lock_id_gen.IncrementAndGet();
+    lock_id = lock_id_new;
+    GetManager(buffer)->lock_id = lock_id_new;
     locks = -1;
     lock_time = util::tTime::GetCoarse();
     last_keep_alive = lock_time;
@@ -462,11 +462,11 @@ void tSingleBufferedBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
     return;
   }
   core::tPortDataManager* bufmgr = GetManager(buf);
-  assert(((bufmgr->lock_iD >= 0)) && "lock IDs < 0 are typically only found in read copies");
+  assert(((bufmgr->lock_id >= 0)) && "lock IDs < 0 are typically only found in read copies");
 
   {
     util::tLock lock2(this->bb_lock);
-    if (this->lock_id != bufmgr->lock_iD)
+    if (this->lock_id != bufmgr->lock_id)
     {
       FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Skipping outdated unlock");
 
@@ -476,7 +476,7 @@ void tSingleBufferedBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
     assert((locks < 0));  // write lock
     assert((bufmgr->IsLocked()));
 
-    lock_id = lock_iDGen.IncrementAndGet();
+    lock_id = lock_id_gen.IncrementAndGet();
 
     if (buf != buffer)
     {

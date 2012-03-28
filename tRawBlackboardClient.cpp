@@ -110,12 +110,12 @@ void tRawBlackboardClient::PrepareDelete()
 
 void tRawBlackboardClient::SendKeepAlive()
 {
-  int cur_lock_iD = this->cur_lock_iD;
-  if (cur_lock_iD >= 0)
+  int cur_lock_id = this->cur_lock_id;
+  if (cur_lock_id >= 0)
   {
     try
     {
-      (*keep_alive_func)(write_port.get(), cur_lock_iD);
+      (*keep_alive_func)(write_port.get(), cur_lock_id);
 
     }
     catch (const core::tMethodCallException& e)

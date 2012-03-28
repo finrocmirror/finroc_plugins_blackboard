@@ -76,7 +76,7 @@ private:
   volatile int64 last_keep_alive;
 
   /*! ID of current lock - against outdated unlocks */
-  util::tAtomicInt lock_iDGen;
+  util::tAtomicInt lock_id_gen;
 
   int lock_id;
 

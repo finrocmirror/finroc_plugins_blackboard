@@ -102,7 +102,7 @@ private:
    */
   inline void ResetVariables()
   {
-    wrapped->cur_lock_iD = -1;
+    wrapped->cur_lock_id = -1;
     wrapped->lock_type = tRawBlackboardClient::eNONE;
 
     locked.reset();

@@ -293,7 +293,7 @@ const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::Re
   if (via_port)
   {
     wrapped->lock_type = tRawBlackboardClient::eREAD;
-    wrapped->cur_lock_iD = -1;
+    wrapped->cur_lock_id = -1;
     read_locked = Read(timeout);
 
     return read_locked.get();
@@ -301,7 +301,7 @@ const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::Re
   else
   {
     assert((locked == NULL && wrapped->lock_type == tRawBlackboardClient::eNONE));
-    assert((wrapped->cur_lock_iD == -1));
+    assert((wrapped->cur_lock_id == -1));
     assert((wrapped->IsReady()));
     try
     {
@@ -311,7 +311,7 @@ const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::Re
       {
         wrapped->lock_type = tRawBlackboardClient::eREAD;
 
-        wrapped->cur_lock_iD = ret.GetManager()->lock_iD;
+        wrapped->cur_lock_id = ret.GetManager()->lock_id;
         read_locked = std::move(ret);
 
         // acknowledge lock
@@ -321,13 +321,13 @@ const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::Re
       }
       else
       {
-        wrapped->cur_lock_iD = -1;
+        wrapped->cur_lock_id = -1;
         return NULL;
       }
     }
     catch (const core::tMethodCallException& e)
     {
-      wrapped->cur_lock_iD = -1;
+      wrapped->cur_lock_id = -1;
       return NULL;
     }
   }
@@ -357,11 +357,11 @@ void tBlackboardClient<T>::Unlock()
   {
     // we only have a read copy
     assert((read_locked != NULL));
-    if (wrapped->cur_lock_iD >= 0)
+    if (wrapped->cur_lock_id >= 0)
     {
       try
       {
-        tAbstractBlackboardServer<T>::cREAD_UNLOCK.Call(*wrapped->GetWritePort(), true, wrapped->cur_lock_iD);
+        tAbstractBlackboardServer<T>::cREAD_UNLOCK.Call(*wrapped->GetWritePort(), true, wrapped->cur_lock_id);
       }
       catch (const core::tMethodCallException& e)
       {
@@ -374,7 +374,7 @@ void tBlackboardClient<T>::Unlock()
   }
 
   assert((wrapped->lock_type == tRawBlackboardClient::eWRITE));
-  assert((wrapped->cur_lock_iD >= 0));
+  assert((wrapped->cur_lock_id >= 0));
 
   try
   {
@@ -397,7 +397,7 @@ typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::WriteLoc
   }
 
   assert((locked == NULL && wrapped->lock_type == tRawBlackboardClient::eNONE));
-  assert((wrapped->cur_lock_iD == -1));
+  assert((wrapped->cur_lock_id == -1));
   assert((wrapped->IsReady()));
   try
   {
@@ -407,7 +407,7 @@ typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::WriteLoc
     {
       wrapped->lock_type = tRawBlackboardClient::eWRITE;
 
-      wrapped->cur_lock_iD = ret.GetManager()->lock_iD;
+      wrapped->cur_lock_id = ret.GetManager()->lock_id;
       locked = std::move(ret);
 
       // acknowledge lock
@@ -415,7 +415,7 @@ typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::WriteLoc
     }
     else
     {
-      wrapped->cur_lock_iD = -1;
+      wrapped->cur_lock_id = -1;
     }
 
     return locked.Get();
@@ -423,7 +423,7 @@ typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::WriteLoc
   }
   catch (const core::tMethodCallException& e)
   {
-    wrapped->cur_lock_iD = -1;
+    wrapped->cur_lock_id = -1;
     return NULL;
   }
 }

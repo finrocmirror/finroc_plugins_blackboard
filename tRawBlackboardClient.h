@@ -146,7 +146,7 @@ protected:
   tRawBlackboardClient::tLockType lock_type;
 
   /*! ID of current locking operation */
-  volatile int cur_lock_iD;
+  volatile int cur_lock_id;
 
   /*! Auto-Connect blackboard client to matching server? */
   bool auto_connect;
@@ -186,7 +186,7 @@ public:
     write_port(pci.GetFlag(core::tPortFlags::cEMITS_DATA) ? new tWritePort(this, tAbstractBlackboardServerRaw::GetBlackboardTypeInfo(pci.data_type)->blackboard_type) : NULL),
     read_port(pci.GetFlag(core::tPortFlags::cACCEPTS_DATA) ? new tReadPort(this, core::tPortCreationInfoBase("read", this, pci.data_type.GetListType(), core::tPortFlags::cACCEPTS_DATA | (pci.flags & core::tPortFlags::cPUSH_STRATEGY))) : NULL),
     lock_type(eNONE),
-    cur_lock_iD(-1),
+    cur_lock_id(-1),
     auto_connect(auto_connect_),
     auto_connect_category(auto_connect_category_),
     server_buffers(eUNKNOWN)
