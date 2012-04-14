@@ -126,11 +126,11 @@ tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, 
     // create port
     if (create_read_port_in_ci)
     {
-      read_port.reset(new core::structure::tGroup::tControllerOutput<std::vector<T>>(replicated_bb.GetOutsideReadPort()->GetName()));
+      read_port.reset(new core::structure::tGroup::tControllerInput<std::vector<T>>(replicated_bb.GetOutsideReadPort()->GetName(), parent));
     }
     else
     {
-      read_port.reset(new core::structure::tGroup::tSensorOutput<std::vector<T>>(replicated_bb.GetOutsideReadPort()->GetName()));
+      read_port.reset(new core::structure::tGroup::tSensorInput<std::vector<T>>(replicated_bb.GetOutsideReadPort()->GetName(), parent));
     }
     replicated_bb.read_port->ConnectToSource(*read_port);
   }

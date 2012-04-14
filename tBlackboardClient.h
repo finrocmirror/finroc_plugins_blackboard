@@ -211,6 +211,9 @@ public:
     std::swap(wrapped, o.wrapped);
     std::swap(locked, o.locked);
     std::swap(read_locked, o.read_locked);
+    std::swap(read_port, o.read_port);
+    std::swap(write_port1, o.write_port1);
+    std::swap(write_port2, o.write_port2);
     return *this;
   }
 
@@ -390,27 +393,6 @@ public:
    */
   void Unlock();
 
-  //
-  //    /**
-  //     * Read part of blackboard
-  //     *
-  //     * \param offset offset in byte
-  //     * \param length length in byte
-  //     * \param timeout timeout for this synchronous operation
-  //     * \return Lock Locked buffer - or null if operation failed (position 0 in this buffer is position 'offset' in original one)
-  //     *  is unlocked automatically
-  //     */
-  //    public BlackboardBuffer readPart(int offset, int length, @CppDefault("60000") int timeout) {
-  //        if (timeout <= 0) {
-  //            timeout = 60000; // wait one minute for method to complete if no time is specified
-  //        }
-  //        try {
-  //            return AbstractBlackboardServer.READ_PART.call(getWritePort(), offset, length, timeout, timeout + NET_TIMEOUT);
-  //        } catch (MethodCallException e) {
-  //            return null;
-  //        }
-  //    }
-  //
   /*!
    * Lock blackboard in order to read and commit changes
    * (synchronous/blocking... only use if absolutely necessary)
