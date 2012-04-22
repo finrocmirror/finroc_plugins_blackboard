@@ -44,7 +44,7 @@ tBlackboardClient<T>::tBlackboardClient(const util::tString& name, core::tFramew
 
 template<typename T>
 tBlackboardClient<T>::tBlackboardClient(const tAbstractBlackboardServerRaw* server, core::tFrameworkElement* parent, const util::tString& non_default_name, bool push_updates, bool read_port, bool write_port) :
-  wrapped(new tRawBlackboardClient(core::tPortCreationInfoBase(non_default_name.Length() > 0 ? non_default_name : (server->GetName() + " Client").ToString(), parent, InitBlackboardType(rrlib::rtti::tDataType<T>()), (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), false)),
+  wrapped(new tRawBlackboardClient(core::tPortCreationInfoBase(non_default_name.length() > 0 ? non_default_name : (server->GetName() + " Client"), parent, InitBlackboardType(rrlib::rtti::tDataType<T>()), (write_port ? core::tPortFlags::cEMITS_DATA : 0) | (read_port ? core::tPortFlags::cACCEPTS_DATA : 0) | (push_updates ? core::tPortFlags::cPUSH_STRATEGY : 0)), static_cast<T*>(NULL), false)),
   locked(),
   read_locked(),
   write_port1(NULL),
@@ -166,7 +166,7 @@ tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, 
           new_ports.push_back(ReplicateWritePort(port, &parent->GetControllerOutputs(), port->GetName()));
         }
       }
-      else if ((pg->GetName().StartsWith("Sensor") && forward_write_port_in_sensor) || (pg->GetName().StartsWith("Controller") && forward_write_port_in_controller))
+      else if ((boost::starts_with(pg->GetName(), "Sensor") && forward_write_port_in_sensor) || (boost::starts_with(pg->GetName(), "Controller") && forward_write_port_in_controller))
       {
         new_ports.push_back(ReplicateWritePort(port, parent->GetChild(pg->GetCName()), port->GetName()));
       }
@@ -190,11 +190,11 @@ void tBlackboardClient<T>::CheckConnect(core::tAbstractPort* p1, core::tAbstract
   {
     core::tFrameworkElement* parent1 = p1->GetParent();
     core::tFrameworkElement* parent2 = p2->GetParent();
-    if ((parent1->GetName().EndsWith("Output") && parent2->GetName().EndsWith("Input")) ||
-        (parent1->GetName().EndsWith("Input") && parent2->GetName().EndsWith("Output")))
+    if ((boost::ends_with(parent1->GetName(), "Output") && boost::ends_with(parent2->GetName(), "Input")) ||
+        (boost::ends_with(parent1->GetName(), "Input") && boost::ends_with(parent2->GetName(), "Output")))
     {
-      if (!((parent1->GetName().StartsWith("Sensor") && parent2->GetName().StartsWith("Controller")) ||
-            (parent1->GetName().StartsWith("Controller") && parent2->GetName().StartsWith("Sensor"))))
+      if (!((boost::starts_with(parent1->GetName(), "Sensor") && boost::starts_with(parent2->GetName(), "Controller")) ||
+            (boost::starts_with(parent1->GetName(), "Controller") && boost::starts_with(parent2->GetName(), "Sensor"))))
       {
         p1->ConnectToTarget(p2);
       }

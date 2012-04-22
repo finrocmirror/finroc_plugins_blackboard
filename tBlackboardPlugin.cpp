@@ -31,8 +31,8 @@ namespace blackboard
 {
 namespace internal
 {
-static rrlib::rtti::tDataTypeBase cBB_MEM_BUFFER = tBlackboardPlugin::RegisterBlackboardType(util::tTypedClass<rrlib::serialization::tMemoryBuffer>());
-static rrlib::rtti::tDataTypeBase cBB_BLACKBOARD_BUFFER = tBlackboardPlugin::RegisterBlackboardType(util::tTypedClass<tBlackboardBuffer>());
+static rrlib::rtti::tDataTypeBase cBB_MEM_BUFFER = tBlackboardPlugin::RegisterBlackboardType<rrlib::serialization::tMemoryBuffer>();
+static rrlib::rtti::tDataTypeBase cBB_BLACKBOARD_BUFFER = tBlackboardPlugin::RegisterBlackboardType<tBlackboardBuffer>();
 
 static tBlackboardPlugin blackboard_plugin;
 }

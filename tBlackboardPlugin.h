@@ -53,23 +53,7 @@ public:
   template <typename T>
   static rrlib::rtti::tDataTypeBase RegisterBlackboardType(const finroc::util::tString& name)
   {
-    return RegisterBlackboardType<T>(finroc::util::tTypedClass<T>(), name);
-  }
-
-  /*!
-   * Registers blackboard data type
-   * (actually two: one for buffer and one for method calls)
-   *
-   * \param clazz Type
-   * \param name Blackboard buffer type name
-   * \return Blackboard buffer type
-   */
-  template <typename T>
-  inline static rrlib::rtti::tDataTypeBase RegisterBlackboardType(finroc::util::tTypedClass<T> clazz, const util::tString& name)
-  {
-    rrlib::rtti::tDataType<T> dt;
-
-    return tBlackboardPlugin::RegisterBlackboardType<T>(dt, name);
+    return RegisterBlackboardType<T>(rrlib::rtti::tDataType<T>(), name);
   }
 
   /*!
@@ -104,9 +88,9 @@ public:
    * \return Blackboard buffer type
    */
   template <typename T>
-  inline static rrlib::rtti::tDataTypeBase RegisterBlackboardType(finroc::util::tTypedClass<T> clazz)
+  inline static rrlib::rtti::tDataTypeBase RegisterBlackboardType()
   {
-    return RegisterBlackboardType(clazz, rrlib::rtti::tDataTypeBase::GetDataTypeNameFromRtti(typeid(T).name()));
+    return RegisterBlackboardType<T>(rrlib::rtti::tDataTypeBase::GetDataTypeNameFromRtti(typeid(T).name()));
   }
 
 };
@@ -123,7 +107,7 @@ namespace blackboard
 template <typename T>
 rrlib::rtti::tDataTypeBase tBlackboardPlugin::RegisterBlackboardType(rrlib::rtti::tDataTypeBase dt, const util::tString& name)
 {
-  util::tString bb_name = util::tStringBuilder("Blackboard<") + name + ">";
+  util::tString bb_name = std::string("Blackboard<") + name + ">";
   rrlib::rtti::tDataTypeBase dtbb = rrlib::rtti::tDataTypeBase::FindType(bb_name);
   if (dtbb == NULL)
   {

@@ -38,9 +38,9 @@ namespace blackboard
 {
 const int tBlackboardManager::cALL, tBlackboardManager::cSHARED, tBlackboardManager::cLOCAL, tBlackboardManager::cREMOTE, tBlackboardManager::cDIMENSION;
 util::tString tBlackboardManager::cNAME = "Blackboards";
-util::tString tBlackboardManager::cSLASHED_NAME = util::tStringBuilder("/") + tBlackboardManager::cNAME + "/";
+util::tString tBlackboardManager::cSLASHED_NAME = std::string("/") + tBlackboardManager::cNAME + "/";
 util::tString tBlackboardManager::cREAD_PORT_NAME = "read", tBlackboardManager::cWRITE_PORT_NAME = "write";
-util::tString tBlackboardManager::cREAD_POSTFIX = util::tStringBuilder("/") + tBlackboardManager::cREAD_PORT_NAME, tBlackboardManager::cWRITE_POSTFIX = util::tStringBuilder("/") + tBlackboardManager::cWRITE_PORT_NAME;
+util::tString tBlackboardManager::cREAD_POSTFIX = std::string("/") + tBlackboardManager::cREAD_PORT_NAME, tBlackboardManager::cWRITE_POSTFIX = std::string("/") + tBlackboardManager::cWRITE_PORT_NAME;
 tBlackboardManager* volatile tBlackboardManager::instance;
 
 tBlackboardManager::tBlackboardManager() :
@@ -123,7 +123,7 @@ tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(const util::tStr
     for (size_t i = 0u; i < it->Size(); i++)
     {
       tAbstractBlackboardServerRaw* info = it->Get(i);
-      if (info->GetName().Equals(name) && (type == NULL || info->read_port_raw->GetDataType() == type))
+      if (boost::equals(info->GetName(), name) && (type == NULL || info->read_port_raw->GetDataType() == type))
       {
         return info;
       }
@@ -157,11 +157,11 @@ tAbstractBlackboardServerRaw* tBlackboardManager::GetBlackboard(size_t index, in
 
 util::tString tBlackboardManager::GetBlackboardNameFromQualifiedLink(const util::tString& qname)
 {
-  bool b = qname.StartsWith(cSLASHED_NAME);
-  if (b && (qname.EndsWith(cREAD_POSTFIX) || qname.EndsWith(cWRITE_POSTFIX)))
+  bool b = boost::starts_with(qname, cSLASHED_NAME);
+  if (b && (boost::ends_with(qname, cREAD_POSTFIX) || boost::ends_with(qname, cWRITE_POSTFIX)))
   {
-    util::tString qname2 = qname.Substring(0, qname.LastIndexOf("/"));
-    return qname2.Substring(qname2.LastIndexOf("/") + 1);
+    util::tString qname2 = qname.substr(0, qname.rfind("/"));
+    return qname2.substr(qname2.rfind("/") + 1);
   }
   return "";
 }
@@ -223,12 +223,12 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
     if (element->GetFlag(core::tCoreFlags::cNETWORK_ELEMENT) && element->GetFlag(core::tCoreFlags::cIS_PORT) && (!element->IsChildOf(this)))
     {
       element->GetQualifiedLink(temp_buffer);
-      util::tString qname = temp_buffer.ToString();
-      util::tString name = GetBlackboardNameFromQualifiedLink(temp_buffer.ToString());
-      bool read = qname.EndsWith(cREAD_POSTFIX);
-      bool write = qname.EndsWith(cWRITE_POSTFIX);
+      util::tString qname = temp_buffer;
+      util::tString name = GetBlackboardNameFromQualifiedLink(temp_buffer);
+      bool read = boost::ends_with(qname, cREAD_POSTFIX);
+      bool write = boost::ends_with(qname, cWRITE_POSTFIX);
 
-      if (name.Length() > 0)
+      if (name.length() > 0)
       {
         tAbstractBlackboardServerRaw* info = GetBlackboard(name, cREMOTE, NULL);
 

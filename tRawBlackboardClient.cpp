@@ -36,7 +36,7 @@ const int tRawBlackboardClient::cNET_TIMEOUT;
 
 bool tRawBlackboardClient::CheckConnect(tAbstractBlackboardServerRaw* server)
 {
-  assert((auto_connect));
+  assert(auto_connect);
   if (server->read_port_raw == NULL || server->write_port_raw == NULL)
   {
     return false;
@@ -57,7 +57,7 @@ bool tRawBlackboardClient::CheckConnect(tAbstractBlackboardServerRaw* server)
   {
     return false;  // data types don't fit
   }
-  if (!GetName().Equals(server->GetName()))
+  if (!boost::equals(GetName(), server->GetName()))
   {
     return false;  // names don't match
   }

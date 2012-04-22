@@ -65,7 +65,7 @@ tBlackboardBase::tBlackboardBase(const tBlackboardBase& replicated_bb, core::str
           new_ports.push_back(ReplicateWritePort(port, &parent->GetControllerOutputs(), port->GetName()));
         }
       }
-      else if ((pg->GetName().StartsWith("Sensor") && forward_write_port_in_sensor) || (pg->GetName().StartsWith("Controller") && forward_write_port_in_controller))
+      else if ((boost::starts_with(pg->GetName(), "Sensor") && forward_write_port_in_sensor) || (boost::starts_with(pg->GetName(), "Controller") && forward_write_port_in_controller))
       {
         new_ports.push_back(ReplicateWritePort(port, parent->GetChild(pg->GetCName()), port->GetName()));
       }

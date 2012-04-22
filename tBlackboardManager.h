@@ -108,7 +108,7 @@ private:
   ::finroc::util::tArrayWrapper<tBlackboardCategory*> categories;
 
   /*! Temporary StringBuilder */
-  util::tStringBuilder temp_buffer;
+  std::string temp_buffer;
 
   /*! all blackboard clients */
   util::tSafeConcurrentlyIterableList<tRawBlackboardClient*, util::tNoMutex> bb_clients;

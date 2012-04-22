@@ -48,6 +48,13 @@ void tAbstractBlackboardServerRaw::CheckType(rrlib::rtti::tDataTypeBase dt)
   assert(((ti != NULL && ti->blackboard_type != NULL && core::tFinrocTypeInfo::IsMethodType(ti->blackboard_type))) && "Please register Blackboard types using BlackboardPlugin class");
 }
 
+util::tString tAbstractBlackboardServerRaw::CreateThreadString()
+{
+  std::ostringstream os;
+  os << "Thread " << util::tThread::CurrentThread()->GetName() << " (" << util::sThreadUtil::GetCurrentThreadId() << ")";
+  return os.str();
+}
+
 void tAbstractBlackboardServerRaw::PrepareDelete()
 {
   util::tLock lock1(this);

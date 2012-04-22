@@ -115,10 +115,7 @@ protected:
   /*!
    * \return Thread string (debug helper method)
    */
-  virtual util::tString CreateThreadString()
-  {
-    return util::tStringBuilder("Thread ") + util::tThread::CurrentThread()->GetName() + " (" + util::sThreadUtil::GetCurrentThreadId() + ")";
-  }
+  virtual util::tString CreateThreadString();
 
   /*!
    * \return Is blackboard currently locked?

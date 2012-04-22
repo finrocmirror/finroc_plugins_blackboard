@@ -171,14 +171,6 @@ protected:
   // finroc::util::tLock* curlock;
 
   /*!
-   * \return Thread string (debug helper method)
-   */
-  virtual util::tString CreateThreadString()
-  {
-    return util::tStringBuilder("Thread ") + util::tThread::CurrentThread()->GetName() + " (" + util::sThreadUtil::GetCurrentThreadId() + ")";
-  }
-
-  /*!
    * (only call in synchronized context)
    * Process change command later
    *
