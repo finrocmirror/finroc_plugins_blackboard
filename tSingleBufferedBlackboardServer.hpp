@@ -19,17 +19,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "plugins/blackboard/tBlackboardManager.h"
+#include "rrlib/finroc_core_utils/tTime.h"
+#include "rrlib/finroc_core_utils/log/tLogUser.h"
+
 #include "core/portdatabase/tFinrocTypeInfo.h"
 #include "core/port/tPortFlags.h"
 #include "core/tCoreFlags.h"
 #include "core/tLockOrderLevels.h"
-#include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
 #include "core/port/rpc/tInterfaceServerPort.h"
-#include "rrlib/finroc_core_utils/tTime.h"
-#include "rrlib/finroc_core_utils/log/tLogUser.h"
 #include "core/port/std/tPortDataManager.h"
 #include "core/port/rpc/tMethodCallException.h"
+
+#include "plugins/blackboard/tBlackboardManager.h"
+#include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
 
 namespace finroc
 {
@@ -93,29 +95,27 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
 template<typename T>
 void tSingleBufferedBlackboardServer<T>::AsynchChange(tConstChangeTransactionVar& buf, int index, int offset, bool check_lock)
 {
+  util::tLock lock2(this->bb_lock);
+  if (check_lock && IsLocked())
   {
-    util::tLock lock2(this->bb_lock);
-    if (check_lock && IsLocked())
+    CheckCurrentLock(lock2);
+    if (IsLocked())
     {
-      CheckCurrentLock(lock2);
-      if (IsLocked())
-      {
-        DeferAsynchChangeCommand(buf, index, offset);
-        return;
-      }
+      DeferAsynchChangeCommand(buf, index, offset);
+      return;
     }
-
-    assert(((!check_lock) || (!IsLocked())));
-
-    this->ApplyAsynchChange(*buffer, buf, index, offset);
-
-    //buffer.getBuffer().put(offset, buf.getBuffer(), 0, buf.getSize());
-
-    // commit changes
-    NewBufferRevision(lock2, true);
-
-    assert(((!check_lock) || (!IsLocked())));
   }
+
+  assert(((!check_lock) || (!IsLocked())));
+
+  this->ApplyAsynchChange(*buffer, buf, index, offset);
+
+  //buffer.getBuffer().put(offset, buf.getBuffer(), 0, buf.getSize());
+
+  // commit changes
+  NewBufferRevision(lock2, true);
+
+  assert(((!check_lock) || (!IsLocked())));
 }
 
 template<typename T>
@@ -178,12 +178,10 @@ void tSingleBufferedBlackboardServer<T>::DirectCommit(tBBVectorVar& new_buffer)
 template<typename T>
 void tSingleBufferedBlackboardServer<T>::KeepAlive(int lock_id_)
 {
+  util::tLock lock2(this->bb_lock);
+  if (locks != 0 && this->lock_id == lock_id_)
   {
-    util::tLock lock2(this->bb_lock);
-    if (locks != 0 && this->lock_id == lock_id_)
-    {
-      last_keep_alive = util::tTime::GetCoarse();
-    }
+    last_keep_alive = util::tTime::GetCoarse();
   }
 }
 
@@ -220,40 +218,36 @@ void tSingleBufferedBlackboardServer<T>::NewBufferRevision(util::tLock& passed_l
 }
 
 template<typename T>
-const core::tPortDataManager* tSingleBufferedBlackboardServer<T>::PullRequest(core::tPortBase* origin, int8 add_locks)
+const core::tPortDataManager* tSingleBufferedBlackboardServer<T>::PullRequest(core::tPortBase* origin, int8 add_locks, bool intermediate_assign)
 {
+  util::tLock lock2(this->bb_lock);
+
+  // possibly wait for a copy
+  while (read_copy_revision < revision)     // not so clean, but everything else becomes rather complicated
   {
-    util::tLock lock2(this->bb_lock);
 
-    // possibly wait for a copy
-    while (read_copy_revision < revision)     // not so clean, but everything else becomes rather complicated
+    if (IsLocked())
     {
-
-      if (IsLocked())
-      {
-        WaitForReadCopy(lock2, revision, 2000);
-      }
-      else
-      {
-        UpdateReadCopy(lock2);
-      }
+      WaitForReadCopy(lock2, revision, 2000);
     }
-
-    // add desired number of locks and return
-    core::tPortDataManager* mgr = GetManager(read_copy);
-    mgr->GetCurrentRefCounter()->AddLocks(add_locks);
-
-    return mgr;
+    else
+    {
+      UpdateReadCopy(lock2);
+    }
   }
+
+  // add desired number of locks and return
+  core::tPortDataManager* mgr = GetManager(read_copy);
+  mgr->GetCurrentRefCounter()->AddLocks(add_locks);
+
+  return mgr;
 }
 
 template<typename T>
 typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboardServer<T>::ReadLock(int64 timeout)
 {
-  {
-    util::tLock lock2(this->bb_lock);
-    return ReadLockImpl(lock2, timeout);
-  }
+  util::tLock lock2(this->bb_lock);
+  return ReadLockImpl(lock2, timeout);
 }
 
 template<typename T>
@@ -310,7 +304,7 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboa
     }
   }
 
-  throw core::tMethodCallException(core::tMethodCallException::ePROGRAMMING_ERROR, CODE_LOCATION_MACRO);
+  throw core::tMethodCallException(core::tMethodCallException::tType::PROGRAMMING_ERROR, CODE_LOCATION_MACRO);
 }
 
 template<typename T>
@@ -412,45 +406,43 @@ void tSingleBufferedBlackboardServer<T>::WaitForReadCopy(util::tLock& passed_loc
 template<typename T>
 typename tAbstractBlackboardServer<T>::tBBVectorVar tSingleBufferedBlackboardServer<T>::WriteLock(int64 timeout)
 {
+  util::tLock lock2(this->bb_lock);
+  if (IsLocked() || this->PendingTasks())
   {
-    util::tLock lock2(this->bb_lock);
+    CheckCurrentLock(lock2);
     if (IsLocked() || this->PendingTasks())
     {
-      CheckCurrentLock(lock2);
-      if (IsLocked() || this->PendingTasks())
+      if (timeout <= 0)    // we do not need to enqueue lock commands with zero timeout
       {
-        if (timeout <= 0)    // we do not need to enqueue lock commands with zero timeout
+
+        return tBBVectorVar(); // we do not need to enqueue lock commands with zero timeout
+      }
+      else
+      {
+        // wait for lock
+        bool have_lock = this->WaitForLock(lock2, timeout);
+        if (!have_lock)    // we didn't get lock :-/
         {
 
-          return tBBVectorVar(); // we do not need to enqueue lock commands with zero timeout
-        }
-        else
-        {
-          // wait for lock
-          bool have_lock = this->WaitForLock(lock2, timeout);
-          if (!have_lock)    // we didn't get lock :-/
-          {
-
-            return tBBVectorVar(); // we didn't get lock :-/
-          }
+          return tBBVectorVar(); // we didn't get lock :-/
         }
       }
     }
-
-    assert((!IsLocked()));
-
-    // lock current buffer... and return it with a lock
-    int lock_id_new = lock_id_gen.IncrementAndGet();
-    lock_id = lock_id_new;
-    GetManager(buffer)->lock_id = lock_id_new;
-    locks = -1;
-    lock_time = util::tTime::GetCoarse();
-    last_keep_alive = lock_time;
-
-    GetManager(buffer)->AddLock();
-
-    return tBBVectorVar(GetManager(buffer));
   }
+
+  assert((!IsLocked()));
+
+  // lock current buffer... and return it with a lock
+  int lock_id_new = lock_id_gen.IncrementAndGet();
+  lock_id = lock_id_new;
+  GetManager(buffer)->lock_id = lock_id_new;
+  locks = -1;
+  lock_time = util::tTime::GetCoarse();
+  last_keep_alive = lock_time;
+
+  GetManager(buffer)->AddLock();
+
+  return tBBVectorVar(GetManager(buffer));
 }
 
 template<typename T>

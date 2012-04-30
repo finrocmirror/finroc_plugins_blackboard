@@ -144,36 +144,14 @@ protected:
   virtual typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLock(int64 timeout)
   {
     FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "warning: Client must not attempt read lock on multi-buffered blackboard - Call failed");
-    throw core::tMethodCallException(core::tMethodCallException::eINVALID_PARAM, CODE_LOCATION_MACRO);
+    throw core::tMethodCallException(core::tMethodCallException::tType::INVALID_PARAM, CODE_LOCATION_MACRO);
   }
 
   virtual void ReadUnlock(int lock_id_)
   {
     FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "warning: Client must not attempt read unlock on multi-buffered blackboard - Call failed");
-    throw core::tMethodCallException(core::tMethodCallException::eINVALID_PARAM, CODE_LOCATION_MACRO);
+    throw core::tMethodCallException(core::tMethodCallException::tType::INVALID_PARAM, CODE_LOCATION_MACRO);
   }
-
-  //    @Override
-  //    protected BlackboardBuffer readPart(int offset, int length, int timeout) {
-  //        // current buffer (note: we get it from readPort, since -this way- call does not need to be executed in synchronized context)
-  //        @Const BlackboardBuffer buffer = (BlackboardBuffer)readPort.getLockedUnsafeRaw();
-  //        assert(buffer.getManager().isLocked());
-  //
-  //        // prepare and set return value
-  //        BlackboardBuffer send = (BlackboardBuffer)write.getUnusedBuffer(buffer.getType());
-  //        send.resize(1, 1, length, false); // ensure minimal size
-  //        send.getBuffer().put(0, buffer.getBuffer(), offset, length);
-  //        send.bbCapacity = buffer.bbCapacity;
-  //        send.elements = buffer.elements;
-  //        send.elementSize = buffer.elementSize;
-  //
-  //        // release old lock
-  //        buffer.getManager().getCurrentRefCounter().releaseLock();
-  //
-  //        // return buffer with one read lock
-  //        send.getManager().getCurrentRefCounter().setLocks((byte)1);
-  //        return send;
-  //    }
 
   virtual typename tAbstractBlackboardServer<T>::tBBVectorVar WriteLock(int64 timeout);
 

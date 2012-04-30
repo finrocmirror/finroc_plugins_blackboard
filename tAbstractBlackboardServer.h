@@ -320,7 +320,7 @@ public:
     }
     else
     {
-      throw core::tMethodCallException(core::tMethodCallException::eUNKNOWN_METHOD);
+      throw core::tMethodCallException(core::tMethodCallException::tType::UNKNOWN_METHOD);
     }
   }
 
@@ -336,7 +336,7 @@ public:
     }
     else
     {
-      throw core::tMethodCallException(core::tMethodCallException::eUNKNOWN_METHOD);
+      throw core::tMethodCallException(core::tMethodCallException::tType::UNKNOWN_METHOD);
     }
   }
 

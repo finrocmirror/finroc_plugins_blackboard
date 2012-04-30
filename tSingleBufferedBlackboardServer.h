@@ -24,12 +24,13 @@
 #define plugins__blackboard__tSingleBufferedBlackboardServer_h__
 
 #include "rrlib/finroc_core_utils/definitions.h"
-
 #include "rrlib/rtti/tDataTypeBase.h"
-#include "plugins/blackboard/tAbstractBlackboardServer.h"
-#include "core/port/std/tPullRequestHandler.h"
+
+#include "core/port/std/tPullRequestHandlerRaw.h"
 #include "core/port/tPortCreationInfo.h"
 #include "core/port/std/tPortBase.h"
+
+#include "plugins/blackboard/tAbstractBlackboardServer.h"
 
 namespace finroc
 {
@@ -49,7 +50,7 @@ namespace blackboard
  * This is the base class for a blackboard server
  */
 template<typename T>
-class tSingleBufferedBlackboardServer : public tAbstractBlackboardServer<T>, public core::tPullRequestHandler
+class tSingleBufferedBlackboardServer : public tAbstractBlackboardServer<T>, public core::tPullRequestHandlerRaw
 {
 public:
   class tBBReadPort; // inner class forward declaration
@@ -168,55 +169,6 @@ protected:
 
   virtual void ReadUnlock(int lock_id_);
 
-  //    @Override
-  //    protected BlackboardBuffer readPart(int offset, int length, int timeout) throws MethodCallException {
-  //        synchronized (bbLock) {
-  //            @Const BlackboardBuffer bb = buffer;
-  //            boolean unlock = false;
-  //            long currentRevision = revision;
-  //            int locksCheck = 0;
-  //            if (locks < 0 && currentRevision != readCopyRevision) {
-  //                checkCurrentLock();
-  //                if (locks < 0 && currentRevision != readCopyRevision) {
-  //                    if (timeout <= 0) {
-  //                        return null; // we do not need to enqueue lock commands with zero timeout
-  //                    }
-  //
-  //                    // okay... we'll do a read lock
-  //                    bb = readLockImpl(timeout);
-  //                    if (bb == null) {
-  //                        return null;
-  //                    }
-  //                    locksCheck = locks;
-  //                    assert(locksCheck > 0);
-  //                    unlock = true;
-  //                }
-  //            }
-  //
-  //            if ((!unlock) && currentRevision == readCopyRevision) { // can we use read copy?
-  //                bb = readCopy;
-  //            }
-  //
-  //            // prepare and set return value
-  //            BlackboardBuffer send = (BlackboardBuffer)write.getUnusedBuffer(buffer.getType());
-  //            send.resize(1, 1, length, false); // ensure minimal size
-  //            send.getBuffer().put(0, bb.getBuffer(), offset, length);
-  //            send.bbCapacity = buffer.bbCapacity;
-  //            send.elements = buffer.elements;
-  //            send.elementSize = buffer.elementSize;
-  //
-  //            if (unlock) { // if we have a read lock, we need to release it
-  //                assert(locks == locksCheck);
-  //                readUnlockImpl(lockId);
-  //                assert(locks == locksCheck - 1);
-  //            }
-  //
-  //            // return buffer with one read lock
-  //            send.getManager().getCurrentRefCounter().setLocks((byte)1);
-  //            return send;
-  //        }
-  //    }
-
   virtual typename tAbstractBlackboardServer<T>::tBBVectorVar WriteLock(int64 timeout);
 
   virtual void WriteUnlock(tBBVectorVar& buf);
@@ -247,7 +199,7 @@ public:
 
   virtual void LockCheck();
 
-  virtual const core::tPortDataManager* PullRequest(core::tPortBase* origin, int8 add_locks);
+  virtual const core::tPortDataManager* PullRequest(core::tPortBase* origin, int8 add_locks, bool intermediate_assign);
 
   /*! Special read port for blackboard buffer */
   class tBBReadPort : public core::tPortBase
