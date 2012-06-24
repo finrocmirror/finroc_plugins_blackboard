@@ -59,7 +59,11 @@ struct tAbstractBlackboardServerRaw : public core::tFrameworkElement, public cor
 protected:
 
   /*! Default lock timeout - if no keep-alive signal occurs in this period of time, blackboard is unlocked */
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
   static constexpr rrlib::time::tDuration cDEFAULT_LOCK_TIMEOUT = std::chrono::seconds(1);
+#else
+  static rrlib::time::tDuration cDEFAULT_LOCK_TIMEOUT;
+#endif
 
   /*!
    * Queue with pending major commands (e.g. LOCK, READ_PART in SingleBufferedBlackboard)

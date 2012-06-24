@@ -269,9 +269,6 @@ private:
 
   public:
 
-    /*! Frequency to check for locks */
-    static constexpr rrlib::time::tDuration cCYCLE_TIME = std::chrono::milliseconds(250);
-
     tLockCheckerThread(tBlackboardManager* const outer_class_ptr_);
 
     virtual void MainLoopCallback();

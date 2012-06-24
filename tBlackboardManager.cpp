@@ -296,10 +296,11 @@ void tBlackboardManager::tBlackboardCategory::Remove(tAbstractBlackboardServerRa
   }
 }
 
-constexpr rrlib::time::tDuration tBlackboardManager::tLockCheckerThread::cCYCLE_TIME;
+/*! Frequency to check for locks */
+static rrlib::time::tDuration cLOCK_CHECKER_CYCLE_TIME = std::chrono::milliseconds(250);
 
 tBlackboardManager::tLockCheckerThread::tLockCheckerThread(tBlackboardManager* const outer_class_ptr_) :
-  core::tCoreLoopThreadBase(cCYCLE_TIME),
+  core::tCoreLoopThreadBase(cLOCK_CHECKER_CYCLE_TIME),
   outer_class_ptr(outer_class_ptr_)
 {
   SetName("Blackboard Lock-Checker Thread");

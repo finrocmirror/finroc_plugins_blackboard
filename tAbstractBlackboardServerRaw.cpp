@@ -27,7 +27,11 @@ namespace finroc
 {
 namespace blackboard
 {
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 constexpr rrlib::time::tDuration tAbstractBlackboardServerRaw::cDEFAULT_LOCK_TIMEOUT;
+#else
+rrlib::time::tDuration tAbstractBlackboardServerRaw::cDEFAULT_LOCK_TIMEOUT = std::chrono::seconds(1);
+#endif
 
 tAbstractBlackboardServerRaw::tAbstractBlackboardServerRaw(const util::tString& bb_name, int category, core::tFrameworkElement* parent) :
   core::tFrameworkElement(parent == NULL ? tBlackboardManager::GetInstance()->GetCategory(category) : parent, bb_name, tBlackboardManager::GetInstance()->GetCategory(category)->default_flags, -1),

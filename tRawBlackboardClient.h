@@ -159,7 +159,11 @@ protected:
 public:
 
   /*! Default network timeout (added to any other timeouts for network calls) */
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
   static constexpr rrlib::time::tDuration cNET_TIMEOUT = std::chrono::seconds(1);
+#else
+  static rrlib::time::tDuration cNET_TIMEOUT;
+#endif
 
 protected:
 
