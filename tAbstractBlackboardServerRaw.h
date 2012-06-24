@@ -205,6 +205,14 @@ public:
     return lock_timeout;
   }
 
+  /*!
+   * \return Read port
+   */
+  core::tPortBase* GetReadPort()
+  {
+    return read_port_raw;
+  }
+
   // Call handling
 
   inline int8 HandleCall(const core::tAbstractMethod& method)
