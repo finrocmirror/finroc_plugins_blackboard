@@ -28,7 +28,6 @@
 #include "plugins/blackboard/tBBLockException.h"
 #include "plugins/blackboard/tBlackboardClient.h"
 #include "plugins/blackboard/tBlackboard.h"
-#include "rrlib/finroc_core_utils/tTime.h"
 
 namespace finroc
 {
@@ -70,9 +69,9 @@ protected:
 
 private:
 
-  inline const typename tBlackboardClient<T>::tBBVector* ReadLock(int timeout = 60000)
+  inline const typename tBlackboardClient<T>::tBBVector* ReadLock(const rrlib::time::tDuration& timeout = std::chrono::minutes(1))
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, "Acquiring read lock on blackboard '", blackboard.GetName(), "' at ", util::tTime::GetPrecise());
+    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, "Acquiring read lock on blackboard '", blackboard.GetName(), "' at ", rrlib::time::Now());
     return blackboard.ReadLock(false, timeout);
   }
 
@@ -82,7 +81,7 @@ public:
    * \param blackboard Blackboard to access
    * \param timeout Timeout for lock (in ms)
    */
-  tBlackboardReadAccess(tBlackboardClient<T>& blackboard, int timeout = 60000) :
+  tBlackboardReadAccess(tBlackboardClient<T>& blackboard, const rrlib::time::tDuration& timeout = std::chrono::minutes(1)) :
     blackboard(blackboard),
     locked(ReadLock(timeout))
   {
@@ -96,7 +95,7 @@ public:
    * \param blackboard Blackboard to access
    * \param timeout Timeout for lock (in ms)
    */
-  tBlackboardReadAccess(tBlackboard<T>& blackboard, int timeout = 60000) :
+  tBlackboardReadAccess(tBlackboard<T>& blackboard, const rrlib::time::tDuration& timeout = std::chrono::minutes(1)) :
     blackboard(blackboard.GetClient()),
     locked(ReadLock(timeout))
   {
@@ -110,7 +109,7 @@ public:
   {
     if (locked != NULL)
     {
-      FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, "Releasing read lock on blackboard '", blackboard.GetName(), "' at ", util::tTime::GetPrecise());
+      FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, "Releasing read lock on blackboard '", blackboard.GetName(), "' at ", rrlib::time::Now());
       blackboard.Unlock();
     }
   }

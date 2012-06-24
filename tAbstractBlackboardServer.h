@@ -246,7 +246,7 @@ protected:
    * \param timeout Timeout in ms
    * \return Locked BlackboardBuffer (if lockId is < 0 this is a copy)
    */
-  virtual typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLock(int64 timeout) = 0;
+  virtual typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLock(const rrlib::time::tDuration& timeout) = 0;
 
   /*!
    * Unlock blackboard (from read lock)
@@ -273,7 +273,7 @@ protected:
    * \param timeout Timeout in ms
    * \return Locked BlackboardBuffer (if lockId is < 0 this is a copy)
    */
-  virtual typename tAbstractBlackboardServer<T>::tBBVectorVar WriteLock(int64 timeout) = 0;
+  virtual typename tAbstractBlackboardServer<T>::tBBVectorVar WriteLock(const rrlib::time::tDuration& timeout) = 0;
 
   /*!
    * Unlock blackboard (from write lock)
@@ -340,22 +340,16 @@ public:
     }
   }
 
-  //    @Override
-  //    public BlackboardBuffer handleCall(AbstractMethod method, Integer p1, Integer p2, Integer p3) throws MethodCallException {
-  //        assert(method == READ_PART);
-  //        return readPart(p1, p2, p3);
-  //    }
-
   inline tBBVectorVar HandleCall(const core::tAbstractMethod& method, int p1)
   {
     assert(method == cLOCK);
-    return WriteLock(p1);
+    return WriteLock(std::chrono::milliseconds(p1));
   }
 
   inline tConstBBVectorVar HandleCall(const core::tAbstractMethod& method, int p1, int dummy)
   {
     assert(method == cREAD_LOCK);
-    return ReadLock(p1);
+    return ReadLock(std::chrono::milliseconds(p1));
   }
 
   inline void HandleVoidCall(const core::tAbstractMethod& method, tConstChangeTransactionVar& p2, int index, int offset)

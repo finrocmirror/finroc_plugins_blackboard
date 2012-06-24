@@ -33,8 +33,6 @@ namespace blackboard
 
 template class tBlackboardClient<tBlackboardBuffer>;
 template class tBlackboardClient<rrlib::serialization::tMemoryBuffer>;
-template class tBlackboardServer<tBlackboardBuffer>;
-template class tBlackboardServer<rrlib::serialization::tMemoryBuffer>;
 template class tSingleBufferedBlackboardServer<tBlackboardBuffer>;
 template class tSingleBufferedBlackboardServer<rrlib::serialization::tMemoryBuffer>;
 

@@ -99,7 +99,7 @@ void tBlackboardManager::CreateBlackboardManager()
   {
     instance = new tBlackboardManager();
     instance->Init();
-    core::tRuntimeEnvironment::GetInstance()->AddListener(instance);
+    core::tRuntimeEnvironment::GetInstance()->AddListener(*instance);
   }
 }
 
@@ -194,7 +194,7 @@ size_t tBlackboardManager::GetNumberOfBlackboards(int start_cat, int end_cat)
 
 void tBlackboardManager::PrepareDelete()
 {
-  core::tRuntimeEnvironment::GetInstance()->RemoveListener(this);
+  core::tRuntimeEnvironment::GetInstance()->RemoveListener(*this);
   instance = NULL;
   ::finroc::core::tFrameworkElement::PrepareDelete();
 }
@@ -215,14 +215,14 @@ void tBlackboardManager::RemoveClient(tRawBlackboardClient* client)
   }
 }
 
-void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement* element)
+void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement& element)
 {
   if (change_type == ::finroc::core::tRuntimeListener::cADD)
   {
     // Is this a remote blackboard? -> Create proxy
-    if (element->GetFlag(core::tCoreFlags::cNETWORK_ELEMENT) && element->GetFlag(core::tCoreFlags::cIS_PORT) && (!element->IsChildOf(this)))
+    if (element.GetFlag(core::tCoreFlags::cNETWORK_ELEMENT) && element.GetFlag(core::tCoreFlags::cIS_PORT) && (!element.IsChildOf(this)))
     {
-      element->GetQualifiedLink(temp_buffer);
+      element.GetQualifiedLink(temp_buffer);
       util::tString qname = temp_buffer;
       util::tString name = GetBlackboardNameFromQualifiedLink(temp_buffer);
       bool read = boost::ends_with(qname, cREAD_POSTFIX);
@@ -240,15 +240,15 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
         }
         if (read && info->read_port_raw == NULL)
         {
-          core::tPortBase* port = static_cast<core::tPortBase*>(element);
-          info->read_port_raw = new core::tPortBase(core::tPortCreationInfoBase(cREAD_PORT_NAME, info, port->GetDataType(), core::tPortFlags::cOUTPUT_PROXY | core::tCoreFlags::cNETWORK_ELEMENT));
+          core::tPortBase& port = static_cast<core::tPortBase&>(element);
+          info->read_port_raw = new core::tPortBase(core::tPortCreationInfoBase(cREAD_PORT_NAME, info, port.GetDataType(), core::tPortFlags::cOUTPUT_PROXY | core::tCoreFlags::cNETWORK_ELEMENT));
           info->Init();
           info->read_port_raw->ConnectToSource(qname);
         }
         else if (write && info->write_port_raw == NULL)
         {
-          core::tInterfacePort* port = static_cast<core::tInterfacePort*>(element);
-          info->write_port_raw = new core::tInterfacePort(cWRITE_PORT_NAME, info, port->GetDataType(), core::tInterfacePort::eRouting, core::tCoreFlags::cNETWORK_ELEMENT);
+          core::tInterfacePort& port = static_cast<core::tInterfacePort&>(element);
+          info->write_port_raw = new core::tInterfacePort(cWRITE_PORT_NAME, info, port.GetDataType(), core::tInterfacePort::eRouting, core::tCoreFlags::cNETWORK_ELEMENT);
           info->Init();
           info->write_port_raw->ConnectToSource(qname);
         }
@@ -296,7 +296,7 @@ void tBlackboardManager::tBlackboardCategory::Remove(tAbstractBlackboardServerRa
   }
 }
 
-const int tBlackboardManager::tLockCheckerThread::cCYCLE_TIME;
+constexpr rrlib::time::tDuration tBlackboardManager::tLockCheckerThread::cCYCLE_TIME;
 
 tBlackboardManager::tLockCheckerThread::tLockCheckerThread(tBlackboardManager* const outer_class_ptr_) :
   core::tCoreLoopThreadBase(cCYCLE_TIME),

@@ -353,14 +353,9 @@ public:
    * \param timeout (relevant for SingleBufferedBlackboardClients only) Timeout for lock attempt
    * \return Raw memory buffer containing blackboard contents - locked - don't forget to release read lock
    */
-  inline tConstBBVectorVar Read(int64 timeout)
+  inline tConstBBVectorVar Read(const rrlib::time::tDuration& timeout = std::chrono::seconds(2))
   {
     return core::tPortUtil<tBBVector>::GetValueWithLock(wrapped->GetReadPort());
-  }
-
-  inline tConstBBVectorVar Read()
-  {
-    return Read(2000);
   }
 
   /*!
@@ -374,7 +369,7 @@ public:
    * \param force_read_copy_to_avoid_blocking Force read copy to avoid blocking? (only relevant for single buffered blackboard servers)
    * \param timeout Timeout for call
    */
-  const typename tAbstractBlackboardServer<T>::tBBVector* ReadLock(bool force_read_copy_to_avoid_blocking = false, int timeout = 60000);
+  const typename tAbstractBlackboardServer<T>::tBBVector* ReadLock(bool force_read_copy_to_avoid_blocking = false, const rrlib::time::tDuration& timeout = std::chrono::minutes(1));
 
   operator bool()
   {
@@ -402,7 +397,7 @@ public:
    * call unlock() after modifications are complete - locks of buffer should normally not be modified -
    * except of it should be used in some other port or stored for longer than the unlock() operation
    */
-  typename tAbstractBlackboardServer<T>::tBBVector* WriteLock(int timeout = 60000);
+  typename tAbstractBlackboardServer<T>::tBBVector* WriteLock(const rrlib::time::tDuration& timeout = std::chrono::minutes(1));
 
 };
 

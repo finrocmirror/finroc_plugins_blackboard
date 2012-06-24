@@ -19,7 +19,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "rrlib/finroc_core_utils/tTime.h"
 #include "rrlib/finroc_core_utils/log/tLogUser.h"
 
 #include "core/portdatabase/tFinrocTypeInfo.h"
@@ -37,8 +36,6 @@ namespace finroc
 {
 namespace blackboard
 {
-template<typename T>
-const int64 tSingleBufferedBlackboardServer<T>::cUNLOCK_TIMEOUT;
 
 template<typename T>
 tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::tString& name, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared, rrlib::rtti::tDataTypeBase type) :
@@ -46,8 +43,8 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
   write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
   buffer(write->GetBufferForReturn<tBBVector>()),
   locks(0),
-  lock_time(0),
-  last_keep_alive(0),
+  lock_time(rrlib::time::cNO_TIME),
+  last_keep_alive(rrlib::time::cNO_TIME),
   lock_id_gen(0),
   lock_id(0),
   revision(0),
@@ -72,8 +69,8 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
   write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
   buffer(write->GetBufferForReturn<tBBVector>()),
   locks(0),
-  lock_time(0),
-  last_keep_alive(0),
+  lock_time(rrlib::time::cNO_TIME),
+  last_keep_alive(rrlib::time::cNO_TIME),
   lock_id_gen(0),
   lock_id(0),
   revision(0),
@@ -121,7 +118,7 @@ void tSingleBufferedBlackboardServer<T>::AsynchChange(tConstChangeTransactionVar
 template<typename T>
 void tSingleBufferedBlackboardServer<T>::CheckCurrentLock(util::tLock& passed_lock)
 {
-  if (IsLocked() && util::tTime::GetCoarse() > last_keep_alive + cUNLOCK_TIMEOUT)
+  if (IsLocked() && rrlib::time::Now(false) > last_keep_alive.Load() + this->GetLockTimeout())
   {
     FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Blackboard server: Lock timed out... unlocking");
 
@@ -181,15 +178,15 @@ void tSingleBufferedBlackboardServer<T>::KeepAlive(int lock_id_)
   util::tLock lock2(this->bb_lock);
   if (locks != 0 && this->lock_id == lock_id_)
   {
-    last_keep_alive = util::tTime::GetCoarse();
+    last_keep_alive.Store(rrlib::time::Now(false));
   }
 }
 
 template<typename T>
 void tSingleBufferedBlackboardServer<T>::LockCheck()
 {
-  int64 cur_time = util::tTime::GetCoarse();
-  if (last_keep_alive + cUNLOCK_TIMEOUT > cur_time)
+  rrlib::time::tTimestamp cur_time = rrlib::time::Now(false);
+  if (last_keep_alive.Load() + this->GetLockTimeout() > cur_time)
   {
     return;
   }
@@ -228,7 +225,7 @@ const core::tPortDataManager* tSingleBufferedBlackboardServer<T>::PullRequest(co
 
     if (IsLocked())
     {
-      WaitForReadCopy(lock2, revision, 2000);
+      WaitForReadCopy(lock2, revision, std::chrono::seconds(2));
     }
     else
     {
@@ -244,14 +241,14 @@ const core::tPortDataManager* tSingleBufferedBlackboardServer<T>::PullRequest(co
 }
 
 template<typename T>
-typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboardServer<T>::ReadLock(int64 timeout)
+typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboardServer<T>::ReadLock(const rrlib::time::tDuration& timeout)
 {
   util::tLock lock2(this->bb_lock);
   return ReadLockImpl(lock2, timeout);
 }
 
 template<typename T>
-typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboardServer<T>::ReadLockImpl(util::tLock& passed_lock, int64 timeout)
+typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboardServer<T>::ReadLockImpl(util::tLock& passed_lock, const rrlib::time::tDuration& timeout)
 {
   // Read Lock
   int64 current_revision = revision;
@@ -260,7 +257,7 @@ typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboa
     CheckCurrentLock(passed_lock);
     if (locks < 0 && current_revision != read_copy_revision)
     {
-      if (timeout <= 0)    // we do not need to enqueue lock commands with zero timeout
+      if (timeout <= rrlib::time::tDuration::zero())    // we do not need to enqueue lock commands with zero timeout
       {
 
         return tConstBBVectorVar(); // we do not need to enqueue lock commands with zero timeout
@@ -375,36 +372,28 @@ void tSingleBufferedBlackboardServer<T>::UpdateReadCopy(util::tLock& passed_lock
   {
     thread_waiting_for_copy = false;
     this->wakeup_thread = -1;
-    this->bb_lock.monitor.NotifyAll(passed_lock);
+    this->monitor.NotifyAll(passed_lock);
   }
 
 }
 
 template<typename T>
-void tSingleBufferedBlackboardServer<T>::WaitForReadCopy(util::tLock& passed_lock, int64 min_revision, int64 timeout)
+void tSingleBufferedBlackboardServer<T>::WaitForReadCopy(util::tLock& passed_lock, int64 min_revision, const rrlib::time::tDuration& timeout)
 {
-  int64 cur_time = util::tTime::GetCoarse();
+  rrlib::time::tTimestamp cur_time = rrlib::time::Now(false);
   while (read_copy_revision < min_revision)
   {
-    int64 wait_for = timeout - (util::tTime::GetCoarse() - cur_time);
-    if (wait_for > 0)
+    rrlib::time::tDuration wait_for = timeout - (rrlib::time::Now(false) - cur_time);
+    if (wait_for > rrlib::time::tDuration::zero())
     {
       thread_waiting_for_copy = true;
-      try
-      {
-        this->bb_lock.monitor.Wait(passed_lock, wait_for);
-      }
-      catch (const util::tInterruptedException& e)
-      {
-        FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "SingleBufferedBlackboardServer: Interrupted while waiting for read copy - strange");
-        //e.printStackTrace();
-      }
+      this->monitor.Wait(passed_lock, wait_for, false);
     }
   }
 }
 
 template<typename T>
-typename tAbstractBlackboardServer<T>::tBBVectorVar tSingleBufferedBlackboardServer<T>::WriteLock(int64 timeout)
+typename tAbstractBlackboardServer<T>::tBBVectorVar tSingleBufferedBlackboardServer<T>::WriteLock(const rrlib::time::tDuration& timeout)
 {
   util::tLock lock2(this->bb_lock);
   if (IsLocked() || this->PendingTasks())
@@ -412,7 +401,7 @@ typename tAbstractBlackboardServer<T>::tBBVectorVar tSingleBufferedBlackboardSer
     CheckCurrentLock(lock2);
     if (IsLocked() || this->PendingTasks())
     {
-      if (timeout <= 0)    // we do not need to enqueue lock commands with zero timeout
+      if (timeout <= rrlib::time::tDuration::zero())    // we do not need to enqueue lock commands with zero timeout
       {
 
         return tBBVectorVar(); // we do not need to enqueue lock commands with zero timeout
@@ -437,8 +426,9 @@ typename tAbstractBlackboardServer<T>::tBBVectorVar tSingleBufferedBlackboardSer
   lock_id = lock_id_new;
   GetManager(buffer)->lock_id = lock_id_new;
   locks = -1;
-  lock_time = util::tTime::GetCoarse();
-  last_keep_alive = lock_time;
+  rrlib::time::tTimestamp now = rrlib::time::Now(false);
+  lock_time.Store(now);
+  last_keep_alive.Store(now);
 
   GetManager(buffer)->AddLock();
 

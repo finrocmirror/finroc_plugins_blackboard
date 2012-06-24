@@ -110,7 +110,7 @@ bool tAbstractBlackboardServer<T>::ProcessPendingCommands(util::tLock& passed_lo
   tBlackboardTask next_task = this->pending_major_tasks.Remove(0);
   this->wakeup_thread = next_task.thread_uid;
   //System.out.println(createThreadString() + ": waking up thread " + wakeupThread);
-  this->bb_lock.monitor.NotifyAll(passed_lock);
+  this->monitor.NotifyAll(passed_lock);
   return true;
 }
 

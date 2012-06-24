@@ -28,7 +28,6 @@
 #include "plugins/blackboard/tBBLockException.h"
 #include "rrlib/rtti/rtti.h"
 #include "plugins/blackboard/tBlackboardClient.h"
-#include "rrlib/finroc_core_utils/tTime.h"
 
 namespace finroc
 {
@@ -56,9 +55,9 @@ private:
 
   using tBlackboardReadAccess<T>::blackboard;
 
-  inline typename tBlackboardClient<T>::tBBVector* WriteLock(int timeout = 60000)
+  inline typename tBlackboardClient<T>::tBBVector* WriteLock(const rrlib::time::tDuration& timeout = std::chrono::minutes(1))
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, "Acquiring write lock on blackboard '", blackboard.GetName(), "' at ", util::tTime::GetPrecise());
+    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, "Acquiring write lock on blackboard '", blackboard.GetName(), "' at ", rrlib::time::Now());
     return blackboard.WriteLock(timeout);
   }
 
@@ -68,7 +67,7 @@ public:
    * \param blackboard Blackboard to access
    * \param timeout Timeout for lock (in ms)
    */
-  tBlackboardWriteAccess(tBlackboardClient<T>& blackboard, int timeout = 60000) :
+  tBlackboardWriteAccess(tBlackboardClient<T>& blackboard, const rrlib::time::tDuration& timeout = std::chrono::minutes(1)) :
     tBlackboardReadAccess<T>(blackboard, blackboard),
     locked(WriteLock(timeout))
   {
@@ -83,7 +82,7 @@ public:
    * \param blackboard Blackboard to access
    * \param timeout Timeout for lock (in ms)
    */
-  tBlackboardWriteAccess(tBlackboard<T>& blackboard, int timeout = 60000) :
+  tBlackboardWriteAccess(tBlackboard<T>& blackboard, const rrlib::time::tDuration& timeout = std::chrono::minutes(1)) :
     tBlackboardReadAccess<T>(blackboard.GetClient(), blackboard.GetClient()),
     locked(WriteLock(timeout))
   {
@@ -99,7 +98,7 @@ public:
     tBlackboardReadAccess<T>::locked = NULL;
     if (locked != NULL)
     {
-      FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, "Releasing write lock on blackboard '", blackboard.GetName(), "' at ", util::tTime::GetPrecise());
+      FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, "Releasing write lock on blackboard '", blackboard.GetName(), "' at ", rrlib::time::Now());
       blackboard.Unlock();
     }
   }

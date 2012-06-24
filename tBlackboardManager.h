@@ -246,9 +246,9 @@ public:
    */
   void RemoveClient(tRawBlackboardClient* client);
 
-  virtual void RuntimeChange(int8 change_type, core::tFrameworkElement* element);
+  virtual void RuntimeChange(int8 change_type, core::tFrameworkElement& element);
 
-  virtual void RuntimeEdgeChange(int8 change_type, core::tAbstractPort* source, core::tAbstractPort* target)
+  virtual void RuntimeEdgeChange(int8 change_type, core::tAbstractPort& source, core::tAbstractPort& target)
   {
     // do nothing
   }
@@ -270,7 +270,7 @@ private:
   public:
 
     /*! Frequency to check for locks */
-    static const int cCYCLE_TIME = 250;
+    static constexpr rrlib::time::tDuration cCYCLE_TIME = std::chrono::milliseconds(250);
 
     tLockCheckerThread(tBlackboardManager* const outer_class_ptr_);
 

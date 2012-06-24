@@ -28,23 +28,20 @@
 #include "core/port/std/tPortBase.h"
 #include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
 #include "core/port/rpc/tInterfaceServerPort.h"
-#include "rrlib/finroc_core_utils/tTime.h"
 #include "core/port/std/tPortDataManager.h"
 
 namespace finroc
 {
 namespace blackboard
 {
-template<typename T>
-const int64 tBlackboardServer<T>::cUNLOCK_TIMEOUT;
 
 template<typename T>
 tBlackboardServer<T>::tBlackboardServer(const util::tString& name, int capacity, int elements, int elem_size, core::tFrameworkElement* parent, bool shared, rrlib::rtti::tDataTypeBase type) :
   tAbstractBlackboardServer<T>(name, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
   write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
   locked(),
-  lock_time(0),
-  last_keep_alive(0),
+  lock_time(rrlib::time::cNO_TIME),
+  last_keep_alive(rrlib::time::cNO_TIME),
   lock_id_gen(0),
   lock_id(0),
   published(),
@@ -70,8 +67,8 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& name, int elements,
   tAbstractBlackboardServer<T>(name, shared ? tBlackboardManager::cSHARED : tBlackboardManager::cLOCAL, parent),
   write(new core::tInterfaceServerPort("write", this, this->GetBlackboardMethodType(type), this, shared ? core::tCoreFlags::cSHARED : 0, core::tLockOrderLevels::cREMOTE_PORT + 2)),
   locked(),
-  lock_time(0),
-  last_keep_alive(0),
+  lock_time(rrlib::time::cNO_TIME),
+  last_keep_alive(rrlib::time::cNO_TIME),
   lock_id_gen(0),
   lock_id(0),
   published(),
@@ -128,7 +125,7 @@ void tBlackboardServer<T>::AsynchChange(tConstChangeTransactionVar& buf, int ind
 template<typename T>
 void tBlackboardServer<T>::CheckCurrentLock(util::tLock& passed_lock)
 {
-  if (locked != NULL && util::tTime::GetCoarse() > last_keep_alive + cUNLOCK_TIMEOUT)
+  if (locked != NULL && rrlib::time::Now(false) > last_keep_alive.Load() + this->GetLockTimeout())
   {
     FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Blackboard server: Lock timed out... unlocking");
 
@@ -203,8 +200,9 @@ void tBlackboardServer<T>::DuplicateAndLock()
 {
   assert((locked == NULL));
   lock_id = lock_id_gen.IncrementAndGet();
-  lock_time = util::tTime::GetCoarse();
-  last_keep_alive = lock_time;
+  rrlib::time::tTimestamp now = rrlib::time::Now(false);
+  lock_time.Store(now);
+  last_keep_alive.Store(now);
 
   locked = write->GetBufferForReturn<tBBVector>();
 
@@ -222,7 +220,7 @@ void tBlackboardServer<T>::KeepAlive(int lock_id_)
     util::tLock lock2(this->bb_lock);
     if (locked != NULL && this->lock_id == lock_id_)
     {
-      last_keep_alive = util::tTime::GetCoarse();
+      last_keep_alive.Store(rrlib::time::Now(false));
     }
   }
 }
@@ -230,8 +228,8 @@ void tBlackboardServer<T>::KeepAlive(int lock_id_)
 template<typename T>
 void tBlackboardServer<T>::LockCheck()
 {
-  int64 cur_time = util::tTime::GetCoarse();
-  if (last_keep_alive + cUNLOCK_TIMEOUT > cur_time)
+  rrlib::time::tTimestamp cur_time = rrlib::time::Now(false);
+  if (last_keep_alive.Load() + this->GetLockTimeout() > cur_time)
   {
     return;
   }
@@ -243,7 +241,7 @@ void tBlackboardServer<T>::LockCheck()
 }
 
 template<typename T>
-typename tAbstractBlackboardServer<T>::tBBVectorVar tBlackboardServer<T>::WriteLock(int64 timeout)
+typename tAbstractBlackboardServer<T>::tBBVectorVar tBlackboardServer<T>::WriteLock(const rrlib::time::tDuration& timeout)
 {
   {
     util::tLock lock2(this->bb_lock);
@@ -252,7 +250,7 @@ typename tAbstractBlackboardServer<T>::tBBVectorVar tBlackboardServer<T>::WriteL
       CheckCurrentLock(lock2);
       if (locked != NULL || this->PendingTasks())
       {
-        if (timeout <= 0)    // we do not need to enqueue lock commands with zero timeout
+        if (timeout <= rrlib::time::tDuration::zero())    // we do not need to enqueue lock commands with zero timeout
         {
 
           return tBBVectorVar(); // we do not need to enqueue lock commands with zero timeout

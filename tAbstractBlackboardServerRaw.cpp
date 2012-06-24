@@ -21,24 +21,26 @@
  */
 #include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
 #include "core/portdatabase/tFinrocTypeInfo.h"
-#include "rrlib/finroc_core_utils/tTime.h"
 #include "rrlib/finroc_core_utils/log/tLogUser.h"
 
 namespace finroc
 {
 namespace blackboard
 {
+constexpr rrlib::time::tDuration tAbstractBlackboardServerRaw::cDEFAULT_LOCK_TIMEOUT;
+
 tAbstractBlackboardServerRaw::tAbstractBlackboardServerRaw(const util::tString& bb_name, int category, core::tFrameworkElement* parent) :
   core::tFrameworkElement(parent == NULL ? tBlackboardManager::GetInstance()->GetCategory(category) : parent, bb_name, tBlackboardManager::GetInstance()->GetCategory(category)->default_flags, -1),
   pending_major_tasks(),
   wakeup_thread(-1),
   bb_lock(core::tLockOrderLevels::cINNER_MOST - 1000),
+  monitor(bb_lock),
   read_port_raw(NULL),
   write_port_raw(NULL),
   category_index(category),
-  my_category(tBlackboardManager::GetInstance()->GetCategory(category))
+  my_category(tBlackboardManager::GetInstance()->GetCategory(category)),
+  lock_timeout(cDEFAULT_LOCK_TIMEOUT)
 {
-  // this(bbName,category,BlackboardManager.getInstance().getCategory(category).defaultFlags,parent);
 }
 
 void tAbstractBlackboardServerRaw::CheckType(rrlib::rtti::tDataTypeBase dt)
@@ -57,7 +59,7 @@ util::tString tAbstractBlackboardServerRaw::CreateThreadString()
 
 void tAbstractBlackboardServerRaw::PrepareDelete()
 {
-  util::tLock lock1(this);
+  util::tLock lock1(*this);
   {
     util::tLock lock2(bb_lock);
     if (tBlackboardManager::GetInstance() != NULL)    // we don't need to remove it, if blackboard manager has already been deleted
@@ -81,33 +83,26 @@ bool tAbstractBlackboardServerRaw::ProcessPendingCommands(util::tLock& passed_lo
   tBlackboardTask next_task = pending_major_tasks.Remove(0);
   wakeup_thread = next_task.thread_uid;
   //System.out.println(createThreadString() + ": waking up thread " + wakeupThread);
-  bb_lock.monitor.NotifyAll(passed_lock);
+  monitor.NotifyAll(passed_lock);
   return true;
 }
 
-bool tAbstractBlackboardServerRaw::WaitForLock(util::tLock& passed_lock, int64 timeout)
+bool tAbstractBlackboardServerRaw::WaitForLock(util::tLock& passed_lock, const rrlib::time::tDuration& timeout)
 {
   tBlackboardTask task;
   //task.method = method;
   task.thread_uid = util::sThreadUtil::GetCurrentThreadId();
   pending_major_tasks.Add(task);
-  int64 start_time = util::tTime::GetCoarse();
+  rrlib::time::tTimestamp start_time = rrlib::time::Now(false);
   //long curTime = startTime;
-  int64 wait_for = timeout;
+  rrlib::time::tDuration wait_for = timeout;
   //System.out.println(createThreadString() + ": waiting " + timeout + " ms for lock");
-  while (wait_for > 0)
+  while (wait_for > rrlib::time::tDuration::zero())
   {
-    try
-    {
-      //System.out.println(createThreadString() + ": entered wait");
-      bb_lock.monitor.Wait(passed_lock, wait_for);
-    }
-    catch (const util::tInterruptedException& e)
-    {
-      //e.printStackTrace();
-      FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "Wait interrupted in AbstractBlackboardServer - shouldn't happen... usually");
-    }
-    wait_for = timeout - (util::tTime::GetCoarse() - start_time);
+    //System.out.println(createThreadString() + ": entered wait");
+    monitor.Wait(passed_lock, wait_for, false);
+
+    wait_for = timeout - (rrlib::time::Now(false) - start_time);
     //System.out.println(createThreadString() + ": left wait; waitFor = " + waitFor + "; wakeupThread = " + wakeupThread);
     if (wakeup_thread == util::sThreadUtil::GetCurrentThreadId())
     {

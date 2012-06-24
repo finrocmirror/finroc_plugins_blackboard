@@ -67,7 +67,7 @@ protected:
     throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
 
-  virtual tAbstractBlackboardServer<core::tNumber>::tConstBBVectorVar ReadLock(int64 timeout)
+  virtual tAbstractBlackboardServer<core::tNumber>::tConstBBVectorVar ReadLock(const rrlib::time::tDuration& timeout)
   {
     throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
@@ -82,7 +82,7 @@ protected:
     throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }
 
-  virtual tAbstractBlackboardServer<core::tNumber>::tBBVectorVar WriteLock(int64 timeout)
+  virtual tAbstractBlackboardServer<core::tNumber>::tBBVectorVar WriteLock(const rrlib::time::tDuration& timeout)
   {
     throw util::tRuntimeException("Operation not supported", CODE_LOCATION_MACRO);
   }

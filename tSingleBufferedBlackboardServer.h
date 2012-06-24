@@ -63,9 +63,6 @@ private:
   typedef typename tAbstractBlackboardServer<T>::tChangeTransactionVar tChangeTransactionVar;
   typedef typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar tConstChangeTransactionVar;
 
-  /*! Unlock timeout in ms - if no keep-alive signal occurs in this period of time */
-  static const int64 cUNLOCK_TIMEOUT = 1000;
-
   /*! Interface port for write access */
   core::tInterfaceServerPort* write;
 
@@ -87,10 +84,10 @@ private:
   int locks;
 
   /*! Time when last lock was performed */
-  volatile int64 lock_time;
+  rrlib::time::tAtomicTimestamp lock_time;
 
   /*! Last time a keep-alive-signal was received */
-  volatile int64 last_keep_alive;
+  rrlib::time::tAtomicTimestamp last_keep_alive;
 
   /*! ID of current lock - against outdated unlocks */
   util::tAtomicInt lock_id_gen;
@@ -107,7 +104,7 @@ private:
   int64 read_copy_revision;
 
   /*! Is a thread waiting for a blackboard copy? */
-  volatile bool thread_waiting_for_copy;
+  std::atomic<bool> thread_waiting_for_copy;
 
   /*! Check if lock timed out (only call in synchronized/exclusive access context) */
   void CheckCurrentLock(util::tLock& passed_lock);
@@ -126,7 +123,7 @@ private:
   /*!
    * Helper method for above to avoid nested/double lock
    */
-  typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLockImpl(util::tLock& passed_lock, int64 timeout);
+  typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLockImpl(util::tLock& passed_lock, const rrlib::time::tDuration& timeout);
 
   /*!
    * Helper method for above to avoid nested/double lock
@@ -144,7 +141,7 @@ private:
    *
    * \param min_revision minimal revision we want to receive
    */
-  void WaitForReadCopy(util::tLock& passed_lock, int64 min_revision, int64 timeout);
+  void WaitForReadCopy(util::tLock& passed_lock, int64 min_revision, const rrlib::time::tDuration& timeout);
 
 protected:
 
@@ -165,11 +162,11 @@ protected:
 
   virtual void KeepAlive(int lock_id_);
 
-  virtual typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLock(int64 timeout);
+  virtual typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLock(const rrlib::time::tDuration& timeout);
 
   virtual void ReadUnlock(int lock_id_);
 
-  virtual typename tAbstractBlackboardServer<T>::tBBVectorVar WriteLock(int64 timeout);
+  virtual typename tAbstractBlackboardServer<T>::tBBVectorVar WriteLock(const rrlib::time::tDuration& timeout);
 
   virtual void WriteUnlock(tBBVectorVar& buf);
 

@@ -31,13 +31,6 @@
 #include "core/port/rpc/tMethodCallException.h"
 #include "plugins/blackboard/tAbstractBlackboardServer.h"
 
-namespace finroc
-{
-namespace core
-{
-class tInterfaceServerPort;
-} // namespace finroc
-} // namespace core
 
 namespace finroc
 {
@@ -60,9 +53,6 @@ private:
   typedef typename tAbstractBlackboardServer<T>::tChangeTransactionVar tChangeTransactionVar;
   typedef typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar tConstChangeTransactionVar;
 
-  /*! Unlock timeout in ms - if no keep-alive signal occurs in this period of time */
-  static const int64 cUNLOCK_TIMEOUT = 1000;
-
   /*! Interface port for write access */
   core::tInterfaceServerPort* write;
 
@@ -70,10 +60,10 @@ private:
   tBBVectorVar locked;
 
   /*! Time when last lock was performed */
-  volatile int64 lock_time;
+  rrlib::time::tAtomicTimestamp lock_time;
 
   /*! Last time a keep-alive-signal was received */
-  volatile int64 last_keep_alive;
+  rrlib::time::tAtomicTimestamp last_keep_alive;
 
   /*! ID of current lock - against outdated unlocks */
   util::tAtomicInt lock_id_gen;
@@ -141,7 +131,7 @@ protected:
 
   virtual void KeepAlive(int lock_id_);
 
-  virtual typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLock(int64 timeout)
+  virtual typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLock(const rrlib::time::tDuration& timeout)
   {
     FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "warning: Client must not attempt read lock on multi-buffered blackboard - Call failed");
     throw core::tMethodCallException(core::tMethodCallException::tType::INVALID_PARAM, CODE_LOCATION_MACRO);
@@ -153,7 +143,7 @@ protected:
     throw core::tMethodCallException(core::tMethodCallException::tType::INVALID_PARAM, CODE_LOCATION_MACRO);
   }
 
-  virtual typename tAbstractBlackboardServer<T>::tBBVectorVar WriteLock(int64 timeout);
+  virtual typename tAbstractBlackboardServer<T>::tBBVectorVar WriteLock(const rrlib::time::tDuration& timeout);
 
   virtual void WriteUnlock(tBBVectorVar& buf);
 

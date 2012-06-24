@@ -159,7 +159,7 @@ protected:
 public:
 
   /*! Default network timeout (added to any other timeouts for network calls) */
-  static const int cNET_TIMEOUT = 1000;
+  static constexpr rrlib::time::tDuration cNET_TIMEOUT = std::chrono::seconds(1);
 
 protected:
 

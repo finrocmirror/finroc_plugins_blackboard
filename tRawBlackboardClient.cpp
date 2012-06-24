@@ -32,7 +32,7 @@ namespace finroc
 {
 namespace blackboard
 {
-const int tRawBlackboardClient::cNET_TIMEOUT;
+constexpr rrlib::time::tDuration tRawBlackboardClient::cNET_TIMEOUT;
 
 bool tRawBlackboardClient::CheckConnect(tAbstractBlackboardServerRaw* server)
 {

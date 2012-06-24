@@ -274,13 +274,9 @@ void tBlackboardClient<T>::Publish(tBBVectorVar& buffer)
 }
 
 template<typename T>
-const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::ReadLock(bool force_read_copy_to_avoid_blocking, int timeout)
+const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::ReadLock(bool force_read_copy_to_avoid_blocking, const rrlib::time::tDuration& timeout)
 {
   assert(((locked == NULL && wrapped->lock_type == tRawBlackboardClient::eNONE)) && "Unlock first");
-  if (timeout <= 0)
-  {
-    timeout = 60000;  // wait one minute for method to complete if no time is specified
-  }
 
   // determine whether blackboard server is single buffered
   wrapped->CheckSingleBuffered();
@@ -305,7 +301,7 @@ const typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::Re
     assert((wrapped->IsReady()));
     try
     {
-      tConstBBVectorVar ret = tAbstractBlackboardServer<T>::cREAD_LOCK.Call(*wrapped->GetWritePort(), static_cast<int>(timeout + tRawBlackboardClient::cNET_TIMEOUT), timeout, 0);
+      tConstBBVectorVar ret = tAbstractBlackboardServer<T>::cREAD_LOCK.Call(*wrapped->GetWritePort(), timeout + tRawBlackboardClient::cNET_TIMEOUT, (int)std::chrono::duration_cast<std::chrono::milliseconds>(timeout).count(), 0);
 
       if (ret != NULL)
       {
@@ -389,19 +385,14 @@ void tBlackboardClient<T>::Unlock()
 }
 
 template<typename T>
-typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::WriteLock(int timeout)
+typename tAbstractBlackboardServer<T>::tBBVector* tBlackboardClient<T>::WriteLock(const rrlib::time::tDuration& timeout)
 {
-  if (timeout <= 0)
-  {
-    timeout = 60000;  // wait one minute for method to complete if no time is specified
-  }
-
   assert((locked == NULL && wrapped->lock_type == tRawBlackboardClient::eNONE));
   assert((wrapped->cur_lock_id == -1));
   assert((wrapped->IsReady()));
   try
   {
-    tBBVectorVar ret = tAbstractBlackboardServer<T>::cLOCK.Call(*wrapped->GetWritePort(), static_cast<int>(timeout + tRawBlackboardClient::cNET_TIMEOUT), timeout);
+    tBBVectorVar ret = tAbstractBlackboardServer<T>::cLOCK.Call(*wrapped->GetWritePort(), timeout + tRawBlackboardClient::cNET_TIMEOUT, (int)std::chrono::duration_cast<std::chrono::milliseconds>(timeout).count());
 
     if (ret != NULL)
     {

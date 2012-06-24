@@ -28,6 +28,7 @@
 #include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
 #include "rrlib/rtti/tDataTypeBase.h"
 
+#include "core/port/std/tPortBase.h"
 #include "core/port/rpc/tInterfacePort.h"
 #include "core/tLockOrderLevels.h"
 #include "core/tFrameworkElement.h"
@@ -41,14 +42,6 @@
 
 namespace finroc
 {
-namespace core
-{
-class tPortBase;
-} // namespace finroc
-} // namespace core
-
-namespace finroc
-{
 namespace blackboard
 {
 /*!
@@ -56,7 +49,17 @@ namespace blackboard
  */
 struct tAbstractBlackboardServerRaw : public core::tFrameworkElement, public core::tAbstractMethodCallHandler
 {
+  friend class tBlackboardManager;
+  friend class tRawBlackboardClient;
+  template <typename T>
+  friend class tBlackboardClient;
+  template <typename T>
+  friend class tBlackboard;
+
 protected:
+
+  /*! Default lock timeout - if no keep-alive signal occurs in this period of time, blackboard is unlocked */
+  static constexpr rrlib::time::tDuration cDEFAULT_LOCK_TIMEOUT = std::chrono::seconds(1);
 
   /*!
    * Queue with pending major commands (e.g. LOCK, READ_PART in SingleBufferedBlackboard)
@@ -67,10 +70,9 @@ protected:
   /*! Uid of thread that is allowed to wake up now - after notifyAll() - thread should reset this to -1 as soon as possible */
   int64 wakeup_thread;
 
-public:
-
   /*! Lock for blackboard operation (needs to be deeper than runtime - (for initial pushes etc.)) */
-  util::tMutexLockOrderWithMonitor bb_lock;
+  util::tMutexLockOrder bb_lock;
+  util::tConditionVariable monitor;
 
   /*! read port */
   core::tPortBase* read_port_raw;
@@ -83,6 +85,9 @@ public:
 
   /*! Blackboard category that this server belongs to */
   tBlackboardManager::tBlackboardCategory* my_category;
+
+  /*! Default lock timeout - if no keep-alive signal occurs in this period of time, blackboard is unlocked */
+  rrlib::time::tDuration lock_timeout;
 
 protected:
 
@@ -159,9 +164,6 @@ protected:
    */
   virtual bool ProcessPendingCommands(util::tLock& passed_lock);
 
-  //
-  //    // finroc::util::tLock* curlock;
-
   /*!
    * Wait to receive lock on blackboard for specified amount of time
    * (MUST be called in synchronized context)
@@ -169,7 +171,7 @@ protected:
    * \param timeout Time to wait for lock
    * \return Do we have a lock now? (or did rather timeout expire?)
    */
-  bool WaitForLock(util::tLock& passed_lock, int64 timeout);
+  bool WaitForLock(util::tLock& passed_lock, const rrlib::time::tDuration& timeout);
 
 public:
 
@@ -195,6 +197,14 @@ public:
     return dt.GetAnnotation<tBlackboardTypeInfo>();
   }
 
+  /*!
+   * return Lock timeout - if no keep-alive signal occurs in this period of time, blackboard is unlocked
+   */
+  rrlib::time::tDuration GetLockTimeout()
+  {
+    return lock_timeout;
+  }
+
   // Call handling
 
   inline int8 HandleCall(const core::tAbstractMethod& method)
@@ -206,6 +216,16 @@ public:
    * Check whether lock has timed out
    */
   virtual void LockCheck() = 0;
+
+  /*!
+   * (Don't call this while blackboard is used/accessed)
+   *
+   * \param timeout Lock timeout - if no keep-alive signal occurs in this period of time, blackboard is unlocked
+   */
+  void SetLockTimeout(const rrlib::time::tDuration& timeout)
+  {
+    lock_timeout = timeout;
+  }
 
 };
 
