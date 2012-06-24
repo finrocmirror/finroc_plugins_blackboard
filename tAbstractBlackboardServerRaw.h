@@ -213,6 +213,14 @@ public:
     return read_port_raw;
   }
 
+  /*!
+   * \return Read port
+   */
+  core::tInterfacePort* GetWritePort()
+  {
+    return write_port_raw;
+  }
+
   // Call handling
 
   inline int8 HandleCall(const core::tAbstractMethod& method)
