@@ -92,7 +92,7 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
 template<typename T>
 void tSingleBufferedBlackboardServer<T>::AsynchChange(tConstChangeTransactionVar& buf, int index, int offset, bool check_lock)
 {
-  util::tLock lock2(this->bb_lock);
+  tLock lock2(this->bb_lock);
   if (check_lock && IsLocked())
   {
     CheckCurrentLock(lock2);
@@ -116,7 +116,7 @@ void tSingleBufferedBlackboardServer<T>::AsynchChange(tConstChangeTransactionVar
 }
 
 template<typename T>
-void tSingleBufferedBlackboardServer<T>::CheckCurrentLock(util::tLock& passed_lock)
+void tSingleBufferedBlackboardServer<T>::CheckCurrentLock(tLock& passed_lock)
 {
   if (IsLocked() && rrlib::time::Now(false) > last_keep_alive.Load() + this->GetLockTimeout())
   {
@@ -155,7 +155,7 @@ void tSingleBufferedBlackboardServer<T>::DirectCommit(tBBVectorVar& new_buffer)
   }
 
   {
-    util::tLock lock2(this->bb_lock);
+    tLock lock2(this->bb_lock);
 
     // note: current lock is obsolete, since we have a completely new buffer
     assert((&(new_buffer) != &(buffer)));
@@ -175,7 +175,7 @@ void tSingleBufferedBlackboardServer<T>::DirectCommit(tBBVectorVar& new_buffer)
 template<typename T>
 void tSingleBufferedBlackboardServer<T>::KeepAlive(int lock_id_)
 {
-  util::tLock lock2(this->bb_lock);
+  tLock lock2(this->bb_lock);
   if (locks != 0 && this->lock_id == lock_id_)
   {
     last_keep_alive.Store(rrlib::time::Now(false));
@@ -192,13 +192,13 @@ void tSingleBufferedBlackboardServer<T>::LockCheck()
   }
 
   {
-    util::tLock lock2(this->bb_lock);
+    tLock lock2(this->bb_lock);
     CheckCurrentLock(lock2);
   }
 }
 
 template<typename T>
-void tSingleBufferedBlackboardServer<T>::NewBufferRevision(util::tLock& passed_lock, bool has_changes)
+void tSingleBufferedBlackboardServer<T>::NewBufferRevision(tLock& passed_lock, bool has_changes)
 {
   lock_id = lock_id_gen.IncrementAndGet();
   if (has_changes)
@@ -215,9 +215,9 @@ void tSingleBufferedBlackboardServer<T>::NewBufferRevision(util::tLock& passed_l
 }
 
 template<typename T>
-const core::tPortDataManager* tSingleBufferedBlackboardServer<T>::PullRequest(core::tPortBase* origin, int8 add_locks, bool intermediate_assign)
+const core::tPortDataManager* tSingleBufferedBlackboardServer<T>::PullRequest(core::tPortBase& origin, int8 add_locks, bool intermediate_assign)
 {
-  util::tLock lock2(this->bb_lock);
+  tLock lock2(this->bb_lock);
 
   // possibly wait for a copy
   while (read_copy_revision < revision)     // not so clean, but everything else becomes rather complicated
@@ -243,12 +243,12 @@ const core::tPortDataManager* tSingleBufferedBlackboardServer<T>::PullRequest(co
 template<typename T>
 typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboardServer<T>::ReadLock(const rrlib::time::tDuration& timeout)
 {
-  util::tLock lock2(this->bb_lock);
+  tLock lock2(this->bb_lock);
   return ReadLockImpl(lock2, timeout);
 }
 
 template<typename T>
-typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboardServer<T>::ReadLockImpl(util::tLock& passed_lock, const rrlib::time::tDuration& timeout)
+typename tAbstractBlackboardServer<T>::tConstBBVectorVar tSingleBufferedBlackboardServer<T>::ReadLockImpl(tLock& passed_lock, const rrlib::time::tDuration& timeout)
 {
   // Read Lock
   int64 current_revision = revision;
@@ -313,13 +313,13 @@ void tSingleBufferedBlackboardServer<T>::ReadUnlock(int lock_id_)
   }
 
   {
-    util::tLock lock2(this->bb_lock);
+    tLock lock2(this->bb_lock);
     ReadUnlockImpl(lock2, lock_id_);
   }
 }
 
 template<typename T>
-void tSingleBufferedBlackboardServer<T>::ReadUnlockImpl(util::tLock& passed_lock, int lock_id_)
+void tSingleBufferedBlackboardServer<T>::ReadUnlockImpl(tLock& passed_lock, int lock_id_)
 {
   if (lock_id_ < 0)
   {
@@ -344,7 +344,7 @@ void tSingleBufferedBlackboardServer<T>::ReadUnlockImpl(util::tLock& passed_lock
 }
 
 template<typename T>
-void tSingleBufferedBlackboardServer<T>::UpdateReadCopy(util::tLock& passed_lock)
+void tSingleBufferedBlackboardServer<T>::UpdateReadCopy(tLock& passed_lock)
 {
   assert((GetManager(buffer)->IsLocked()));
 
@@ -378,7 +378,7 @@ void tSingleBufferedBlackboardServer<T>::UpdateReadCopy(util::tLock& passed_lock
 }
 
 template<typename T>
-void tSingleBufferedBlackboardServer<T>::WaitForReadCopy(util::tLock& passed_lock, int64 min_revision, const rrlib::time::tDuration& timeout)
+void tSingleBufferedBlackboardServer<T>::WaitForReadCopy(tLock& passed_lock, int64 min_revision, const rrlib::time::tDuration& timeout)
 {
   rrlib::time::tTimestamp cur_time = rrlib::time::Now(false);
   while (read_copy_revision < min_revision)
@@ -395,7 +395,7 @@ void tSingleBufferedBlackboardServer<T>::WaitForReadCopy(util::tLock& passed_loc
 template<typename T>
 typename tAbstractBlackboardServer<T>::tBBVectorVar tSingleBufferedBlackboardServer<T>::WriteLock(const rrlib::time::tDuration& timeout)
 {
-  util::tLock lock2(this->bb_lock);
+  tLock lock2(this->bb_lock);
   if (IsLocked() || this->PendingTasks())
   {
     CheckCurrentLock(lock2);
@@ -447,7 +447,7 @@ void tSingleBufferedBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
   assert(((bufmgr->lock_id >= 0)) && "lock IDs < 0 are typically only found in read copies");
 
   {
-    util::tLock lock2(this->bb_lock);
+    tLock lock2(this->bb_lock);
     if (this->lock_id != bufmgr->lock_id)
     {
       FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Skipping outdated unlock");
@@ -502,7 +502,7 @@ void tSingleBufferedBlackboardServer<T>::tBBReadPort::InitialPushTo(core::tAbstr
 
   // case 2: make read copy
   {
-    util::tLock lock2(outer_class_ptr->bb_lock);
+    tLock lock2(outer_class_ptr->bb_lock);
     if (outer_class_ptr->locks >= 0)    // ok, not locked or read locked
     {
       outer_class_ptr->locks++;

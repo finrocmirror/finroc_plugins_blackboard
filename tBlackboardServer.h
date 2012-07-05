@@ -44,6 +44,7 @@ namespace blackboard
 template<typename T>
 class tBlackboardServer : public tAbstractBlackboardServer<T>
 {
+  typedef rrlib::thread::tLock tLock;
 private:
 
   typedef typename tAbstractBlackboardServer<T>::tBBVector tBBVector;
@@ -86,7 +87,7 @@ private:
   /*!
    * Check if lock timed out (only call in synchronized/exclusive access context)
    */
-  void CheckCurrentLock(util::tLock& passed_lock);
+  void CheckCurrentLock(tLock& passed_lock);
 
   /*! Release lock and commit changed buffer (needs to be called in synchronized context) */
   void CommitLocked();

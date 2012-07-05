@@ -98,7 +98,7 @@ void tAbstractBlackboardServer<T>::ProcessPendingAsynchChangeTasks()
 }
 
 template<typename T>
-bool tAbstractBlackboardServer<T>::ProcessPendingCommands(util::tLock& passed_lock)
+bool tAbstractBlackboardServer<T>::ProcessPendingCommands(tLock& passed_lock)
 {
   //System.out.println(createThreadString() + ": process pending commands");
   if (this->pending_major_tasks.Size() == 0)

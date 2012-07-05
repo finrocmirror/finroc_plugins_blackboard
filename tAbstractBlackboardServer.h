@@ -28,20 +28,11 @@
 #include "core/port/rpc/method/tPortInterface.h"
 #include "core/port/rpc/method/tMethod.h"
 #include "core/port/rpc/method/tVoidMethod.h"
-#include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
 #include "rrlib/finroc_core_utils/container/tSimpleList.h"
 #include "plugins/blackboard/tBlackboardTask.h"
 #include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
 
 #include "core/port/tPortTypeMap.h"
-
-namespace finroc
-{
-namespace core
-{
-class tFrameworkElement;
-} // namespace finroc
-} // namespace core
 
 namespace finroc
 {
@@ -238,7 +229,7 @@ protected:
    *
    * \return Were there any pending commands that are (were) now executed?
    */
-  virtual bool ProcessPendingCommands(util::tLock& passed_lock);
+  virtual bool ProcessPendingCommands(tLock& passed_lock);
 
   /*!
    * Perform read lock (only do this on single-buffered blackboards)

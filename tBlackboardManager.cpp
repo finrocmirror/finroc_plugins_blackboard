@@ -21,7 +21,6 @@
  */
 #include "plugins/blackboard/tBlackboardManager.h"
 #include "core/tCoreFlags.h"
-#include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
 #include "plugins/blackboard/tRawBlackboardClient.h"
 #include "core/plugin/tPlugins.h"
 #include "plugins/blackboard/tBlackboardPlugin.h"
@@ -54,14 +53,14 @@ tBlackboardManager::tBlackboardManager() :
   categories[cSHARED] = new tBlackboardCategory(this, "Shared", core::tCoreFlags::cALLOWS_CHILDREN | core::tCoreFlags::cSHARED | core::tCoreFlags::cGLOBALLY_UNIQUE_LINK);
   categories[cREMOTE] = new tBlackboardCategory(this, "Remote", core::tCoreFlags::cALLOWS_CHILDREN | core::tCoreFlags::cNETWORK_ELEMENT);
   tLockCheckerThread* checker = new tLockCheckerThread(this);
-  util::sThreadUtil::SetAutoDelete(*checker);
+  checker->SetAutoDelete();
   checker->Start();
 }
 
 void tBlackboardManager::AddClient(tRawBlackboardClient* client, bool auto_connect)
 {
   {
-    util::tLock lock2(bb_clients.GetMutex());
+    rrlib::thread::tLock lock2(bb_clients.GetMutex());
     bb_clients.Add(client, false);
   }
   if (!auto_connect)
@@ -69,7 +68,7 @@ void tBlackboardManager::AddClient(tRawBlackboardClient* client, bool auto_conne
     return;
   }
 
-  util::tLock lock2(auto_connect_clients);
+  rrlib::thread::tLock lock2(auto_connect_clients);
   auto_connect_clients.Add(client);
 
   for (int j = 0; (j < cDIMENSION) && (!client->IsConnected()); j++)
@@ -85,7 +84,7 @@ void tBlackboardManager::CheckAutoConnect(tAbstractBlackboardServerRaw* server)
     return;
   }
 
-  util::tLock lock2(auto_connect_clients);
+  rrlib::thread::tLock lock2(auto_connect_clients);
   for (size_t i = 0u; i < auto_connect_clients.Size(); i++)
   {
     auto_connect_clients.Get(i)->CheckConnect(server);
@@ -94,7 +93,7 @@ void tBlackboardManager::CheckAutoConnect(tAbstractBlackboardServerRaw* server)
 
 void tBlackboardManager::CreateBlackboardManager()
 {
-  util::tLock lock2(core::tRuntimeEnvironment::GetInstance()->GetRegistryLock());
+  rrlib::thread::tLock lock2(core::tRuntimeEnvironment::GetInstance()->GetRegistryLock());
   if (instance == NULL)
   {
     instance = new tBlackboardManager();
@@ -202,7 +201,7 @@ void tBlackboardManager::PrepareDelete()
 void tBlackboardManager::RemoveClient(tRawBlackboardClient* client)
 {
   {
-    util::tLock lock2(bb_clients.GetMutex());
+    rrlib::thread::tLock lock2(bb_clients.GetMutex());
     bb_clients.Remove(client);
   }
   if (!client->AutoConnectClient())
@@ -210,7 +209,7 @@ void tBlackboardManager::RemoveClient(tRawBlackboardClient* client)
     return;
   }
   {
-    util::tLock lock2(auto_connect_clients);
+    rrlib::thread::tLock lock2(auto_connect_clients);
     auto_connect_clients.RemoveElem(client);
   }
 }
@@ -269,7 +268,7 @@ tBlackboardManager::tBlackboardCategory::tBlackboardCategory(tBlackboardManager*
 void tBlackboardManager::tBlackboardCategory::Add(tAbstractBlackboardServerRaw* blackboard)
 {
   {
-    util::tLock lock2(outer_class_ptr->auto_connect_clients);
+    rrlib::thread::tLock lock2(outer_class_ptr->auto_connect_clients);
     blackboards.Add(blackboard, false);
     outer_class_ptr->CheckAutoConnect(blackboard);
   }
@@ -291,7 +290,7 @@ void tBlackboardManager::tBlackboardCategory::CheckConnect(tRawBlackboardClient*
 void tBlackboardManager::tBlackboardCategory::Remove(tAbstractBlackboardServerRaw* blackboard)
 {
   {
-    util::tLock lock2(outer_class_ptr->auto_connect_clients);
+    rrlib::thread::tLock lock2(outer_class_ptr->auto_connect_clients);
     blackboards.Remove(blackboard);
   }
 }

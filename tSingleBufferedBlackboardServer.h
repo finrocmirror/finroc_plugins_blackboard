@@ -54,6 +54,7 @@ class tSingleBufferedBlackboardServer : public tAbstractBlackboardServer<T>, pub
 {
 public:
   class tBBReadPort; // inner class forward declaration
+  typedef rrlib::thread::tLock tLock;
 private:
 
   typedef typename tAbstractBlackboardServer<T>::tBBVector tBBVector;
@@ -107,7 +108,7 @@ private:
   std::atomic<bool> thread_waiting_for_copy;
 
   /*! Check if lock timed out (only call in synchronized/exclusive access context) */
-  void CheckCurrentLock(util::tLock& passed_lock);
+  void CheckCurrentLock(tLock& passed_lock);
 
   /*!
    * \return Port data manager for buffer
@@ -118,22 +119,22 @@ private:
     return t.GetManager();
   }
 
-  void NewBufferRevision(util::tLock& passed_lock, bool has_changes);
+  void NewBufferRevision(tLock& passed_lock, bool has_changes);
 
   /*!
    * Helper method for above to avoid nested/double lock
    */
-  typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLockImpl(util::tLock& passed_lock, const rrlib::time::tDuration& timeout);
+  typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLockImpl(tLock& passed_lock, const rrlib::time::tDuration& timeout);
 
   /*!
    * Helper method for above to avoid nested/double lock
    */
-  void ReadUnlockImpl(util::tLock& passed_lock, int lock_id_);
+  void ReadUnlockImpl(tLock& passed_lock, int lock_id_);
 
   /*!
    * Make a copy for the read port - and hand it to anyone who is interested
    */
-  void UpdateReadCopy(util::tLock& passed_lock);
+  void UpdateReadCopy(tLock& passed_lock);
 
   /*!
    * wait until a read copy has been made
@@ -141,7 +142,7 @@ private:
    *
    * \param min_revision minimal revision we want to receive
    */
-  void WaitForReadCopy(util::tLock& passed_lock, int64 min_revision, const rrlib::time::tDuration& timeout);
+  void WaitForReadCopy(tLock& passed_lock, int64 min_revision, const rrlib::time::tDuration& timeout);
 
 protected:
 
@@ -196,7 +197,7 @@ public:
 
   virtual void LockCheck();
 
-  virtual const core::tPortDataManager* PullRequest(core::tPortBase* origin, int8 add_locks, bool intermediate_assign);
+  virtual const core::tPortDataManager* PullRequest(core::tPortBase& origin, int8 add_locks, bool intermediate_assign);
 
   /*! Special read port for blackboard buffer */
   class tBBReadPort : public core::tPortBase

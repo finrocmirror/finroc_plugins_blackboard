@@ -37,7 +37,7 @@ tAbstractBlackboardServerRaw::tAbstractBlackboardServerRaw(const util::tString& 
   core::tFrameworkElement(parent == NULL ? tBlackboardManager::GetInstance()->GetCategory(category) : parent, bb_name, tBlackboardManager::GetInstance()->GetCategory(category)->default_flags, -1),
   pending_major_tasks(),
   wakeup_thread(-1),
-  bb_lock(core::tLockOrderLevels::cINNER_MOST - 1000),
+  bb_lock("Blackboard", core::tLockOrderLevels::cINNER_MOST - 1000),
   monitor(bb_lock),
   read_port_raw(NULL),
   write_port_raw(NULL),
@@ -57,15 +57,15 @@ void tAbstractBlackboardServerRaw::CheckType(rrlib::rtti::tDataTypeBase dt)
 util::tString tAbstractBlackboardServerRaw::CreateThreadString()
 {
   std::ostringstream os;
-  os << "Thread " << util::tThread::CurrentThread()->GetName() << " (" << util::sThreadUtil::GetCurrentThreadId() << ")";
+  os << "Thread " << rrlib::thread::tThread::CurrentThreadRaw()->GetName() << " (" << rrlib::thread::tThread::CurrentThreadId() << ")";
   return os.str();
 }
 
 void tAbstractBlackboardServerRaw::PrepareDelete()
 {
-  util::tLock lock1(*this);
+  tLock lock1(*this);
   {
-    util::tLock lock2(bb_lock);
+    tLock lock2(bb_lock);
     if (tBlackboardManager::GetInstance() != NULL)    // we don't need to remove it, if blackboard manager has already been deleted
     {
       my_category->Remove(this);
@@ -75,7 +75,7 @@ void tAbstractBlackboardServerRaw::PrepareDelete()
   }
 }
 
-bool tAbstractBlackboardServerRaw::ProcessPendingCommands(util::tLock& passed_lock)
+bool tAbstractBlackboardServerRaw::ProcessPendingCommands(tLock& passed_lock)
 {
   //System.out.println(createThreadString() + ": process pending commands");
   if (pending_major_tasks.Size() == 0)
@@ -91,11 +91,11 @@ bool tAbstractBlackboardServerRaw::ProcessPendingCommands(util::tLock& passed_lo
   return true;
 }
 
-bool tAbstractBlackboardServerRaw::WaitForLock(util::tLock& passed_lock, const rrlib::time::tDuration& timeout)
+bool tAbstractBlackboardServerRaw::WaitForLock(tLock& passed_lock, const rrlib::time::tDuration& timeout)
 {
   tBlackboardTask task;
   //task.method = method;
-  task.thread_uid = util::sThreadUtil::GetCurrentThreadId();
+  task.thread_uid = rrlib::thread::tThread::CurrentThreadId();
   pending_major_tasks.Add(task);
   rrlib::time::tTimestamp start_time = rrlib::time::Now(false);
   //long curTime = startTime;
@@ -108,7 +108,7 @@ bool tAbstractBlackboardServerRaw::WaitForLock(util::tLock& passed_lock, const r
 
     wait_for = timeout - (rrlib::time::Now(false) - start_time);
     //System.out.println(createThreadString() + ": left wait; waitFor = " + waitFor + "; wakeupThread = " + wakeupThread);
-    if (wakeup_thread == util::sThreadUtil::GetCurrentThreadId())
+    if (wakeup_thread == rrlib::thread::tThread::CurrentThreadId())
     {
       // ok, it's our turn now
       pending_major_tasks.RemoveElem(task);

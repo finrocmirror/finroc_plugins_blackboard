@@ -25,7 +25,6 @@
 
 #include "rrlib/finroc_core_utils/definitions.h"
 #include "rrlib/finroc_core_utils/container/tSimpleList.h"
-#include "rrlib/finroc_core_utils/thread/sThreadUtil.h"
 #include "rrlib/rtti/tDataTypeBase.h"
 
 #include "core/port/std/tPortBase.h"
@@ -75,8 +74,8 @@ protected:
   int64 wakeup_thread;
 
   /*! Lock for blackboard operation (needs to be deeper than runtime - (for initial pushes etc.)) */
-  util::tMutexLockOrder bb_lock;
-  util::tConditionVariable monitor;
+  rrlib::thread::tOrderedMutex bb_lock;
+  rrlib::thread::tConditionVariable monitor;
 
   /*! read port */
   core::tPortBase* read_port_raw;
@@ -166,7 +165,7 @@ protected:
    *
    * \return Were there any pending commands that are (were) now executed?
    */
-  virtual bool ProcessPendingCommands(util::tLock& passed_lock);
+  virtual bool ProcessPendingCommands(tLock& passed_lock);
 
   /*!
    * Wait to receive lock on blackboard for specified amount of time
@@ -175,7 +174,7 @@ protected:
    * \param timeout Time to wait for lock
    * \return Do we have a lock now? (or did rather timeout expire?)
    */
-  bool WaitForLock(util::tLock& passed_lock, const rrlib::time::tDuration& timeout);
+  bool WaitForLock(tLock& passed_lock, const rrlib::time::tDuration& timeout);
 
 public:
 
