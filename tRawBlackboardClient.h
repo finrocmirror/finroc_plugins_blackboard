@@ -68,12 +68,12 @@ public:
 
   protected:
 
-    virtual void ConnectionRemoved(core::tAbstractPort* partner)
+    virtual void ConnectionRemoved(core::tAbstractPort& partner)
     {
       outer_class_ptr->server_buffers = tRawBlackboardClient::eUNKNOWN;
     }
 
-    virtual void NewConnection(core::tAbstractPort* partner);
+    virtual void NewConnection(core::tAbstractPort& partner);
 
   public:
 
@@ -97,12 +97,12 @@ public:
 
   protected:
 
-    virtual void ConnectionRemoved(core::tAbstractPort* partner)
+    virtual void ConnectionRemoved(core::tAbstractPort& partner)
     {
       outer_class_ptr->server_buffers = tRawBlackboardClient::eUNKNOWN;
     }
 
-    virtual void NewConnection(core::tAbstractPort* partner);
+    virtual void NewConnection(core::tAbstractPort& partner);
 
   public:
 

@@ -223,7 +223,7 @@ public:
     {
       typedef typename internal::tGetReadPortType<T, typename std::remove_pointer<P>::type>::type tReadPort;
       read_port.reset(new tReadPort(name, parent, core::tPortFlags::cOUTPUT_PROXY));
-      wrapped_server->read_port_raw->ConnectToTarget(read_port->GetWrapped());
+      wrapped_server->read_port_raw->ConnectToTarget(*read_port->GetWrapped());
     }
 
     // create write/full-access ports

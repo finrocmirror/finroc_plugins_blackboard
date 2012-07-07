@@ -219,7 +219,7 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
   if (change_type == ::finroc::core::tRuntimeListener::cADD)
   {
     // Is this a remote blackboard? -> Create proxy
-    if (element.GetFlag(core::tCoreFlags::cNETWORK_ELEMENT) && element.GetFlag(core::tCoreFlags::cIS_PORT) && (!element.IsChildOf(this)))
+    if (element.GetFlag(core::tCoreFlags::cNETWORK_ELEMENT) && element.GetFlag(core::tCoreFlags::cIS_PORT) && (!element.IsChildOf(*this)))
     {
       element.GetQualifiedLink(temp_buffer);
       util::tString qname = temp_buffer;

@@ -54,11 +54,11 @@ tBlackboardClient<T>::tBlackboardClient(const tAbstractBlackboardServerRaw* serv
   assert(server != NULL);
   if (read_port)
   {
-    server->read_port_raw->ConnectToTarget(wrapped->read_port);
+    server->read_port_raw->ConnectToTarget(*wrapped->read_port);
   }
   if (write_port)
   {
-    server->write_port_raw->ConnectToTarget(wrapped->write_port->GetWrapped());
+    server->write_port_raw->ConnectToTarget(*wrapped->write_port->GetWrapped());
   }
 }
 
@@ -84,7 +84,7 @@ tBlackboardClient<T>::tBlackboardClient(const util::tString& name, core::structu
     {
       read_port.reset(new core::structure::tModule::tInput<std::vector<T>>(name, parent, core::tPortFlags::cINPUT_PROXY));
     }
-    wrapped->GetReadPort()->ConnectToSource(read_port->GetWrapped());
+    wrapped->GetReadPort()->ConnectToSource(*read_port->GetWrapped());
   }
 
   // create write/full-access ports
@@ -196,7 +196,7 @@ void tBlackboardClient<T>::CheckConnect(core::tAbstractPort* p1, core::tAbstract
       if (!((boost::starts_with(parent1->GetName(), "Sensor") && boost::starts_with(parent2->GetName(), "Controller")) ||
             (boost::starts_with(parent1->GetName(), "Controller") && boost::starts_with(parent2->GetName(), "Sensor"))))
       {
-        p1->ConnectToTarget(p2);
+        p1->ConnectToTarget(*p2);
       }
     }
   }

@@ -69,11 +69,11 @@ bool tRawBlackboardClient::CheckConnect(tAbstractBlackboardServerRaw* server)
   // checks passed => connect
   if (read_port != NULL)
   {
-    read_port->ConnectToSource(server->read_port_raw);
+    read_port->ConnectToSource(*server->read_port_raw);
   }
   if (write_port.get() != NULL)
   {
-    write_port->ConnectToSource(server->write_port_raw);
+    write_port->ConnectToSource(*server->write_port_raw);
   }
   return true;
 }
@@ -135,15 +135,15 @@ tRawBlackboardClient::tReadPort::tReadPort(tRawBlackboardClient* const outer_cla
 {
 }
 
-void tRawBlackboardClient::tReadPort::NewConnection(core::tAbstractPort* partner)
+void tRawBlackboardClient::tReadPort::NewConnection(core::tAbstractPort& partner)
 {
-  ::finroc::core::tAbstractPort::NewConnection(partner);
+  core::tAbstractPort::NewConnection(partner);
   if (outer_class_ptr->write_port.get() != NULL)
   {
-    ::finroc::core::tFrameworkElement* w = partner->GetParent()->GetChild("write");
-    if (w != NULL)
+    core::tFrameworkElement* w = partner.GetParent()->GetChild("write");
+    if (w)
     {
-      outer_class_ptr->write_port->ConnectToSource(static_cast< ::finroc::core::tAbstractPort*>(w));
+      outer_class_ptr->write_port->ConnectToSource(*static_cast<core::tAbstractPort*>(w));
     }
   }
   outer_class_ptr->server_buffers = tRawBlackboardClient::eUNKNOWN;
@@ -155,15 +155,15 @@ tRawBlackboardClient::tWritePort::tWritePort(tRawBlackboardClient* const outer_c
 {
 }
 
-void tRawBlackboardClient::tWritePort::NewConnection(core::tAbstractPort* partner)
+void tRawBlackboardClient::tWritePort::NewConnection(core::tAbstractPort& partner)
 {
-  ::finroc::core::tInterfaceClientPort::NewConnection(partner);
+  tInterfaceClientPort::NewConnection(partner);
   if (outer_class_ptr->read_port != NULL)
   {
-    core::tFrameworkElement* w = partner->GetParent()->GetChild("read");
-    if (w != NULL)
+    core::tFrameworkElement* w = partner.GetParent()->GetChild("read");
+    if (w)
     {
-      outer_class_ptr->read_port->ConnectToSource(static_cast<core::tAbstractPort*>(w));
+      outer_class_ptr->read_port->ConnectToSource(*static_cast<core::tAbstractPort*>(w));
     }
   }
   outer_class_ptr->server_buffers = tRawBlackboardClient::eUNKNOWN;

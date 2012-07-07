@@ -485,7 +485,7 @@ tSingleBufferedBlackboardServer<T>::tBBReadPort::tBBReadPort(tSingleBufferedBlac
 }
 
 template<typename T>
-void tSingleBufferedBlackboardServer<T>::tBBReadPort::InitialPushTo(core::tAbstractPort* target, bool reverse)
+void tSingleBufferedBlackboardServer<T>::tBBReadPort::InitialPushTo(core::tAbstractPort& target, bool reverse)
 {
   assert(((!reverse)) && "?!");
 
@@ -494,7 +494,7 @@ void tSingleBufferedBlackboardServer<T>::tBBReadPort::InitialPushTo(core::tAbstr
   // case 1: let super class handle this
   if (outer_class_ptr->read_copy_revision == outer_class_ptr->revision)
   {
-    ::finroc::core::tPortBase::InitialPushTo(target, reverse);
+    core::tPortBase::InitialPushTo(target, reverse);
     return;
   }
 

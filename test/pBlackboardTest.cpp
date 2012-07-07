@@ -88,10 +88,10 @@ void InitMainGroup(finroc::core::tThreadContainer *main_thread, std::vector<char
   mBlackboardWriterAsync* async_writer = new mBlackboardWriterAsync(main_thread);
 
   // connect modules with blackboard
-  blackboard.GetWritePort()->ConnectToTarget(writer->bb_client.GetOutsideWritePort());
-  blackboard.GetWritePort()->ConnectToTarget(async_writer->bb_client.GetOutsideWritePort());
-  blackboard.GetWritePort()->ConnectToTarget(reader->bb_client.GetOutsideWritePort());
-  blackboard.GetReadPort()->ConnectToTarget(reader->bb_client.GetOutsideReadPort()->GetWrapped());
+  blackboard.GetWritePort()->ConnectToTarget(*writer->bb_client.GetOutsideWritePort());
+  blackboard.GetWritePort()->ConnectToTarget(*async_writer->bb_client.GetOutsideWritePort());
+  blackboard.GetWritePort()->ConnectToTarget(*reader->bb_client.GetOutsideWritePort());
+  blackboard.GetReadPort()->ConnectToTarget(*reader->bb_client.GetOutsideReadPort()->GetWrapped());
 
   main_thread->SetCycleTime(500);
 }

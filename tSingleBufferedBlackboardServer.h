@@ -209,7 +209,7 @@ public:
 
   protected:
 
-    virtual void InitialPushTo(core::tAbstractPort* target, bool reverse);
+    virtual void InitialPushTo(core::tAbstractPort& target, bool reverse);
 
   public:
 

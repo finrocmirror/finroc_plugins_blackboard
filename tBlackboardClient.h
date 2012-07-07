@@ -121,7 +121,7 @@ private:
   static core::tAbstractPort* ReplicateWritePort(core::tAbstractPort* write_port, core::tFrameworkElement* pg, const util::tString& name)
   {
     core::tInterfacePort* new_port = new core::tInterfacePort(name, pg, write_port->GetDataType(), core::tInterfacePort::eRouting);
-    write_port->ConnectToSource(new_port);
+    write_port->ConnectToSource(*new_port);
     return new_port;
   }
 
