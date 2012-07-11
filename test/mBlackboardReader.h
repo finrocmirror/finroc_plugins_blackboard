@@ -83,8 +83,9 @@ public:
   mBlackboardReader(finroc::core::tFrameworkElement *parent, const finroc::util::tString &name = "BlackboardReader");
 
 //----------------------------------------------------------------------
-// Protected methods
+// Private fields and methods
 //----------------------------------------------------------------------
+private:
 
   virtual void Update();
 };

@@ -87,17 +87,14 @@ public:
   mBlackboardWriterAsync(finroc::core::tFrameworkElement *parent, const finroc::util::tString &name = "BlackboardWriterAsync");
 
 //----------------------------------------------------------------------
-// Protected methods
-//----------------------------------------------------------------------
-
-  virtual void Update();
-
-//----------------------------------------------------------------------
 // Private fields and methods
 //----------------------------------------------------------------------
 private:
 
   int update_counter;
+
+  virtual void Update();
+
 };
 
 //----------------------------------------------------------------------
