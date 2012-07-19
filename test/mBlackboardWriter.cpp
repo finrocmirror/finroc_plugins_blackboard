@@ -2,7 +2,7 @@
 // You received this file as part of Finroc
 // A framework for integrated robot control
 //
-// Copyright (C) AG Robotersysteme TU Kaiserslautern
+// Copyright (C) Finroc GbR (finroc.org)
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -79,14 +79,15 @@ void mBlackboardWriter::Update()
     // Acquire write lock
     tBlackboardClient<float>::tWriteAccess acc(bb_client);
 
-    if (acc.Size() >= 10)
+    if (acc.Size() < 10)
     {
+      acc.Resize(20);
+    }
 
-      // Change elements 0 to 9
-      for (size_t i = 0; i < 10; i++)
-      {
-        acc[i] = update_counter;
-      }
+    // Change elements 0 to 9
+    for (size_t i = 0; i < 10; i++)
+    {
+      acc[i] = update_counter;
     }
   }
   catch (tBBLockException& e)

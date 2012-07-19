@@ -94,8 +94,15 @@ private:
 
   /*!
    * Check whether these ports can be connected - if yes, do so
+   * (connecting to blackboard)
    */
   void CheckConnect(core::tAbstractPort* p1, core::tAbstractPort* p2);
+
+  /*!
+   * Check whether these ports can be connected - if yes, do so
+   * (connecting to outer blackboard client)
+   */
+  void CheckClientConnect(core::tAbstractPort* p1, core::tAbstractPort* p2);
 
   /*!
    * Reset variables after unlock
@@ -235,6 +242,13 @@ public:
    * \param blackboard Blackboard to connect to
    */
   void ConnectTo(const tBlackboard<T>& blackboard);
+
+  /*!
+   * Connect to blackboard client in outer group
+   *
+   * \param blackboard Blackboard client to connect to
+   */
+  void ConnectTo(const tBlackboardClient<T>& client);
 
   /*!
    * \return Blackboard name

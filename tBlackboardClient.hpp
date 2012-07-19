@@ -118,10 +118,6 @@ tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, 
     {
       create_read_port_in_ci = true;
     }
-    else
-    {
-      assert(pg->NameEquals("Output") && "Have names changed?");
-    }
 
     // create port
     if (create_read_port_in_ci)
@@ -203,6 +199,25 @@ void tBlackboardClient<T>::CheckConnect(core::tAbstractPort* p1, core::tAbstract
 }
 
 template<typename T>
+void tBlackboardClient<T>::CheckClientConnect(core::tAbstractPort* p1, core::tAbstractPort* p2)
+{
+  if (p1 != NULL && p2 != NULL)
+  {
+    core::tFrameworkElement* parent1 = p1->GetParent();
+    core::tFrameworkElement* parent2 = p2->GetParent();
+    if ((boost::ends_with(parent1->GetName(), "Input") && boost::ends_with(parent2->GetName(), "Input")) ||
+        (boost::ends_with(parent1->GetName(), "Output") && boost::ends_with(parent2->GetName(), "Output")))
+    {
+      if (!((boost::starts_with(parent1->GetName(), "Sensor") && boost::starts_with(parent2->GetName(), "Controller")) ||
+            (boost::starts_with(parent1->GetName(), "Controller") && boost::starts_with(parent2->GetName(), "Sensor"))))
+      {
+        p1->ConnectToTarget(*p2);
+      }
+    }
+  }
+}
+
+template<typename T>
 bool tBlackboardClient<T>::CommitAsynchChange(tChangeTransactionVar& change_buf, int index, int offset)
 {
   try
@@ -229,6 +244,19 @@ void tBlackboardClient<T>::ConnectTo(const tBlackboard<T>& blackboard)
   CheckConnect(blackboard.GetOutsideWritePort2(), GetOutsideWritePort());
   CheckConnect(blackboard.GetOutsideWritePort(), GetOutsideWritePort2());
   CheckConnect(blackboard.GetOutsideWritePort2(), GetOutsideWritePort2());
+}
+
+template<typename T>
+void tBlackboardClient<T>::ConnectTo(const tBlackboardClient<T>& client)
+{
+  if (client.GetOutsideReadPort() && GetOutsideReadPort())
+  {
+    CheckClientConnect(client.GetOutsideReadPort()->GetWrapped(), GetOutsideReadPort()->GetWrapped());
+  }
+  CheckClientConnect(client.GetOutsideWritePort(), GetOutsideWritePort());
+  CheckClientConnect(client.GetOutsideWritePort2(), GetOutsideWritePort());
+  CheckClientConnect(client.GetOutsideWritePort(), GetOutsideWritePort2());
+  CheckClientConnect(client.GetOutsideWritePort2(), GetOutsideWritePort2());
 }
 
 template<typename T>

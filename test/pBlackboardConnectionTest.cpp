@@ -19,13 +19,14 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
-/*!\file    pBlackboardTest.cpp
+/*!\file    pBlackboardConnectionTest.cpp
  *
  * \author  Max Reichardt
  *
- * \date    2011-03-30
+ * \date    2012-07-19
  *
- * This is a simple test program that demonstrates how to use blackboards.
+ * This is a simple test program for the different constructor variants in tBlackboard
+ * and tBlackboardClient to connect and replicate local blackboards.
  */
 //----------------------------------------------------------------------
 #include "core/default_main_wrapper.h"
@@ -51,6 +52,7 @@
 // Namespace usage
 //----------------------------------------------------------------------
 using namespace finroc::blackboard;
+using namespace finroc::core;
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
@@ -60,38 +62,78 @@ using namespace finroc::blackboard;
 // Const values
 //----------------------------------------------------------------------
 const char * const cPROGRAM_VERSION = "ver 1.0";
-const char * const cPROGRAM_DESCRIPTION = "This is a simple test program that demonstrates how to use blackboards.";
+const char * const cPROGRAM_DESCRIPTION = "This is a simple test program for connectiion variants of local blackboards.";
 
 //----------------------------------------------------------------------
 // Implementation
 //----------------------------------------------------------------------
-
-//----------------------------------------------------------------------
-// StartUp
-//----------------------------------------------------------------------
 void StartUp()
 {}
 
-//----------------------------------------------------------------------
-// InitMainGroup
-//----------------------------------------------------------------------
+/*! Module containing Blackboard */
+class mBlackboardServer : public structure::tModule
+{
+public:
+  tBlackboard<float> blackboard;
+
+  mBlackboardServer(tFrameworkElement* parent) :
+    structure::tModule(parent, "BlackboardServer"),
+    blackboard("Float Blackboard", this)
+  {}
+
+private:
+  virtual void Update() {}
+};
+
+/*! Group replicating Blackboard */
+class gBlackboardServer : public structure::tGroup
+{
+public:
+  tBlackboard<float> blackboard;
+
+  gBlackboardServer(tFrameworkElement* parent) :
+    structure::tGroup(parent, "BlackboardServerGroup", ""),
+    blackboard()
+  {
+    // Create server module
+    mBlackboardServer* server = new mBlackboardServer(this);
+
+    // Replicate blackboard in group
+    blackboard = tBlackboard<float>(server->blackboard, this);
+
+    // Create asynch writer and connect it to blackboard
+    mBlackboardWriterAsync* async_writer = new mBlackboardWriterAsync(this);
+    async_writer->bb_client.ConnectTo(server->blackboard);
+  }
+};
+
+/*! Group replicating BlackboardClient */
+class gBlackboardClient : public structure::tGroup
+{
+public:
+  tBlackboardClient<float> bb_client;
+
+  gBlackboardClient(tFrameworkElement* parent) :
+    structure::tGroup(parent, "BlackboardClientGroup", ""),
+    bb_client()
+  {
+    // Create client modules
+    mBlackboardWriter* writer = new mBlackboardWriter(this);
+    mBlackboardReader* reader = new mBlackboardReader(this);
+
+    // Replicate blackboard in group
+    bb_client = tBlackboardClient<float>(writer->bb_client, this);
+    reader->bb_client.ConnectTo(bb_client);
+  }
+};
+
+
 void InitMainGroup(finroc::core::tThreadContainer *main_thread, std::vector<char*> remaining_args)
 {
-  std::string bb_name("Float Blackboard");
-
-  // create single-buffered float blackboard with capacity 20
-  tBlackboard<float> blackboard(bb_name, main_thread, false, 20, false, 0, 0);
-
-  // create modules that access blackboard
-  mBlackboardReader* reader = new mBlackboardReader(main_thread);
-  mBlackboardWriter* writer = new mBlackboardWriter(main_thread);
-  mBlackboardWriterAsync* async_writer = new mBlackboardWriterAsync(main_thread);
-
-  // connect modules with blackboard
-  blackboard.GetWritePort()->ConnectToTarget(*writer->bb_client.GetOutsideWritePort());
-  blackboard.GetWritePort()->ConnectToTarget(*async_writer->bb_client.GetOutsideWritePort());
-  blackboard.GetWritePort()->ConnectToTarget(*reader->bb_client.GetOutsideWritePort());
-  blackboard.GetReadPort()->ConnectToTarget(*reader->bb_client.GetOutsideReadPort()->GetWrapped());
+  // Create groups and connect them
+  gBlackboardServer* server = new gBlackboardServer(main_thread);
+  gBlackboardClient* client = new gBlackboardClient(main_thread);
+  client->bb_client.ConnectTo(server->blackboard);
 
   main_thread->SetCycleTime(500);
 }

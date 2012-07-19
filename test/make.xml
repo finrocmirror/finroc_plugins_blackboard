@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <targets>
 
+  <finroclibrary name="blackboard_test_modules">
+    <sources>
+      m*.cpp
+    </sources>
+  </finroclibrary>
+
   <testprogram name="">
     <sources>
-      *.cpp
+      pBlackboardTest.cpp
+    </sources>
+  </testprogram>
+
+  <testprogram name="connecting">
+    <sources>
+      pBlackboardConnectionTest.cpp
     </sources>
   </testprogram>
 

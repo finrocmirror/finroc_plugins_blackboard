@@ -274,14 +274,15 @@ public:
       // create port
       if (create_read_port_in_co)
       {
-        read_port.reset(new core::structure::tGroup::tControllerOutput<std::vector<T>>(replicated_bb.read_port->GetName()));
+        read_port.reset(new core::structure::tGroup::tControllerOutput<std::vector<T>>(replicated_bb.read_port->GetName(), parent));
       }
       else
       {
-        read_port.reset(new core::structure::tGroup::tSensorOutput<std::vector<T>>(replicated_bb.read_port->GetName()));
+        read_port.reset(new core::structure::tGroup::tSensorOutput<std::vector<T>>(replicated_bb.read_port->GetName(), parent));
       }
-      replicated_bb.read_port->ConnectToTarget(read_port);
+      replicated_bb.read_port->ConnectToTarget(*read_port);
     }
+
   }
 
   /*!
