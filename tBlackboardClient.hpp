@@ -180,6 +180,23 @@ tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, 
 }
 
 template<typename T>
+tBlackboardClient<T>::tBlackboardClient(tBlackboardClient && o) :
+  wrapped(NULL),
+  locked(),
+  read_locked(),
+  write_port1(NULL),
+  write_port2(NULL),
+  read_port()
+{
+  std::swap(wrapped, o.wrapped);
+  std::swap(locked, o.locked);
+  std::swap(read_locked, o.read_locked);
+  std::swap(read_port, o.read_port);
+  std::swap(write_port1, o.write_port1);
+  std::swap(write_port2, o.write_port2);
+}
+
+template<typename T>
 void tBlackboardClient<T>::CheckConnect(core::tAbstractPort* p1, core::tAbstractPort* p2)
 {
   if (p1 != NULL && p2 != NULL)

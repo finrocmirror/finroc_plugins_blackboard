@@ -147,7 +147,7 @@ protected:
  * of an inner module or group.
  */
 template<typename T>
-class tBlackboard : internal::tBlackboardBase
+class tBlackboard : internal::tBlackboardBase, boost::noncopyable
 {
 public:
   typedef typename tAbstractBlackboardServer<T>::tBBVector tBBVector;
@@ -282,7 +282,30 @@ public:
       }
       replicated_bb.read_port->ConnectToTarget(*read_port);
     }
+  }
 
+  /*! move constructor */
+  tBlackboard(tBlackboard && o) :
+    tBlackboardBase(),
+    wrapped_server(NULL),
+    wrapped_client()
+  {
+    std::swap(write_port1, o.write_port1);
+    std::swap(write_port2, o.write_port2);
+    std::swap(wrapped_server, o.wrapped_server);
+    std::swap(wrapped_client, o.wrapped_client);
+    std::swap(read_port, o.read_port);
+  }
+
+  /*! move assignment */
+  tBlackboard& operator=(tBlackboard && o)
+  {
+    std::swap(write_port1, o.write_port1);
+    std::swap(write_port2, o.write_port2);
+    std::swap(wrapped_server, o.wrapped_server);
+    std::swap(wrapped_client, o.wrapped_client);
+    std::swap(read_port, o.read_port);
+    return *this;
   }
 
   /*!

@@ -50,7 +50,7 @@ class tBlackboard;
  * This is the base class for a blackboard client
  */
 template<typename T>
-class tBlackboardClient : public util::tObject
+class tBlackboardClient : boost::noncopyable
 {
 public:
   typedef typename tAbstractBlackboardServer<T>::tBBVector tBBVector;
@@ -211,8 +211,11 @@ public:
    */
   tBlackboardClient(const tBlackboardClient& replicated_bb, core::structure::tGroup* parent, bool create_read_port_in_ci = false, bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false);
 
+  /*! move constructor */
+  tBlackboardClient(tBlackboardClient && o);
 
-  // move assignment
+
+  /*! move assignment */
   tBlackboardClient& operator=(tBlackboardClient && o)
   {
     std::swap(wrapped, o.wrapped);
