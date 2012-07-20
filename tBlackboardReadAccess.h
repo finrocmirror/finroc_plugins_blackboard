@@ -71,7 +71,7 @@ private:
 
   inline const typename tBlackboardClient<T>::tBBVector* ReadLock(const rrlib::time::tDuration& timeout = std::chrono::minutes(1))
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, "Acquiring read lock on blackboard '", blackboard.GetName(), "' at ", rrlib::time::Now());
+    FINROC_LOG_PRINT(DEBUG_VERBOSE_1, "Acquiring read lock on blackboard '", blackboard.GetName(), "' at ", rrlib::time::Now());
     return blackboard.ReadLock(false, timeout);
   }
 
@@ -109,7 +109,7 @@ public:
   {
     if (locked != NULL)
     {
-      FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG_VERBOSE_1, "Releasing read lock on blackboard '", blackboard.GetName(), "' at ", rrlib::time::Now());
+      FINROC_LOG_PRINT(DEBUG_VERBOSE_1, "Releasing read lock on blackboard '", blackboard.GetName(), "' at ", rrlib::time::Now());
       blackboard.Unlock();
     }
   }

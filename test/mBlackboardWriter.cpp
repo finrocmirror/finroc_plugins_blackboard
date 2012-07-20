@@ -92,7 +92,7 @@ void mBlackboardWriter::Update()
   }
   catch (tBBLockException& e)
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "Could not lock blackboard");
+    FINROC_LOG_PRINT(WARNING, "Could not lock blackboard");
   }
   update_counter++;
 }

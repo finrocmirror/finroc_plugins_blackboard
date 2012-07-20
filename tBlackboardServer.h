@@ -134,13 +134,13 @@ protected:
 
   virtual typename tAbstractBlackboardServer<T>::tConstBBVectorVar ReadLock(const rrlib::time::tDuration& timeout)
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "warning: Client must not attempt read lock on multi-buffered blackboard - Call failed");
+    FINROC_LOG_PRINT(WARNING, "warning: Client must not attempt read lock on multi-buffered blackboard - Call failed");
     throw core::tMethodCallException(core::tMethodCallException::tType::INVALID_PARAM, CODE_LOCATION_MACRO);
   }
 
   virtual void ReadUnlock(int lock_id_)
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "warning: Client must not attempt read unlock on multi-buffered blackboard - Call failed");
+    FINROC_LOG_PRINT(WARNING, "warning: Client must not attempt read unlock on multi-buffered blackboard - Call failed");
     throw core::tMethodCallException(core::tMethodCallException::tType::INVALID_PARAM, CODE_LOCATION_MACRO);
   }
 

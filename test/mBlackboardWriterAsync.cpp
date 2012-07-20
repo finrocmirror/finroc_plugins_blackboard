@@ -89,7 +89,7 @@ void mBlackboardWriterAsync::Update()
   // optional: print error message if operation fails
   if (!success)
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "Could not commit change to blackboard");
+    FINROC_LOG_PRINT(WARNING, "Could not commit change to blackboard");
   }
 
   // increment update counter

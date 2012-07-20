@@ -120,7 +120,7 @@ void tSingleBufferedBlackboardServer<T>::CheckCurrentLock(tLock& passed_lock)
 {
   if (IsLocked() && rrlib::time::Now(false) > last_keep_alive.Load() + this->GetLockTimeout())
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Blackboard server: Lock timed out... unlocking");
+    FINROC_LOG_PRINT(DEBUG, "Blackboard server: Lock timed out... unlocking");
 
     // meh... we have a read or write lock... so a client may make changes to it... or may still read it... it's safer to create new buffer here
     tBBVectorVar new_buffer = write->GetBufferForReturn<tBBVector>();
@@ -328,7 +328,7 @@ void tSingleBufferedBlackboardServer<T>::ReadUnlockImpl(tLock& passed_lock, int 
 
   if (this->lock_id != lock_id_)
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Skipping outdated unlock");
+    FINROC_LOG_PRINT(DEBUG, "Skipping outdated unlock");
     return;
   }
 
@@ -440,7 +440,7 @@ void tSingleBufferedBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
 {
   if (buf == NULL)
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "blackboard write unlock without providing buffer - you shouldn't do that - ignoring");
+    FINROC_LOG_PRINT(WARNING, "blackboard write unlock without providing buffer - you shouldn't do that - ignoring");
     return;
   }
   core::tPortDataManager* bufmgr = GetManager(buf);
@@ -450,7 +450,7 @@ void tSingleBufferedBlackboardServer<T>::WriteUnlock(tBBVectorVar& buf)
     tLock lock2(this->bb_lock);
     if (this->lock_id != bufmgr->lock_id)
     {
-      FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Skipping outdated unlock");
+      FINROC_LOG_PRINT(DEBUG, "Skipping outdated unlock");
 
       return;
     }

@@ -124,7 +124,7 @@ void tRawBlackboardClient::SendKeepAlive()
     }
     catch (const core::tMethodCallException& e)
     {
-      FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "warning: Sending Keep-Alive failed");
+      FINROC_LOG_PRINT(WARNING, "warning: Sending Keep-Alive failed");
     }
   }
 }

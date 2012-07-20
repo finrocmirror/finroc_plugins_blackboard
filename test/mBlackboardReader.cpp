@@ -85,11 +85,11 @@ void mBlackboardReader::Update()
     {
       output << " " << acc[i];
     }
-    FINROC_LOG_PRINT(rrlib::logging::eLL_USER, output.str());
+    FINROC_LOG_PRINT(USER, output.str());
   }
   catch (tBBLockException& e)
   {
-    FINROC_LOG_PRINT(rrlib::logging::eLL_WARNING, "Could not lock blackboard");
+    FINROC_LOG_PRINT(WARNING, "Could not lock blackboard");
   }
 }
 
