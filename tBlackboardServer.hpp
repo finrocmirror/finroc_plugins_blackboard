@@ -132,7 +132,7 @@ void tBlackboardServer<T>::CheckCurrentLock(tLock& passed_lock)
     lock_id = lock_id_gen.IncrementAndGet();
 
     locked.reset();
-    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Thread ", rrlib::thread::tThread::CurrentThreadRaw()->GetName(), ": lock = null");
+    FINROC_LOG_PRINT(rrlib::logging::eLL_DEBUG, "Thread ", rrlib::thread::tThread::CurrentThread().GetName(), ": lock = null");
     bool p = this->ProcessPendingCommands(passed_lock);
     if ((!p) && (!IsLocked()))
     {

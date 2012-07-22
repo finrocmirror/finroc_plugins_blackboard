@@ -57,7 +57,7 @@ void tAbstractBlackboardServerRaw::CheckType(rrlib::rtti::tDataTypeBase dt)
 util::tString tAbstractBlackboardServerRaw::CreateThreadString()
 {
   std::ostringstream os;
-  os << "Thread " << rrlib::thread::tThread::CurrentThreadRaw()->GetName() << " (" << rrlib::thread::tThread::CurrentThreadId() << ")";
+  os << "Thread " << rrlib::thread::tThread::CurrentThread().GetName() << " (" << rrlib::thread::tThread::CurrentThreadId() << ")";
   return os.str();
 }
 
