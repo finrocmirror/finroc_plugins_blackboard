@@ -69,11 +69,11 @@ bool tRawBlackboardClient::CheckConnect(tAbstractBlackboardServerRaw* server)
   // checks passed => connect
   if (read_port != NULL)
   {
-    read_port->ConnectToSource(*server->read_port_raw);
+    read_port->ConnectTo(*server->read_port_raw);
   }
   if (write_port.get() != NULL)
   {
-    write_port->ConnectToSource(*server->write_port_raw);
+    write_port->ConnectTo(*server->write_port_raw);
   }
   return true;
 }
@@ -143,7 +143,7 @@ void tRawBlackboardClient::tReadPort::NewConnection(core::tAbstractPort& partner
     core::tFrameworkElement* w = partner.GetParent()->GetChild("write");
     if (w)
     {
-      outer_class_ptr->write_port->ConnectToSource(*static_cast<core::tAbstractPort*>(w));
+      outer_class_ptr->write_port->ConnectTo(*static_cast<core::tAbstractPort*>(w));
     }
   }
   outer_class_ptr->server_buffers = tRawBlackboardClient::eUNKNOWN;
@@ -163,7 +163,7 @@ void tRawBlackboardClient::tWritePort::NewConnection(core::tAbstractPort& partne
     core::tFrameworkElement* w = partner.GetParent()->GetChild("read");
     if (w)
     {
-      outer_class_ptr->read_port->ConnectToSource(*static_cast<core::tAbstractPort*>(w));
+      outer_class_ptr->read_port->ConnectTo(*static_cast<core::tAbstractPort*>(w));
     }
   }
   outer_class_ptr->server_buffers = tRawBlackboardClient::eUNKNOWN;

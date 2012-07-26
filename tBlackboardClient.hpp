@@ -54,11 +54,11 @@ tBlackboardClient<T>::tBlackboardClient(const tAbstractBlackboardServerRaw* serv
   assert(server != NULL);
   if (read_port)
   {
-    server->read_port_raw->ConnectToTarget(*wrapped->read_port);
+    server->read_port_raw->ConnectTo(*wrapped->read_port);
   }
   if (write_port)
   {
-    server->write_port_raw->ConnectToTarget(*wrapped->write_port->GetWrapped());
+    server->write_port_raw->ConnectTo(*wrapped->write_port->GetWrapped());
   }
 }
 
@@ -84,7 +84,7 @@ tBlackboardClient<T>::tBlackboardClient(const util::tString& name, core::structu
     {
       read_port.reset(new core::structure::tModule::tInput<std::vector<T>>(name, parent, core::tPortFlags::cINPUT_PROXY));
     }
-    wrapped->GetReadPort()->ConnectToSource(*read_port->GetWrapped());
+    wrapped->GetReadPort()->ConnectTo(*read_port->GetWrapped());
   }
 
   // create write/full-access ports
@@ -128,7 +128,7 @@ tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, 
     {
       read_port.reset(new core::structure::tGroup::tSensorInput<std::vector<T>>(replicated_bb.GetOutsideReadPort()->GetName(), parent));
     }
-    replicated_bb.read_port->ConnectToSource(*read_port);
+    replicated_bb.read_port->ConnectTo(*read_port);
   }
 
   // forward write ports
@@ -209,7 +209,7 @@ void tBlackboardClient<T>::CheckConnect(core::tAbstractPort* p1, core::tAbstract
       if (!((boost::starts_with(parent1->GetName(), "Sensor") && boost::starts_with(parent2->GetName(), "Controller")) ||
             (boost::starts_with(parent1->GetName(), "Controller") && boost::starts_with(parent2->GetName(), "Sensor"))))
       {
-        p1->ConnectToTarget(*p2);
+        p1->ConnectTo(*p2);
       }
     }
   }
@@ -228,7 +228,7 @@ void tBlackboardClient<T>::CheckClientConnect(core::tAbstractPort* p1, core::tAb
       if (!((boost::starts_with(parent1->GetName(), "Sensor") && boost::starts_with(parent2->GetName(), "Controller")) ||
             (boost::starts_with(parent1->GetName(), "Controller") && boost::starts_with(parent2->GetName(), "Sensor"))))
       {
-        p1->ConnectToTarget(*p2);
+        p1->ConnectTo(*p2);
       }
     }
   }

@@ -223,7 +223,7 @@ public:
     {
       typedef typename internal::tGetReadPortType<T, typename std::remove_pointer<P>::type>::type tReadPort;
       read_port.reset(new tReadPort(name, parent, core::tPortFlags::cOUTPUT_PROXY));
-      wrapped_server->read_port_raw->ConnectToTarget(*read_port->GetWrapped());
+      wrapped_server->read_port_raw->ConnectTo(*read_port->GetWrapped());
     }
 
     // create write/full-access ports
@@ -280,7 +280,7 @@ public:
       {
         read_port.reset(new core::structure::tGroup::tSensorOutput<std::vector<T>>(replicated_bb.read_port->GetName(), parent));
       }
-      replicated_bb.read_port->ConnectToTarget(*read_port);
+      replicated_bb.read_port->ConnectTo(*read_port);
     }
   }
 

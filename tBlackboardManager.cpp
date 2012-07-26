@@ -242,14 +242,14 @@ void tBlackboardManager::RuntimeChange(int8 change_type, core::tFrameworkElement
           core::tPortBase& port = static_cast<core::tPortBase&>(element);
           info->read_port_raw = new core::tPortBase(core::tPortCreationInfoBase(cREAD_PORT_NAME, info, port.GetDataType(), core::tPortFlags::cOUTPUT_PROXY | core::tCoreFlags::cNETWORK_ELEMENT));
           info->Init();
-          info->read_port_raw->ConnectToSource(qname);
+          info->read_port_raw->ConnectTo(qname, core::tAbstractPort::tConnectDirection::TO_SOURCE);
         }
         else if (write && info->write_port_raw == NULL)
         {
           core::tInterfacePort& port = static_cast<core::tInterfacePort&>(element);
           info->write_port_raw = new core::tInterfacePort(cWRITE_PORT_NAME, info, port.GetDataType(), core::tInterfacePort::eRouting, core::tCoreFlags::cNETWORK_ELEMENT);
           info->Init();
-          info->write_port_raw->ConnectToSource(qname);
+          info->write_port_raw->ConnectTo(qname, core::tAbstractPort::tConnectDirection::TO_TARGET);
         }
         CheckAutoConnect(info);
       }
