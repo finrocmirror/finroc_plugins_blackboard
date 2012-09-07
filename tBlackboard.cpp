@@ -84,7 +84,7 @@ tBlackboardBase::tBlackboardBase(const tBlackboardBase& replicated_bb, core::str
 
 core::tAbstractPort* tBlackboardBase::ReplicateWritePort(core::tAbstractPort* write_port, core::tFrameworkElement* pg, const util::tString& name)
 {
-  core::tInterfacePort* new_port = new core::tInterfacePort(name, pg, write_port->GetDataType(), core::tInterfacePort::eRouting);
+  core::tInterfacePort* new_port = new core::tInterfacePort(name, pg, write_port->GetDataType(), core::tInterfacePort::tType::ROUTING);
   write_port->ConnectTo(*new_port);
   return new_port;
 }
