@@ -101,13 +101,14 @@ template<typename T>
 bool tAbstractBlackboardServer<T>::ProcessPendingCommands(tLock& passed_lock)
 {
   //System.out.println(createThreadString() + ": process pending commands");
-  if (this->pending_major_tasks.Size() == 0)
+  if (this->pending_major_tasks.size() == 0)
   {
     //System.out.println(createThreadString() + ": nothing to do");
     return false;
   }
   assert((this->wakeup_thread == -1));
-  tBlackboardTask next_task = this->pending_major_tasks.Remove(0);
+  tBlackboardTask next_task = this->pending_major_tasks.front();
+  this->pending_major_tasks.erase(this->pending_major_tasks.begin());
   this->wakeup_thread = next_task.thread_uid;
   //System.out.println(createThreadString() + ": waking up thread " + wakeupThread);
   this->monitor.NotifyAll(passed_lock);

@@ -28,7 +28,6 @@
 #include "core/port/rpc/method/tPortInterface.h"
 #include "core/port/rpc/method/tMethod.h"
 #include "core/port/rpc/method/tVoidMethod.h"
-#include "rrlib/finroc_core_utils/container/tSimpleList.h"
 #include "plugins/blackboard/tBlackboardTask.h"
 #include "plugins/blackboard/tAbstractBlackboardServerRaw.h"
 
@@ -212,7 +211,7 @@ protected:
    */
   virtual bool PendingTasks()
   {
-    return (this->pending_major_tasks.Size() > 0) || (this->wakeup_thread != -1);
+    return (this->pending_major_tasks.size() > 0) || (this->wakeup_thread != -1);
   }
 
   virtual void PostChildInit();

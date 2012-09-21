@@ -24,7 +24,6 @@
 #define plugins__blackboard__tAbstractBlackboardServerRaw_h__
 
 #include "rrlib/finroc_core_utils/definitions.h"
-#include "rrlib/finroc_core_utils/container/tSimpleList.h"
 #include "rrlib/rtti/tDataTypeBase.h"
 
 #include "core/port/std/tPortBase.h"
@@ -68,7 +67,7 @@ protected:
    * Queue with pending major commands (e.g. LOCK, READ_PART in SingleBufferedBlackboard)
    * They are executed in another thread
    * may only be accessed in synchronized context */
-  util::tSimpleList<tBlackboardTask> pending_major_tasks;
+  std::vector<tBlackboardTask> pending_major_tasks;
 
   /*! Uid of thread that is allowed to wake up now - after notifyAll() - thread should reset this to -1 as soon as possible */
   int64 wakeup_thread;
@@ -149,7 +148,7 @@ protected:
    */
   virtual bool PendingTasks()
   {
-    return (pending_major_tasks.Size() > 0) || (wakeup_thread != -1);
+    return (pending_major_tasks.size() > 0) || (wakeup_thread != -1);
   }
 
   virtual void PostChildInit()

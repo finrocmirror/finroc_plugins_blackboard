@@ -25,7 +25,6 @@
 
 #include "rrlib/finroc_core_utils/definitions.h"
 #include "rrlib/rtti/tDataTypeBase.h"
-#include "rrlib/finroc_core_utils/container/tSimpleListWithMutex.h"
 
 #include "core/tRuntimeEnvironment.h"
 #include "core/tLockOrderLevels.h"
@@ -114,7 +113,8 @@ private:
   util::tSafeConcurrentlyIterableList<tRawBlackboardClient*, rrlib::thread::tNoMutex> bb_clients;
 
   /*! Clients that wish to autoconnect */
-  util::tSimpleListWithMutex<tRawBlackboardClient*> auto_connect_clients;
+  rrlib::thread::tRecursiveMutex auto_connect_clients_lock;
+  std::vector<tRawBlackboardClient*> auto_connect_clients;
 
 public:
 

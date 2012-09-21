@@ -78,13 +78,14 @@ void tAbstractBlackboardServerRaw::PrepareDelete()
 bool tAbstractBlackboardServerRaw::ProcessPendingCommands(tLock& passed_lock)
 {
   //System.out.println(createThreadString() + ": process pending commands");
-  if (pending_major_tasks.Size() == 0)
+  if (pending_major_tasks.size() == 0)
   {
     //System.out.println(createThreadString() + ": nothing to do");
     return false;
   }
   assert((wakeup_thread == -1));
-  tBlackboardTask next_task = pending_major_tasks.Remove(0);
+  tBlackboardTask next_task = pending_major_tasks.front();
+  pending_major_tasks.erase(pending_major_tasks.begin() + 0);
   wakeup_thread = next_task.thread_uid;
   //System.out.println(createThreadString() + ": waking up thread " + wakeupThread);
   monitor.NotifyAll(passed_lock);
@@ -96,7 +97,7 @@ bool tAbstractBlackboardServerRaw::WaitForLock(tLock& passed_lock, const rrlib::
   tBlackboardTask task;
   //task.method = method;
   task.thread_uid = rrlib::thread::tThread::CurrentThreadId();
-  pending_major_tasks.Add(task);
+  pending_major_tasks.push_back(task);
   rrlib::time::tTimestamp start_time = rrlib::time::Now(false);
   //long curTime = startTime;
   rrlib::time::tDuration wait_for = timeout;
@@ -111,7 +112,7 @@ bool tAbstractBlackboardServerRaw::WaitForLock(tLock& passed_lock, const rrlib::
     if (wakeup_thread == rrlib::thread::tThread::CurrentThreadId())
     {
       // ok, it's our turn now
-      pending_major_tasks.RemoveElem(task);
+      pending_major_tasks.erase(std::remove(pending_major_tasks.begin(), pending_major_tasks.end(), task), pending_major_tasks.end());
       wakeup_thread = -1;
 
       assert((!IsLocked()));
@@ -121,7 +122,7 @@ bool tAbstractBlackboardServerRaw::WaitForLock(tLock& passed_lock, const rrlib::
 
   // ok, time seems to have run out - we have synchronized context though - so removing task is safe
   //System.out.println(createThreadString() + ": time has run out; isLocked() = " + isLocked());
-  pending_major_tasks.RemoveElem(task);
+  pending_major_tasks.erase(std::remove(pending_major_tasks.begin(), pending_major_tasks.end(), task), pending_major_tasks.end());
 
   assert(((IsLocked())) && "Somebody forgot thread waiting on blackboard");
   return false;
