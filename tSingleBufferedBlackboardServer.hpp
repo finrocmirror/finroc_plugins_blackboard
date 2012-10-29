@@ -58,9 +58,9 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
   ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(type);
   this->write_port_raw = write;
 
-  Resize(*buffer, 1, 1);
+  this->Resize(*buffer, 1, 1);
   tBlackboardManager::GetInstance()->Init();
-  ClassicBlackboardResize(&((*buffer)[0]), capacity, elements, elem_size);
+  this->ClassicBlackboardResize(&((*buffer)[0]), capacity, elements, elem_size);
 }
 
 template<typename T>
@@ -84,7 +84,7 @@ tSingleBufferedBlackboardServer<T>::tSingleBufferedBlackboardServer(const util::
   ::finroc::blackboard::tAbstractBlackboardServerRaw::CheckType(type);
   this->write_port_raw = write;
 
-  Resize(*buffer, elements, elements);
+  this->Resize(*buffer, elements, elements);
 
   tBlackboardManager::GetInstance()->Init();
 }
@@ -98,7 +98,7 @@ void tSingleBufferedBlackboardServer<T>::AsynchChange(tConstChangeTransactionVar
     CheckCurrentLock(lock2);
     if (IsLocked())
     {
-      DeferAsynchChangeCommand(buf, index, offset);
+      this->DeferAsynchChangeCommand(buf, index, offset);
       return;
     }
   }

@@ -56,10 +56,10 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& name, int capacity,
   this->write_port_raw = write;
   SetPublished(read_port->GetDefaultBuffer());
 
-  Resize(*published, 1, 1);
+  this->Resize(*published, 1, 1);
 
   tBlackboardManager::GetInstance()->Init();
-  ClassicBlackboardResize(&((*published)[0]), capacity, elements, elem_size);
+  this->ClassicBlackboardResize(&((*published)[0]), capacity, elements, elem_size);
 }
 
 template<typename T>
@@ -82,7 +82,7 @@ tBlackboardServer<T>::tBlackboardServer(const util::tString& name, int elements,
   this->write_port_raw = write;
   SetPublished(read_port->GetDefaultBuffer());
 
-  Resize(*published, elements, elements);
+  this->Resize(*published, elements, elements);
 
   tBlackboardManager::GetInstance()->Init();
 }
@@ -97,7 +97,7 @@ void tBlackboardServer<T>::AsynchChange(tConstChangeTransactionVar& buf, int ind
       CheckCurrentLock(lock2);
       if (locked != NULL)    // ok, we don't get lock now... defer command to next unlock
       {
-        DeferAsynchChangeCommand(buf, index, offset);
+        this->DeferAsynchChangeCommand(buf, index, offset);
         return;
       }
     }
