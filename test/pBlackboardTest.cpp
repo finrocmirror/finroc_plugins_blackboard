@@ -28,11 +28,12 @@
  * This is a simple test program that demonstrates how to use blackboards.
  */
 //----------------------------------------------------------------------
-#include "core/default_main_wrapper.h"
+#include "plugins/structure/default_main_wrapper.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#include "plugins/blackboard/tBlackboard.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -40,7 +41,6 @@
 #include "plugins/blackboard/test/mBlackboardReader.h"
 #include "plugins/blackboard/test/mBlackboardWriter.h"
 #include "plugins/blackboard/test/mBlackboardWriterAsync.h"
-#include "plugins/blackboard/tSingleBufferedBlackboardServer.h"
 
 //----------------------------------------------------------------------
 // Debugging
@@ -75,12 +75,12 @@ void StartUp()
 //----------------------------------------------------------------------
 // InitMainGroup
 //----------------------------------------------------------------------
-void InitMainGroup(finroc::core::tThreadContainer *main_thread, std::vector<char*> remaining_args)
+void InitMainGroup(finroc::structure::tThreadContainer *main_thread, std::vector<char*> remaining_args)
 {
   std::string bb_name("Float Blackboard");
 
   // create single-buffered float blackboard with capacity 20
-  tBlackboard<float> blackboard(bb_name, main_thread, false, 20, false, 0, 0);
+  tBlackboard<float> blackboard(bb_name, main_thread, false, 20, false, tReadPorts::NONE, NULL);
 
   // create modules that access blackboard
   mBlackboardReader* reader = new mBlackboardReader(main_thread);
@@ -88,10 +88,10 @@ void InitMainGroup(finroc::core::tThreadContainer *main_thread, std::vector<char
   mBlackboardWriterAsync* async_writer = new mBlackboardWriterAsync(main_thread);
 
   // connect modules with blackboard
-  blackboard.GetWritePort()->ConnectTo(*writer->bb_client.GetOutsideWritePort());
-  blackboard.GetWritePort()->ConnectTo(*async_writer->bb_client.GetOutsideWritePort());
-  blackboard.GetWritePort()->ConnectTo(*reader->bb_client.GetOutsideWritePort());
-  blackboard.GetReadPort()->ConnectTo(*reader->bb_client.GetOutsideReadPort()->GetWrapped());
+  blackboard.GetWritePort().ConnectTo(writer->bb_client.GetOutsideWritePort());
+  blackboard.GetWritePort().ConnectTo(async_writer->bb_client.GetOutsideWritePort());
+  blackboard.GetWritePort().ConnectTo(reader->bb_client.GetOutsideWritePort());
+  blackboard.GetReadPort().ConnectTo(reader->bb_client.GetOutsideReadPort());
 
   main_thread->SetCycleTime(500);
 }

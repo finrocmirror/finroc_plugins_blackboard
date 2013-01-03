@@ -1,6 +1,6 @@
 //
 // You received this file as part of Finroc
-// A framework for integrated robot control
+// A Framework for intelligent robot control
 //
 // Copyright (C) Finroc GbR (finroc.org)
 //
@@ -19,81 +19,76 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
-/*!\file    mBlackboardWriter.cpp
+/*!\file    plugins/blackboard/tLockException.h
  *
  * \author  Max Reichardt
  *
- * \date    2011-03-30
+ * \date    2012-12-18
+ *
+ * \brief   Contains tLockException
+ *
+ * \b tLockException
+ *
+ * Thrown when blackboard lock takes too long
  *
  */
 //----------------------------------------------------------------------
-#include "plugins/blackboard/test/mBlackboardWriter.h"
+#ifndef __plugins__blackboard__tLockException_h__
+#define __plugins__blackboard__tLockException_h__
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#include <exception>
 
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// Debugging
+// Namespace declaration
 //----------------------------------------------------------------------
-#include <cassert>
-
-//----------------------------------------------------------------------
-// Namespace usage
-//----------------------------------------------------------------------
-using namespace finroc::blackboard;
+namespace finroc
+{
+namespace blackboard
+{
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// Const values
+// Class declaration
 //----------------------------------------------------------------------
-finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> mBlackboardWriter::cCREATE_ACTION("BlackboardWriter");
-
-//----------------------------------------------------------------------
-// Implementation
-//----------------------------------------------------------------------
-
-//----------------------------------------------------------------------
-// mBlackboardWriter constructors
-//----------------------------------------------------------------------
-mBlackboardWriter::mBlackboardWriter(finroc::core::tFrameworkElement *parent, const std::string &name)
-  : tModule(parent, name),
-    bb_client("blackboard", this),
-    update_counter(0)
-{}
-
-//----------------------------------------------------------------------
-// mBlackboardWriter Update
-//----------------------------------------------------------------------
-void mBlackboardWriter::Update()
+//! Blackboard lock exception
+/*!
+ * Thrown when blackboard lock takes too long
+ */
+class tLockException : public std::exception
 {
-  try
-  {
-    // Acquire write lock
-    tBlackboardClient<float>::tWriteAccess acc(bb_client);
 
-    if (acc.Size() < 10)
-    {
-      acc.Resize(20);
-    }
+//----------------------------------------------------------------------
+// Public methods and typedefs
+//----------------------------------------------------------------------
+public:
 
-    // Change elements 0 to 9
-    for (size_t i = 0; i < 10; i++)
-    {
-      acc[i] = update_counter;
-    }
-  }
-  catch (tLockException& e)
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
+
+  virtual const char* what() const throw()
   {
-    FINROC_LOG_PRINT(WARNING, "Could not lock blackboard");
+    return "Lock failed";
   }
-  update_counter++;
+
+};
+
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
 }
 
+
+#endif

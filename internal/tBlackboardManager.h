@@ -1,6 +1,6 @@
 //
 // You received this file as part of Finroc
-// A framework for integrated robot control
+// A Framework for intelligent robot control
 //
 // Copyright (C) Finroc GbR (finroc.org)
 //
@@ -19,81 +19,78 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
-/*!\file    mBlackboardWriter.cpp
+/*!\file    plugins/blackboard/internal/tBlackboardManager.h
  *
  * \author  Max Reichardt
  *
- * \date    2011-03-30
+ * \date    2012-12-23
+ *
+ * \brief   Contains tBlackboardManager
+ *
+ * \b tBlackboardManager
+ *
+ * Blackboard Manager (has similar tasks as blackboard handler in MCA2)
+ * Is a framework element that groups global blackboard servers.
  *
  */
 //----------------------------------------------------------------------
-#include "plugins/blackboard/test/mBlackboardWriter.h"
+#ifndef __plugins__blackboard__internal__tBlackboardManager_h__
+#define __plugins__blackboard__internal__tBlackboardManager_h__
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#include "core/tFrameworkElement.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// Debugging
+// Namespace declaration
 //----------------------------------------------------------------------
-#include <cassert>
-
-//----------------------------------------------------------------------
-// Namespace usage
-//----------------------------------------------------------------------
-using namespace finroc::blackboard;
+namespace finroc
+{
+namespace blackboard
+{
+namespace internal
+{
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// Const values
+// Class declaration
 //----------------------------------------------------------------------
-finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> mBlackboardWriter::cCREATE_ACTION("BlackboardWriter");
-
-//----------------------------------------------------------------------
-// Implementation
-//----------------------------------------------------------------------
-
-//----------------------------------------------------------------------
-// mBlackboardWriter constructors
-//----------------------------------------------------------------------
-mBlackboardWriter::mBlackboardWriter(finroc::core::tFrameworkElement *parent, const std::string &name)
-  : tModule(parent, name),
-    bb_client("blackboard", this),
-    update_counter(0)
-{}
-
-//----------------------------------------------------------------------
-// mBlackboardWriter Update
-//----------------------------------------------------------------------
-void mBlackboardWriter::Update()
+//! Blackboard Manager
+/*!
+ * Blackboard Manager (has similar tasks as blackboard handler in MCA2)
+ * Is a framework element that groups global blackboard servers.
+ */
+class tBlackboardManager : public core::tFrameworkElement
 {
-  try
-  {
-    // Acquire write lock
-    tBlackboardClient<float>::tWriteAccess acc(bb_client);
 
-    if (acc.Size() < 10)
-    {
-      acc.Resize(20);
-    }
+//----------------------------------------------------------------------
+// Public methods and typedefs
+//----------------------------------------------------------------------
+public:
 
-    // Change elements 0 to 9
-    for (size_t i = 0; i < 10; i++)
-    {
-      acc[i] = update_counter;
-    }
-  }
-  catch (tLockException& e)
-  {
-    FINROC_LOG_PRINT(WARNING, "Could not lock blackboard");
-  }
-  update_counter++;
+  tBlackboardManager();
+
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
+
+};
+
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
 }
 
+
+#endif

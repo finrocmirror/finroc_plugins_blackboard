@@ -1,6 +1,6 @@
 //
 // You received this file as part of Finroc
-// A framework for integrated robot control
+// A Framework for intelligent robot control
 //
 // Copyright (C) Finroc GbR (finroc.org)
 //
@@ -19,15 +19,18 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
-/*!\file    mBlackboardWriter.cpp
+/*!\file    plugins/blackboard/definitions.h
  *
  * \author  Max Reichardt
  *
- * \date    2011-03-30
+ * \date    2012-12-31
+ *
+ * Various definitions for blackboard plugin.
  *
  */
 //----------------------------------------------------------------------
-#include "plugins/blackboard/test/mBlackboardWriter.h"
+#ifndef __plugins__blackboard__definitions_h__
+#define __plugins__blackboard__definitions_h__
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
@@ -38,62 +41,51 @@
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// Debugging
+// Namespace declaration
 //----------------------------------------------------------------------
-#include <cassert>
-
-//----------------------------------------------------------------------
-// Namespace usage
-//----------------------------------------------------------------------
-using namespace finroc::blackboard;
+namespace finroc
+{
+namespace blackboard
+{
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
 
-//----------------------------------------------------------------------
-// Const values
-//----------------------------------------------------------------------
-finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> mBlackboardWriter::cCREATE_ACTION("BlackboardWriter");
-
-//----------------------------------------------------------------------
-// Implementation
-//----------------------------------------------------------------------
-
-//----------------------------------------------------------------------
-// mBlackboardWriter constructors
-//----------------------------------------------------------------------
-mBlackboardWriter::mBlackboardWriter(finroc::core::tFrameworkElement *parent, const std::string &name)
-  : tModule(parent, name),
-    bb_client("blackboard", this),
-    update_counter(0)
-{}
-
-//----------------------------------------------------------------------
-// mBlackboardWriter Update
-//----------------------------------------------------------------------
-void mBlackboardWriter::Update()
+/*! Desired read port configuration (constructor parameter) */
+enum class tReadPorts
 {
-  try
-  {
-    // Acquire write lock
-    tBlackboardClient<float>::tWriteAccess acc(bb_client);
+  NONE,     //!< Do not create any read ports
+  INTERNAL, //!< Create read port in internal client
+  EXTERNAL, //!< Create read port in internal client and also in group's/module's external interface (e.g. "Output" or "Sensor Output")
+};
 
-    if (acc.Size() < 10)
-    {
-      acc.Resize(20);
-    }
+/*!
+ * Auto-connect mode for clients of global blackboards
+ *
+ * Same categories of blackboard as in MCA2.
+ * (Questionable whether that makes sense.
+ *  Is, however, the easiest and most efficient way to remain compatible)
+ */
+enum class tAutoConnectMode
+{
+  OFF,      //!< Do not connect to any global blackboards
+  ALL,      //!< Connect to any global blackboard with the same name
+  SHARED,   //!< Connect to any shared global blackboard with the same name
+  LOCAL,    //!< Connect to any local global blackboard with the same name
+  REMOTE,   //!< Connect to any remote global blackboard with the same name
+};
 
-    // Change elements 0 to 9
-    for (size_t i = 0; i < 10; i++)
-    {
-      acc[i] = update_counter;
-    }
-  }
-  catch (tLockException& e)
-  {
-    FINROC_LOG_PRINT(WARNING, "Could not lock blackboard");
-  }
-  update_counter++;
+
+//----------------------------------------------------------------------
+// Function declarations
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
 }
 
+
+#endif

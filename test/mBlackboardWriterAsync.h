@@ -34,7 +34,7 @@
 #ifndef _blackboard__mBlackboardWriterAsync_h_
 #define _blackboard__mBlackboardWriterAsync_h_
 
-#include "core/structure/tModule.h"
+#include "plugins/structure/tModule.h"
 #include "plugins/blackboard/tBlackboardClient.h"
 
 //----------------------------------------------------------------------
@@ -68,9 +68,9 @@ namespace blackboard
  * Note, that these transaction-like changes do not require any locking
  * and do not block.
  */
-class mBlackboardWriterAsync : public finroc::core::structure::tModule
+class mBlackboardWriterAsync : public structure::tModule
 {
-  static finroc::core::tStandardCreateModuleAction<mBlackboardWriterAsync> cCREATE_ACTION;
+  static finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriterAsync> cCREATE_ACTION;
 
 //----------------------------------------------------------------------
 // Ports (These are the only variables that may be declared public)
@@ -84,7 +84,7 @@ public:
 //----------------------------------------------------------------------
 public:
 
-  mBlackboardWriterAsync(finroc::core::tFrameworkElement *parent, const finroc::util::tString &name = "BlackboardWriterAsync");
+  mBlackboardWriterAsync(finroc::core::tFrameworkElement *parent, const std::string &name = "BlackboardWriterAsync");
 
 //----------------------------------------------------------------------
 // Private fields and methods

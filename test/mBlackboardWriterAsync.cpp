@@ -54,7 +54,7 @@ using namespace finroc::blackboard;
 //----------------------------------------------------------------------
 // Const values
 //----------------------------------------------------------------------
-finroc::core::tStandardCreateModuleAction<mBlackboardWriterAsync> mBlackboardWriterAsync::cCREATE_ACTION("BlackboardWriterAsync");
+finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriterAsync> mBlackboardWriterAsync::cCREATE_ACTION("BlackboardWriterAsync");
 
 //----------------------------------------------------------------------
 // Implementation
@@ -63,7 +63,7 @@ finroc::core::tStandardCreateModuleAction<mBlackboardWriterAsync> mBlackboardWri
 //----------------------------------------------------------------------
 // mBlackboardWriterAsync constructors
 //----------------------------------------------------------------------
-mBlackboardWriterAsync::mBlackboardWriterAsync(finroc::core::tFrameworkElement *parent, const finroc::util::tString &name)
+mBlackboardWriterAsync::mBlackboardWriterAsync(finroc::core::tFrameworkElement *parent, const std::string &name)
   : tModule(parent, name),
     bb_client("blackboard", this),
     update_counter(0)
@@ -75,22 +75,16 @@ mBlackboardWriterAsync::mBlackboardWriterAsync(finroc::core::tFrameworkElement *
 void mBlackboardWriterAsync::Update()
 {
   // acquire buffer for async change-transaction
-  core::tPortDataPtr<std::vector<float> > change_buf(bb_client.GetUnusedChangeBuffer());
+  data_ports::tPortDataPointer<std::vector<tChange<float>>> change_buf(bb_client.GetUnusedChangeBuffer());
 
   // fill buffer
-  change_buf->resize(3);
-  (*change_buf)[0] = update_counter;
-  (*change_buf)[1] = update_counter + 1;
-  (*change_buf)[2] = update_counter + 2;
+  change_buf->clear();
+  change_buf->push_back(tChange<float>(15, update_counter));
+  change_buf->push_back(tChange<float>(16, update_counter + 1));
+  change_buf->push_back(tChange<float>(17, update_counter + 2));
 
   // Commit asynch change
-  bool success = bb_client.CommitAsynchChange(change_buf, 15, 0); // last parameter is unused
-
-  // optional: print error message if operation fails
-  if (!success)
-  {
-    FINROC_LOG_PRINT(WARNING, "Could not commit change to blackboard");
-  }
+  bb_client.AsynchronousChange(change_buf);
 
   // increment update counter
   update_counter++;

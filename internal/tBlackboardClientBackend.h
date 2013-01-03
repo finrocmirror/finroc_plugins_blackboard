@@ -1,6 +1,6 @@
 //
 // You received this file as part of Finroc
-// A framework for integrated robot control
+// A Framework for intelligent robot control
 //
 // Copyright (C) Finroc GbR (finroc.org)
 //
@@ -19,35 +19,33 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
-/*!\file    mBlackboardWriter.h
+/*!\file    plugins/blackboard/internal/tBlackboardClientBackend.h
  *
  * \author  Max Reichardt
  *
- * \date    2011-03-30
+ * \date    2012-12-31
  *
- * \brief Contains mBlackboardWriter
+ * \brief   Contains tBlackboardClientBackend
  *
- * \b mBlackboardWriter
+ * \b tBlackboardClientBackend
+ *
+ * Blackboard client backend.
+ * Framework element with the two ports - wrapped by by tBlackboardClient<T> class.
  *
  */
 //----------------------------------------------------------------------
-#ifndef _blackboard__mBlackboardWriter_h_
-#define _blackboard__mBlackboardWriter_h_
-
-#include "plugins/structure/tModule.h"
-#include "plugins/blackboard/tBlackboardClient.h"
+#ifndef __plugins__blackboard__internal__tBlackboardClientBackend_h__
+#define __plugins__blackboard__internal__tBlackboardClientBackend_h__
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#include "plugins/data_ports/tPort.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
-
-//----------------------------------------------------------------------
-// Debugging
-//----------------------------------------------------------------------
+#include "plugins/blackboard/definitions.h"
 
 //----------------------------------------------------------------------
 // Namespace declaration
@@ -56,6 +54,9 @@ namespace finroc
 {
 namespace blackboard
 {
+namespace internal
+{
+
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
@@ -63,33 +64,53 @@ namespace blackboard
 //----------------------------------------------------------------------
 // Class declaration
 //----------------------------------------------------------------------
-//! Writes entries [0..9] of float blackboard using ordinary blackboard locking
-class mBlackboardWriter : public structure::tModule
+//! Blackboard client backend
+/*!
+ * Blackboard client backend.
+ * Framework element with the two ports - wrapped by by tBlackboardClient<T> class.
+ */
+class tBlackboardClientBackend : public core::tFrameworkElement
 {
-  static finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> cCREATE_ACTION;
 
 //----------------------------------------------------------------------
-// Ports (These are the only variables that may be declared public)
-//----------------------------------------------------------------------
-public:
-
-  tBlackboardClient<float> bb_client;
-
-//----------------------------------------------------------------------
-// Public methods and typedefs (no fields/variables)
+// Public methods and typedefs
 //----------------------------------------------------------------------
 public:
 
-  mBlackboardWriter(finroc::core::tFrameworkElement *parent, const std::string &name = "BlackboardWriter");
+  /*!
+   * \param name Name/Uid of blackboard
+   * \param parent Parent of blackboard client
+   * \param write_port Write port
+   * \param read_port Read port
+   */
+  tBlackboardClientBackend(const std::string& name, core::tFrameworkElement* parent, core::tPortWrapperBase& write_port, core::tPortWrapperBase& read_port);
+
+  /*!
+   * \return Unused buffer of specified type (typically for asynchronous changes and direct buffer commits)
+   */
+  template <typename T>
+  data_ports::tPortDataPointer<T> GetUnusedBuffer()
+  {
+    auto pointer = buffer_pool.GetUnusedBuffer(rrlib::rtti::tDataType<T>());
+    return data_ports::api::tPortDataPointerImplementation<T, false>(pointer);
+  }
+
+  void SetAutoConnectMode(tAutoConnectMode new_mode)
+  {
+    // TODO
+  }
 
 //----------------------------------------------------------------------
 // Private fields and methods
 //----------------------------------------------------------------------
 private:
 
-  int update_counter;
+  /*! Buffer pool for asynchronous changes and direct buffer commits */
+  data_ports::standard::tMultiTypePortBufferPool buffer_pool;
 
-  virtual void Update();
+  /*! Read and write port */
+  core::tAbstractPort * read_port, * write_port;
+
 };
 
 //----------------------------------------------------------------------
@@ -97,5 +118,7 @@ private:
 //----------------------------------------------------------------------
 }
 }
+}
+
 
 #endif

@@ -1,176 +1,99 @@
-/**
- * You received this file as part of an advanced experimental
- * robotics framework prototype ('finroc')
+//
+// You received this file as part of Finroc
+// A Framework for intelligent robot control
+//
+// Copyright (C) Finroc GbR (finroc.org)
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+//----------------------------------------------------------------------
+/*!\file    plugins/blackboard/tBlackboard.h
  *
- * Copyright (C) 2011 Max Reichardt,
- *   Robotics Research Lab, University of Kaiserslautern
+ * \author  Max Reichardt
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * \date    2012-12-18
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * \brief   Contains tBlackboard
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * \b tBlackboard
+ *
+ * This is a convenience class to create a blackboard server
+ * (and possibly client) in a group or module.
+ *
+ * This allows considering blackboard edges in scheduling.
+ *
+ * It can also be used in a group to allow access to a blackboard
+ * of an inner module or group.
+ *
  */
+//----------------------------------------------------------------------
+#ifndef __plugins__blackboard__tBlackboard_h__
+#define __plugins__blackboard__tBlackboard_h__
 
-#ifndef plugins__blackboard__tBlackboard_h__
-#define plugins__blackboard__tBlackboard_h__
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
 
-#include "rrlib/finroc_core_utils/definitions.h"
-
-#include "plugins/blackboard/tSingleBufferedBlackboardServer.h"
-#include "plugins/blackboard/tBlackboardServer.h"
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
 #include "plugins/blackboard/tBlackboardClient.h"
-#include "core/structure/tGroup.h"
-#include "core/structure/tSenseControlModule.h"
-#include "core/structure/tModule.h"
+#include "plugins/blackboard/internal/tBlackboardBase.h"
 
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace finroc
 {
 namespace blackboard
 {
-namespace internal
-{
 
-/*! Helper to determine port type for any read port replications */
-template <typename T, bool MOD, bool SCMOD, bool GRP>
-struct tGetReadPortTypeBase
-{
-  typedef core::tPort<std::vector<T>> type;
-};
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
 
-template <typename T>
-struct tGetReadPortTypeBase<T, true, false, false>
-{
-  typedef core::structure::tModule::tOutput<std::vector<T>> type;
-};
-
-template <typename T>
-struct tGetReadPortTypeBase<T, false, true, false>
-{
-  typedef core::structure::tSenseControlModule::tSensorOutput<std::vector<T>> type;
-};
-
-template <typename T>
-struct tGetReadPortTypeBase<T, false, false, true>
-{
-  typedef core::structure::tGroup::tSensorOutput<std::vector<T>> type;
-};
-
-template <typename T, typename P>
-struct tGetReadPortType : public tGetReadPortTypeBase<T, std::is_base_of<core::structure::tModule, P>::value, std::is_base_of<core::structure::tSenseControlModule, P>::value, std::is_base_of<core::structure::tGroup, P>::value>
-{
-};
-
+//----------------------------------------------------------------------
+// Class declaration
+//----------------------------------------------------------------------
+//! Blackboard (server)
 /*!
- * internal base class for tBlackboard<T> class
- */
-class tBlackboardBase
-{
-
-protected:
-
-  /*! Replicated ports in group's/module's tPortGroups */
-  core::tAbstractPort * write_port1, * write_port2;
-
-  /*! default parameter for tBlackboard constructor */
-  static core::tPortGroup* default_port_group;
-
-  tBlackboardBase() :
-    write_port1(NULL),
-    write_port2(NULL)
-  {}
-
-  /*!
-   * Constructor to replicate access to inner tBlackboard in tGroup.
-   * (per default, full-blackboard-access-ports are created in the same port groups as in the inner group/module.
-   *  In case of a plain tModule, ports in tSensorOutput and tControllerInput are created by default.)
-   *
-   * \param replicated_bb Blackboard to provide access to
-   * \param parent Parent of blackboard
-   * \param create_read_port_in_co In case we have a plain tModule: Create read port in Controller Output (rather than Sensor Output?)
-   * \param forward_write_port_in_controller Forward write ports in controller port groups?
-   * \param forward_write_port_in_sensor Forward write ports in sensor port groups?
-   */
-  tBlackboardBase(const tBlackboardBase& replicated_bb, core::structure::tGroup* parent, bool create_read_port_in_co = false, bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false);
-
-  /*!
-   * Create blackboard write port in specified port group and connect it to
-   * (original blackboard) write port.
-   *
-   * \param write_port Port to connect newly created port to
-   * \param pg Port group to create port in
-   * \param name Name of new port
-   * \return Created Port
-   */
-  static core::tAbstractPort* ReplicateWritePort(core::tAbstractPort* write_port, core::tFrameworkElement* pg, const util::tString& name);
-
-  /*! Helper function to determine port group to create write ports in by default */
-  static core::tPortGroup* GetWritePortGroup(core::structure::tGroup* g)
-  {
-    return &g->GetControllerInputs();
-  }
-
-  static core::tPortGroup* GetWritePortGroup(core::structure::tSenseControlModule* g)
-  {
-    return &g->GetControllerInputs();
-  }
-
-  static core::tPortGroup* GetWritePortGroup(core::structure::tModule* g)
-  {
-    return &g->GetInputs();
-  }
-
-  static core::tPortGroup* GetWritePortGroup(core::tFrameworkElement* g)
-  {
-    return NULL;
-  }
-};
-
-} // namespace
-
-/*!
- * \author Max Reichardt
- *
  * This is a convenience class to create a blackboard server
  * (and possibly client) in a group or module.
+ *
  * This allows considering blackboard edges in scheduling.
  *
  * It can also be used in a group to allow access to a blackboard
  * of an inner module or group.
  */
-template<typename T>
-class tBlackboard : internal::tBlackboardBase, boost::noncopyable
+template <typename T>
+class tBlackboard : public internal::tBlackboardBase
 {
+  template <typename TParent>
+  struct tGetReadPortType;
+
+//----------------------------------------------------------------------
+// Public methods and typedefs
+//----------------------------------------------------------------------
 public:
-  typedef typename tAbstractBlackboardServer<T>::tBBVector tBBVector;
-  typedef typename tAbstractBlackboardServer<T>::tBBVectorVar tBBVectorVar;
-  typedef typename tAbstractBlackboardServer<T>::tConstBBVectorVar tConstBBVectorVar;
-  typedef typename tAbstractBlackboardServer<T>::tChangeTransaction tChangeTransaction;
-  typedef typename tAbstractBlackboardServer<T>::tChangeTransactionVar tChangeTransactionVar;
-  typedef typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar tConstChangeTransactionVar;
+
   typedef tBlackboardWriteAccess<T> tWriteAccess;
   typedef tBlackboardReadAccess<T> tReadAccess;
 
-private:
+  typedef internal::tBlackboardServer<T> tServer;
 
-  /*! Wrapped blackboard server */
-  tAbstractBlackboardServer<T>* wrapped_server;
-
-  /*! Wrapped blackboard client - contains NULL pointer if no such client was created */
-  tBlackboardClient<T> wrapped_client;
-
-  /*! Replicated read port in group's/module's tPortGroups */
-  std::unique_ptr<core::tPort<std::vector<T>>> read_port;
-
-public:
+  typedef typename tServer::tBuffer tBuffer;
 
   /*!
    * Empty constructor for blackboards that are not initialized in
@@ -178,7 +101,8 @@ public:
    */
   tBlackboard() :
     wrapped_server(NULL),
-    wrapped_client()
+    wrapped_client(),
+    read_port()
   {}
 
   /*!
@@ -191,49 +115,50 @@ public:
    * \param multi_buffered Create multi-buffered blackboard?
    * \param elements Initial number of elements
    * \param create_client Create Blackboard client?
-   * \param create_read_port Create read port for blackboard? (0 = no, 1 = in internal client, 2 = also in (Sensor)Output)
+   * \param create_read_port Which read ports to create for blackboard
    * \param create_write_port_in If not NULL, creates write port in specified port group
    * \param create_write_port_in2 If not NULL, creates another write port in specified port group
    */
-  template <typename P>
-  tBlackboard(const util::tString& name, P* parent, bool multi_buffered = false, int elements = 0, bool create_client = true, int create_read_port = 2, core::tPortGroup* create_write_port_in = default_port_group, core::tPortGroup* create_write_port_in2 = NULL) :
+  template <typename TParent>
+  tBlackboard(const std::string& name, TParent* parent, bool multi_buffered = false, int elements = 0, bool create_client = true,
+              tReadPorts create_read_port = tReadPorts::EXTERNAL, core::tPortGroup* create_write_port_in = default_port_group, core::tPortGroup* create_write_port_in2 = NULL) :
     wrapped_server(NULL),
-    wrapped_client()
+    wrapped_client(),
+    read_port()
   {
     // Get/create Framework element to put blackboard stuff beneath
-    core::tFrameworkElement* bbs = parent->GetChild("Blackboards");
-    if (bbs == NULL)
+    core::tFrameworkElement* blackboard_parent = parent->GetChild("Blackboards");
+    if (!blackboard_parent)
     {
-      bbs = new core::tFrameworkElement(parent, "Blackboards");
+      blackboard_parent = new core::tFrameworkElement(parent, "Blackboards");
     }
 
     // Create blackboard server
-    wrapped_server = multi_buffered ?
-                     static_cast<tAbstractBlackboardServer<T>*>(new tBlackboardServer<T>(name, elements, bbs, false)) :
-                     static_cast<tAbstractBlackboardServer<T>*>(new tSingleBufferedBlackboardServer<T>(name, elements, bbs, false));
+    wrapped_server = new internal::tBlackboardServer<T>(name, blackboard_parent, multi_buffered, elements, false);
 
     // Create blackboard client
     if (create_client)
     {
-      wrapped_client = tBlackboardClient<T>(wrapped_server, bbs, "", false, create_read_port > 0);
+      wrapped_client = tBlackboardClient<T>(*wrapped_server, blackboard_parent, "", false, create_read_port != tReadPorts::NONE);
     }
 
     // Possibly create read ports in module
-    if (create_read_port >= 2 && GetWritePortGroup(parent) != NULL)
+    if (create_read_port == tReadPorts::EXTERNAL && GetWritePortGroup(parent) != NULL)
     {
-      typedef typename internal::tGetReadPortType<T, typename std::remove_pointer<P>::type>::type tReadPort;
-      read_port.reset(new tReadPort(name, parent, core::tPortFlags::cOUTPUT_PROXY));
-      wrapped_server->read_port_raw->ConnectTo(*read_port->GetWrapped());
+      typedef typename tGetReadPortType<typename std::remove_pointer<TParent>::type>::type tReadPort;
+      read_port = tReadPort(name, parent, core::tFrameworkElement::tFlag::ACCEPTS_DATA); // make this a proxy port
+      wrapped_server->GetReadPort().ConnectTo(read_port);
     }
 
     // create write/full-access ports
     if (create_write_port_in != NULL && GetWritePortGroup(parent) != NULL)
     {
-      write_port1 = ReplicateWritePort(wrapped_server->write_port_raw, create_write_port_in != default_port_group ? create_write_port_in : GetWritePortGroup(parent), name);
+      write_port1 = ReplicateWritePort(*wrapped_server->GetWritePort().GetWrapped(),
+                                       *(create_write_port_in != default_port_group ? create_write_port_in : GetWritePortGroup(parent)), name);
     }
     if (create_write_port_in2 != NULL && GetWritePortGroup(parent) != NULL)
     {
-      write_port2 = ReplicateWritePort(wrapped_server->write_port_raw, create_write_port_in2, name);
+      write_port2 = ReplicateWritePort(*wrapped_server->GetWritePort().GetWrapped(), *create_write_port_in2, name);
     }
   }
 
@@ -248,16 +173,18 @@ public:
    * \param forward_write_port_in_controller Forward write ports in controller port groups?
    * \param forward_write_port_in_sensor Forward write ports in sensor port groups?
    */
-  tBlackboard(const tBlackboard& replicated_bb, core::structure::tGroup* parent, bool create_read_port_in_co = false, bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false) :
+  tBlackboard(tBlackboard& replicated_bb, structure::tGroup* parent, bool create_read_port_in_co = false,
+              bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false) :
     tBlackboardBase(replicated_bb, parent, create_read_port_in_co, forward_write_port_in_controller, forward_write_port_in_sensor),
     wrapped_server(NULL),
-    wrapped_client()
+    wrapped_client(),
+    read_port()
   {
     // forward read port
-    if (replicated_bb.read_port)
+    if (replicated_bb.read_port.GetWrapped())
     {
       // where do we create port?
-      core::tFrameworkElement* pg = replicated_bb.read_port->GetParent();
+      core::tFrameworkElement* pg = replicated_bb.read_port.GetParent();
       if (pg->NameEquals("Sensor Output"))
       {
         create_read_port_in_co = false;
@@ -274,24 +201,23 @@ public:
       // create port
       if (create_read_port_in_co)
       {
-        read_port.reset(new core::structure::tGroup::tControllerOutput<std::vector<T>>(replicated_bb.read_port->GetName(), parent));
+        read_port = structure::tGroup::tControllerOutput<std::vector<T>>(replicated_bb.read_port.GetName(), parent);
       }
       else
       {
-        read_port.reset(new core::structure::tGroup::tSensorOutput<std::vector<T>>(replicated_bb.read_port->GetName(), parent));
+        read_port = structure::tGroup::tSensorOutput<std::vector<T>>(replicated_bb.read_port.GetName(), parent);
       }
-      replicated_bb.read_port->ConnectTo(*read_port);
+      replicated_bb.read_port.ConnectTo(read_port);
     }
   }
 
   /*! move constructor */
   tBlackboard(tBlackboard && o) :
-    tBlackboardBase(),
+    tBlackboardBase(std::forward(o)),
     wrapped_server(NULL),
-    wrapped_client()
+    wrapped_client(),
+    read_port()
   {
-    std::swap(write_port1, o.write_port1);
-    std::swap(write_port2, o.write_port2);
     std::swap(wrapped_server, o.wrapped_server);
     std::swap(wrapped_client, o.wrapped_client);
     std::swap(read_port, o.read_port);
@@ -300,8 +226,7 @@ public:
   /*! move assignment */
   tBlackboard& operator=(tBlackboard && o)
   {
-    std::swap(write_port1, o.write_port1);
-    std::swap(write_port2, o.write_port2);
+    tBlackboardBase::operator=(std::forward<tBlackboardBase>(o));
     std::swap(wrapped_server, o.wrapped_server);
     std::swap(wrapped_client, o.wrapped_client);
     std::swap(read_port, o.read_port);
@@ -323,7 +248,7 @@ public:
   }
 
   /*! same as tFrameworkElement::GetName() */
-  util::tString GetName() const
+  std::string GetName() const
   {
     return wrapped_server->GetName();
   }
@@ -331,9 +256,9 @@ public:
   /*!
    * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's read port
    */
-  core::tPort<std::vector<T>>* GetOutsideReadPort() const
+  data_ports::tPort<std::vector<T>> GetOutsideReadPort() const
   {
-    return read_port.get();
+    return read_port;
   }
 
   /*!
@@ -355,21 +280,50 @@ public:
   /*!
    * \return Port to use, when modules inside group containing blackboard want to connect to this blackboard's read port
    */
-  core::tAbstractPort* GetReadPort() const
+  data_ports::tOutputPort<tBuffer> GetReadPort() const
   {
-    return wrapped_server->read_port_raw;
+    return wrapped_server->GetReadPort();
   }
 
   /*!
    * \return Port to use, when modules inside group containing blackboard want to connect to this blackboard's primary write port
    */
-  core::tAbstractPort* GetWritePort() const
+  rpc_ports::tServerPort<internal::tBlackboardServer<T>> GetWritePort() const
   {
-    return wrapped_server->write_port_raw;
+    return rpc_ports::tServerPort<internal::tBlackboardServer<T>>::Wrap(*wrapped_server->GetWritePort().GetWrapped());
   }
+
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
+
+  /*! Wrapped blackboard server */
+  internal::tBlackboardServer<T>* wrapped_server;
+
+  /*! Wrapped blackboard client - contains NULL pointer if no such client was created */
+  tBlackboardClient<T> wrapped_client;
+
+  /*! Replicated read port in group's/module's tPortGroups */
+  data_ports::tPort<std::vector<T>> read_port;
+
+
+  template <typename TParent>
+  struct tGetReadPortType
+  {
+    typedef std::vector<T> tBuffer;
+    typedef typename std::conditional < std::is_base_of<structure::tModule, TParent>::value, structure::tModule::tOutput<tBuffer>,
+            typename std::conditional < std::is_base_of<structure::tSenseControlModule, TParent>::value, structure::tSenseControlModule::tSensorOutput<tBuffer>,
+            typename std::conditional < std::is_base_of<structure::tGroup, TParent>::value, structure::tGroup::tSensorOutput<tBuffer>,
+            data_ports::tPort<tBuffer >>::type >::type >::type type;
+  };
 };
 
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
 }
 }
 
-#endif // plugins__blackboard__tBlackboard_h__
+
+#endif

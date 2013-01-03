@@ -34,7 +34,7 @@
 #ifndef _blackboard__mBlackboardReader_h_
 #define _blackboard__mBlackboardReader_h_
 
-#include "core/structure/tModule.h"
+#include "plugins/structure/tModule.h"
 #include "plugins/blackboard/tBlackboardClient.h"
 
 //----------------------------------------------------------------------
@@ -64,9 +64,9 @@ namespace blackboard
 // Class declaration
 //----------------------------------------------------------------------
 //! Reads contents of blackboard and prints them to console.
-class mBlackboardReader : public finroc::core::structure::tModule
+class mBlackboardReader : public structure::tModule
 {
-  static finroc::core::tStandardCreateModuleAction<mBlackboardReader> cCREATE_ACTION;
+  static finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardReader> cCREATE_ACTION;
 
 //----------------------------------------------------------------------
 // Ports (These are the only variables that may be declared public)
@@ -80,7 +80,7 @@ public:
 //----------------------------------------------------------------------
 public:
 
-  mBlackboardReader(finroc::core::tFrameworkElement *parent, const finroc::util::tString &name = "BlackboardReader");
+  mBlackboardReader(finroc::core::tFrameworkElement *parent, const std::string &name = "BlackboardReader");
 
 //----------------------------------------------------------------------
 // Private fields and methods

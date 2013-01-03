@@ -29,7 +29,7 @@
  * and tBlackboardClient to connect and replicate local blackboards.
  */
 //----------------------------------------------------------------------
-#include "core/default_main_wrapper.h"
+#include "plugins/structure/default_main_wrapper.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
@@ -38,10 +38,10 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
+#include "plugins/blackboard/tBlackboard.h"
 #include "plugins/blackboard/test/mBlackboardReader.h"
 #include "plugins/blackboard/test/mBlackboardWriter.h"
 #include "plugins/blackboard/test/mBlackboardWriterAsync.h"
-#include "plugins/blackboard/tSingleBufferedBlackboardServer.h"
 
 //----------------------------------------------------------------------
 // Debugging
@@ -71,13 +71,13 @@ void StartUp()
 {}
 
 /*! Module containing Blackboard */
-class mBlackboardServer : public structure::tModule
+class mBlackboardServer : public finroc::structure::tModule
 {
 public:
   tBlackboard<float> blackboard;
 
   mBlackboardServer(tFrameworkElement* parent) :
-    structure::tModule(parent, "BlackboardServer"),
+    tModule(parent, "BlackboardServer"),
     blackboard("Float Blackboard", this)
   {}
 
@@ -86,13 +86,13 @@ private:
 };
 
 /*! Group replicating Blackboard */
-class gBlackboardServer : public structure::tGroup
+class gBlackboardServer : public finroc::structure::tGroup
 {
 public:
   tBlackboard<float> blackboard;
 
   gBlackboardServer(tFrameworkElement* parent) :
-    structure::tGroup(parent, "BlackboardServerGroup", ""),
+    tGroup(parent, "BlackboardServerGroup", ""),
     blackboard()
   {
     // Create server module
@@ -108,13 +108,13 @@ public:
 };
 
 /*! Group replicating BlackboardClient */
-class gBlackboardClient : public structure::tGroup
+class gBlackboardClient : public finroc::structure::tGroup
 {
 public:
   tBlackboardClient<float> bb_client;
 
   gBlackboardClient(tFrameworkElement* parent) :
-    structure::tGroup(parent, "BlackboardClientGroup", ""),
+    tGroup(parent, "BlackboardClientGroup", ""),
     bb_client()
   {
     // Create client modules
@@ -128,7 +128,7 @@ public:
 };
 
 
-void InitMainGroup(finroc::core::tThreadContainer *main_thread, std::vector<char*> remaining_args)
+void InitMainGroup(finroc::structure::tThreadContainer *main_thread, std::vector<char*> remaining_args)
 {
   // Create groups and connect them
   gBlackboardServer* server = new gBlackboardServer(main_thread);

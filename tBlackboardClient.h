@@ -1,189 +1,149 @@
-/**
- * You received this file as part of an advanced experimental
- * robotics framework prototype ('finroc')
+//
+// You received this file as part of Finroc
+// A Framework for intelligent robot control
+//
+// Copyright (C) Finroc GbR (finroc.org)
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+//----------------------------------------------------------------------
+/*!\file    plugins/blackboard/tBlackboardClient.h
  *
- * Copyright (C) 2007-2010 Max Reichardt,
- *   Robotics Research Lab, University of Kaiserslautern
+ * \author  Max Reichardt
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * \date    2012-12-18
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * \brief   Contains tBlackboardClient
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * \b tBlackboardClient
+ *
+ * This is a convenience class to create a blackboard client
+ * in a group or module.
+ *
+ * It can also be used in a group to forward internal blackboard ports
+ * to the group's interface (to connect the internal clients to the outside).
+ *
  */
+//----------------------------------------------------------------------
+#ifndef __plugins__blackboard__tBlackboardClient_h__
+#define __plugins__blackboard__tBlackboardClient_h__
 
-#ifndef plugins__blackboard__tBlackboardClient_h__
-#define plugins__blackboard__tBlackboardClient_h__
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
+#include "plugins/rpc_ports/tProxyPort.h"
+#include "plugins/structure/tGroup.h"
+#include "plugins/structure/tModule.h"
 
-#include "rrlib/finroc_core_utils/definitions.h"
-#include "rrlib/rtti/tDataTypeBase.h"
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+#include "plugins/blackboard/tChange.h"
+#include "plugins/blackboard/internal/tBlackboardClientBackend.h"
+#include "plugins/blackboard/internal/tBlackboardServer.h"
 
-#include "core/structure/tGroup.h"
-#include "core/structure/tModule.h"
-#include "core/structure/tSenseControlModule.h"
-#include "core/port/tPortUtil.h"
-
-#include "plugins/blackboard/tRawBlackboardClient.h"
-
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace finroc
 {
 namespace blackboard
 {
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
 template<typename T>
 class tBlackboardReadAccess;
 template<typename T>
 class tBlackboardWriteAccess;
-template <typename T>
+template<typename T>
 class tBlackboard;
 
+//----------------------------------------------------------------------
+// Class declaration
+//----------------------------------------------------------------------
+//! Blackboard client
 /*!
- * \author Max Reichardt
+ * This is a convenience class to create a blackboard client
+ * in a group or module.
  *
- * This is the base class for a blackboard client
+ * It can also be used in a group to forward internal blackboard ports
+ * to the group's interface (to connect the internal clients to the outside).
  */
-template<typename T>
+template <typename T>
 class tBlackboardClient : boost::noncopyable
 {
+
+//----------------------------------------------------------------------
+// Public methods and typedefs
+//----------------------------------------------------------------------
 public:
-  typedef typename tAbstractBlackboardServer<T>::tBBVector tBBVector;
-  typedef typename tAbstractBlackboardServer<T>::tBBVectorVar tBBVectorVar;
-  typedef typename tAbstractBlackboardServer<T>::tConstBBVectorVar tConstBBVectorVar;
-  typedef typename tAbstractBlackboardServer<T>::tChangeTransaction tChangeTransaction;
-  typedef typename tAbstractBlackboardServer<T>::tChangeTransactionVar tChangeTransactionVar;
-  typedef typename tAbstractBlackboardServer<T>::tConstChangeTransactionVar tConstChangeTransactionVar;
 
   typedef tBlackboardWriteAccess<T> tWriteAccess;
   typedef tBlackboardReadAccess<T> tReadAccess;
 
-private:
+  typedef internal::tBlackboardServer<T> tServer;
 
-  /*! Wrapped raw blackboard client */
-  tRawBlackboardClient* wrapped;
-
-protected:
-
-  /*! not null - if buffer is currently locked for writing */
-  tBBVectorVar locked;
-
-  /*! not null - if buffer is currently locked for reading */
-  tConstBBVectorVar read_locked;
-
-  /*! Replicated ports in group's/module's tPortGroups */
-  core::tAbstractPort * write_port1, * write_port2;
-
-  /*! Replicated read port in group's/module's tPortGroups */
-  std::unique_ptr<core::tPort<std::vector<T>>> read_port;
-
-private:
+  typedef std::vector<T> tBuffer;
+  typedef data_ports::tPortDataPointer<tBuffer> tBufferPointer;
+  typedef data_ports::tPortDataPointer<const tBuffer> tConstBufferPointer;
+  typedef std::vector<tChange<T>> tChangeSet;
+  typedef data_ports::tPortDataPointer<tChangeSet> tChangeSetPointer;
 
   /*!
-   * Make sure specified type is registered for blackboards
-   *
-   * \param dt Type
-   * \return The same as parameter type
+   * Empty constructor for blackboard clients that are not initialized in
+   * class initializer list (but later)
    */
-  rrlib::rtti::tDataTypeBase InitBlackboardType(rrlib::rtti::tDataTypeBase dt);
-
-  /*!
-   * Check whether these ports can be connected - if yes, do so
-   * (connecting to blackboard)
-   */
-  void CheckConnect(core::tAbstractPort* p1, core::tAbstractPort* p2);
-
-  /*!
-   * Check whether these ports can be connected - if yes, do so
-   * (connecting to outer blackboard client)
-   */
-  void CheckClientConnect(core::tAbstractPort* p1, core::tAbstractPort* p2);
-
-  /*!
-   * Reset variables after unlock
-   */
-  inline void ResetVariables()
-  {
-    wrapped->cur_lock_id = -1;
-    wrapped->lock_type = tRawBlackboardClient::eNONE;
-
-    locked.reset();
-    read_locked.reset();
-  }
-
-  /*!
-   * Create blackboard write port in specified port group and connect it to
-   * (original blackboard client) write port.
-   *
-   * \param write_port Port to connect newly created port to
-   * \param pg Port group to create port in
-   * \param name Name of new port
-   * \return Created Port
-   */
-  static core::tAbstractPort* ReplicateWritePort(core::tAbstractPort* write_port, core::tFrameworkElement* pg, const util::tString& name)
-  {
-    core::tInterfacePort* new_port = new core::tInterfacePort(name, pg, write_port->GetDataType(), core::tInterfacePort::tType::ROUTING, core::tPortFlags::cOUTPUT_PORT);
-    write_port->ConnectTo(*new_port);
-    return new_port;
-  }
-
-protected:
-
-  /*!
-   * \return log description
-   */
-  inline const core::tFrameworkElement& GetLogDescription() const
-  {
-    return *wrapped;
-  }
-
-public:
-
-  // Empty constructor for blackboard clients that are not initialized in
-  // class initializer list (but later)
   tBlackboardClient() :
-    wrapped(NULL),
-    locked(),
-    read_locked(),
-    write_port1(NULL),
-    write_port2(NULL),
-    read_port()
+    read_port(),
+    write_port(),
+    backend(NULL),
+    outside_write_port1(),
+    outside_write_port2(),
+    outside_read_port()
   {
   }
 
   /*!
-   * Connects to global blackboards.
+   * Connects to global blackboard
    *
    * \param name Name/Uid of blackboard
    * \param parent Parent of blackboard client
    * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
-   * \param auto_connect Auto-Connect blackboard client to matching server?
-   * \param auto_connect_category If auto-connect is active: Limit auto-connecting to a specific blackboard category? (-1 is no)
+   * \param auto_connect_mode Desired mode of auto-connecting
    * \param read_port Create read port?
-   * \param write_port Create write port?
-   * \param type Data Type of blackboard content
    */
-  tBlackboardClient(const util::tString& name, core::tFrameworkElement* parent = NULL, bool push_updates = false, bool auto_connect = true, int auto_connect_category = -1, bool read_port = true, bool write_port = true, rrlib::rtti::tDataTypeBase type = rrlib::rtti::tDataType<T>());
+  tBlackboardClient(const std::string& name, core::tFrameworkElement* parent, bool push_updates = false,
+                    tAutoConnectMode auto_connect_mode = tAutoConnectMode::ALL, bool read_port = true);
 
   /*!
    * Connects to local blackboard
    *
-   * \param parent Parent of blackboard client
    * \param server Blackboard server to connect to (in case it is available as object)
+   * \param parent Parent of blackboard client
    * \param non_default_name Default name is "<server name> Client". Specifiy non-empty string for other name
    * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
    * \param read_port Create read port?
-   * \param write_port Create write port?
    */
-  tBlackboardClient(const tAbstractBlackboardServerRaw* server, core::tFrameworkElement* parent, const util::tString& non_default_name = "", bool push_updates = false, bool read_port = true, bool write_port = true);
+  tBlackboardClient(internal::tBlackboardServer<T>& server, core::tFrameworkElement* parent,
+                    const std::string& non_default_name = "", bool push_updates = false, bool read_port = true);
 
   /*!
-   * Constructor for use in tGroup, tModule and tSenseControlModule.
+   * Constructor for use tModule and tSenseControlModule.
    * Does NOT connect to global blackboards - but rather uses group's/module's input/output port groups.
    *
    * (per default, full-blackboard-access-ports are created in Output/ControllerOutput.
@@ -192,11 +152,12 @@ public:
    * \param name Name of blackboard
    * \param parent Parent of blackboard
    * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
-   * \param create_read_port Create read port for blackboard? (0 = no, 1 = in internal client, 2 = also in (Sensor)Output)
+   * \param create_read_port Which read ports to create for blackboard
    * \param create_write_port_in If not NULL, creates write port in specified port group instead of Input/ControllerInput
    * \param create_write_port_in2 If not NULL, creates another write port in specified port group
    */
-  tBlackboardClient(const util::tString& name, core::structure::tModuleBase* parent, bool push_updates = false, int create_read_port = 2, core::tPortGroup* create_write_port_in = NULL, core::tPortGroup* create_write_port_in2 = NULL);
+  tBlackboardClient(const std::string& name, structure::tModuleBase* parent, bool push_updates = false,
+                    tReadPorts create_read_port = tReadPorts::EXTERNAL, core::tPortGroup* create_write_port_in = NULL, core::tPortGroup* create_write_port_in2 = NULL);
 
   /*!
    * Constructor to replicate access to inner tBlackboardClient in tGroup.
@@ -209,35 +170,27 @@ public:
    * \param forward_write_port_in_controller Forward write ports in controller port groups?
    * \param forward_write_port_in_sensor Forward write ports in sensor port groups?
    */
-  tBlackboardClient(const tBlackboardClient& replicated_bb, core::structure::tGroup* parent, bool create_read_port_in_ci = false, bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false);
+  tBlackboardClient(const tBlackboardClient& replicated_bb, structure::tGroup* parent,
+                    bool create_read_port_in_ci = false, bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false);
 
   /*! move constructor */
   tBlackboardClient(tBlackboardClient && o);
 
-
   /*! move assignment */
-  tBlackboardClient& operator=(tBlackboardClient && o)
-  {
-    std::swap(wrapped, o.wrapped);
-    std::swap(locked, o.locked);
-    std::swap(read_locked, o.read_locked);
-    std::swap(read_port, o.read_port);
-    std::swap(write_port1, o.write_port1);
-    std::swap(write_port2, o.write_port2);
-    return *this;
-  }
+  tBlackboardClient& operator=(tBlackboardClient && o);
 
   /*!
-   * Commit asynchronous change to blackboard. Blackboard does
-   * not need to be locked for this operation.
-   * (if connection is broken, there's no guarantee that this will work or that an exception is thrown otherwise)
+   * Apply change transaction to blackboard asynchronously.
+   * Blackboard does not need to be locked for this operation.
    *
-   * \param change_buf Contents to write to this position (unlocked buffer retrieved via getUnusedBuffer OR a used buffer with an additional lock)
-   * \param index First element to change
-   * \param offset Some custom offset in element (optional)
-   * \return Did operation succeed? (usual reason for failing is that blackboard is not connected)
+   * If blackboard client is not connected to server, call has no effect.
+   *
+   * \param change_set Change set to apply
    */
-  bool CommitAsynchChange(tChangeTransactionVar& change_buf, int index, int offset);
+  void AsynchronousChange(tChangeSetPointer& change_set)
+  {
+    write_port.Call(&tServer::AsynchronousChange, std::move(change_set));
+  }
 
   /*!
    * Connect to outside ports of specified blackboard
@@ -256,185 +209,276 @@ public:
   /*!
    * \return Blackboard name
    */
-  inline util::tString GetName()
+  inline std::string GetName() const
   {
-    return wrapped->GetName();
+    return backend->GetName();
   }
 
   /*!
-   * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's read port
+   * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's read port. May not exist.
    */
-  core::tPort<std::vector<T>>* GetOutsideReadPort() const
+  data_ports::tProxyPort<tBuffer, false> GetOutsideReadPort() const
   {
-    return read_port.get();
+    return outside_read_port;
   }
 
   /*!
    * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's primary write port
    */
-  core::tAbstractPort* GetOutsideWritePort() const
+  rpc_ports::tProxyPort<tServer, false> GetOutsideWritePort() const
   {
-    return write_port1;
+    return outside_write_port1;
   }
 
   /*!
    * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's secondary write port
    */
-  core::tAbstractPort* GetOutsideWritePort2() const
+  rpc_ports::tProxyPort<tServer, false> GetOutsideWritePort2() const
   {
-    return write_port2;
+    return outside_write_port2;
   }
 
   /*!
    * \return Handle of server that handles calls (can be used to detect whether we're connected to a different blackboard). 0 if not connected to a server.
    */
-  int GetServerHandle() const
+  /*int GetServerHandle() const
   {
     return wrapped->GetWritePort()->GetServerHandle();
-  }
+  }*/
 
   /*!
-   * \return unused buffer - may be published/committed directly
+   * \return Unused buffer (may be published/committed directly using Publish())
    */
-  inline tBBVectorVar GetUnusedBuffer()
+  inline tBufferPointer GetUnusedBuffer()
   {
-    return wrapped->GetWritePort()->GetBufferForCall<tBBVector>();
+    return backend->GetUnusedBuffer<tBuffer>();
   }
 
   /*!
-   * \return unused change buffer - to be used in commitAsynchChange
+   * \return Unused change set buffer (may be used in AsynchronousChange())
    */
-  inline tChangeTransactionVar GetUnusedChangeBuffer()
+  inline tChangeSetPointer GetUnusedChangeBuffer()
   {
-    return wrapped->GetWritePort()->GetBufferForCall<tChangeTransaction>();
+    return backend->GetUnusedBuffer<tChangeSet>();
   }
 
   /*!
-   * \return Wrapped raw blackboard client
+   * \return Wrapped raw blackboard backend
    */
-  inline tRawBlackboardClient* GetWrapped() const
+  inline internal::tBlackboardClientBackend* GetBackend() const
   {
-    return wrapped;
+    return backend;
   }
 
   /*!
-   * (only works properly if pushUpdates in constructor was set to true)
+   * (only works properly if push_updates in constructor was set to true)
    *
    * \return Has port changed since last changed-flag-reset?
    */
   bool HasChanged() const;
 
-  /*!
-   * \return Is client currently holding read or write lock?
-   */
-  inline bool HasLock()
-  {
-    return wrapped->HasLock();
-  }
-
-  /*!
-   * \return Is client currently holding read lock?
-   */
-  inline bool HasReadLock()
-  {
-    return wrapped->HasReadLock();
-  }
-
-  /*!
-   * \return Is client currently holding write lock?
-   */
-  inline bool HasWriteLock()
-  {
-    return wrapped->HasWriteLock();
-  }
+//  /*!
+//   * \return Is client currently holding read or write lock?
+//   */
+//  inline bool HasLock()
+//  {
+//    return wrapped->HasLock();
+//  }
+//
+//  /*!
+//   * \return Is client currently holding read lock?
+//   */
+//  inline bool HasReadLock()
+//  {
+//    return wrapped->HasReadLock();
+//  }
+//
+//  /*!
+//   * \return Is client currently holding write lock?
+//   */
+//  inline bool HasWriteLock()
+//  {
+//    return wrapped->HasWriteLock();
+//  }
 
   /*!
    * Initialize blackboard client
    */
   inline void Init()
   {
-    wrapped->Init();
+    backend->Init();
   }
 
   /*!
-   * Directly commit/publish buffer - without lock
+   * Directly commit/publish completely new buffer
+   * Does not require lock.
    *
-   * \param buffer Buffer to publish (unlocked buffer retrieved via getUnusedBuffer OR a used buffer with an additional lock)
+   * \param buffer Buffer to publish
    */
-  void Publish(tBBVectorVar& buffer);
-
-  /*!
-   * Often Non-blocking, safe blackboard read operation
-   * (will always operate on read copy - for SingleBufferedBlackboardServers readLock can be more efficient, but also more blocking)
-   *
-   * \param timeout (relevant for SingleBufferedBlackboardClients only) Timeout for lock attempt
-   * \return Raw memory buffer containing blackboard contents - locked - don't forget to release read lock
-   */
-  inline tConstBBVectorVar Read(const rrlib::time::tDuration& timeout = std::chrono::seconds(2))
+  void Publish(tBufferPointer& buffer)
   {
-    return core::tPortUtil<tBBVector>::GetValueWithLock(wrapped->GetReadPort());
+    write_port.Call(&tServer::DirectCommit, std::move(buffer));
   }
 
   /*!
-   * Read Lock on blackboard.
+   * Reads blackboard contents.
+   * This will never block, if a read_port with update pushes was created.
    *
-   * Blackboard locked using this method needs to be unlocked via unlock() method!
+   * Otherwise, it will hardly ever block (apart from calls over the network).
+   * (only exception: this is the first read lock performed on a
+   * single-buffered blackboard that currently has a write lock)
    *
-   * In most cases it will return a read copy (this can be forced).
-   * On local single buffered blackboard servers - the same buffer might be used for reading (blocks more, but less copying)
-   *
-   * \param force_read_copy_to_avoid_blocking Force read copy to avoid blocking? (only relevant for single buffered blackboard servers)
    * \param timeout Timeout for call
+   * \return Current Blackboard Contents
+   *
+   * \exception rpc_ports::tRPCException is thrown if call fails
    */
-  const typename tAbstractBlackboardServer<T>::tBBVector* ReadLock(bool force_read_copy_to_avoid_blocking = false, const rrlib::time::tDuration& timeout = std::chrono::minutes(1));
-
-  operator bool()
+  inline tConstBufferPointer Read(const rrlib::time::tDuration& timeout = std::chrono::seconds(2))
   {
-    return wrapped != NULL;
+    if (read_port && read_port.GetFlag(core::tFrameworkElement::tFlag::PUSH_STRATEGY))
+    {
+      return read_port.GetPointer();
+    }
+    rpc_ports::tFuture<tConstBufferPointer> future = ReadLock(timeout);
+    return future.Get(timeout);
   }
+
+  /*!
+   * Acquire read "lock" on blackboard.
+   *
+   * Waiting for future will never block, if a read_port with update pushes was created.
+   *
+   * Otherwise, waiting will hardly ever block (apart from calls over the network).
+   * (only exception: this is the first read lock performed on a
+   * single-buffered blackboard that currently has a write lock)
+   *
+   * \param timeout Timeout for call
+   * \return Future on locked buffer
+   *
+   * \exception rpc_ports::tRPCException is thrown if call fails
+   */
+  rpc_ports::tFuture<tConstBufferPointer> ReadLock(const rrlib::time::tDuration& timeout = std::chrono::seconds(10));
 
   /*!
    * (only works properly if pushUpdates in constructor was set to true)
    *
    * Reset changed flag.
    */
-  void ResetChanged();
+  void ResetChanged()
+  {
+    if (read_port.GetWrapped())
+    {
+      read_port.ResetChanged();
+    }
+  }
 
   /*!
-   * Commit changes of previously locked buffer
-   */
-  void Unlock();
-
-  /*!
-   * Lock blackboard in order to read and commit changes
-   * (synchronous/blocking... only use if absolutely necessary)
+   * Acquire write lock on blackboard.
    *
-   * \param timeout timeout for lock
-   * \return Lock Locked buffer - or null if lock failed - this buffer may be modified -
-   * call unlock() after modifications are complete - locks of buffer should normally not be modified -
-   * except of it should be used in some other port or stored for longer than the unlock() operation
+   * This will block if another client has a write lock on this blackboard.
+   *
+   * \param timeout Timeout for call
+   * \return Future on locked buffer
+   *
+   * \exception rpc_ports::tRPCException is thrown if call fails
    */
-  typename tAbstractBlackboardServer<T>::tBBVector* WriteLock(const rrlib::time::tDuration& timeout = std::chrono::minutes(1));
+  rpc_ports::tFuture<internal::tLockedBuffer<tBuffer>> WriteLock(const rrlib::time::tDuration& timeout = std::chrono::seconds(10))
+  {
+    return write_port.NativeFutureCall(&tServer::WriteLock, internal::tLockParameters(timeout));
+  }
 
+
+  operator bool() const
+  {
+    return backend != NULL;
+  }
+
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
+
+  /*! Port for reading - in case pushing of updates is activated */
+  data_ports::tInputPort<tBuffer> read_port;
+
+  /*! Port for full blackboard access */
+  rpc_ports::tClientPort<tServer> write_port;
+
+  /*! Wrapped blackboard backend */
+  internal::tBlackboardClientBackend* backend;
+
+  /*! Replicated ports in group's/module's tPortGroups */
+  rpc_ports::tProxyPort<tServer, false> outside_write_port1, outside_write_port2;
+
+  /*! Replicated read port in group's/module's tPortGroups */
+  data_ports::tProxyPort<tBuffer, false> outside_read_port;
+
+
+  /*!
+   * Check whether these ports can be connected - if yes, do so
+   * (connecting to blackboard)
+   */
+  void CheckConnect(core::tPortWrapperBase p1, core::tPortWrapperBase p2);
+
+  /*!
+   * Check whether these ports can be connected - if yes, do so
+   * (connecting to outer blackboard client)
+   */
+  void CheckClientConnect(core::tPortWrapperBase p1, core::tPortWrapperBase p2);
+
+  /*!
+   * \return Log description
+   */
+  inline const core::tFrameworkElement& GetLogDescription() const
+  {
+    return *backend;
+  }
+
+  /*!
+   * (Helper to make constructors shorter)
+   * Creates read port
+   *
+   * \param create Actually create port?
+   * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port)
+   * \return Created read port
+   */
+  static data_ports::tInputPort<tBuffer> PossiblyCreateReadPort(bool create, bool push_updates)
+  {
+    if (create)
+    {
+      data_ports::tInputPort<tBuffer> read_port = data_ports::tInputPort<tBuffer>("read");
+      if (!push_updates)
+      {
+        read_port.SetPushStrategy(false);
+      }
+      return read_port;
+    }
+    return data_ports::tInputPort<tBuffer>();
+  }
+
+  /*!
+   * Create blackboard write port in specified port group and connect it to
+   * (original blackboard client) write port.
+   *
+   * \param write_port Port to connect newly created port to
+   * \param port_group Port group to create port in
+   * \param name Name of new port
+   * \return Created Port
+   */
+  rpc_ports::tProxyPort<tServer, false> ReplicateWritePort(core::tPortWrapperBase& write_port, core::tFrameworkElement* port_group, const std::string& name)
+  {
+    rpc_ports::tProxyPort<tServer, false> new_port(name, port_group);
+    write_port.ConnectTo(new_port);
+    return new_port;
+  }
 };
 
-} // namespace finroc
-} // namespace blackboard
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
 
-#include "plugins/blackboard/tBlackboard.h"
 #include "plugins/blackboard/tBlackboardClient.hpp"
 
-#include "plugins/blackboard/tBlackboardReadAccess.h"
-#include "plugins/blackboard/tBlackboardWriteAccess.h"
-
-namespace finroc
-{
-namespace blackboard
-{
-extern template class tBlackboardClient<tBlackboardBuffer>;
-extern template class tBlackboardClient<rrlib::serialization::tMemoryBuffer>;
-
-} // namespace finroc
-} // namespace blackboard
-
-#endif // plugins__blackboard__tBlackboardClient_h__
+#endif

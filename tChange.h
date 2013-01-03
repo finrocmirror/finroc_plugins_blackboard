@@ -1,6 +1,6 @@
 //
 // You received this file as part of Finroc
-// A framework for integrated robot control
+// A Framework for intelligent robot control
 //
 // Copyright (C) Finroc GbR (finroc.org)
 //
@@ -19,23 +19,25 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
-/*!\file    mBlackboardWriter.h
+/*!\file    plugins/blackboard/tChange.h
  *
  * \author  Max Reichardt
  *
- * \date    2011-03-30
+ * \date    2012-12-26
  *
- * \brief Contains mBlackboardWriter
+ * \brief   Contains tChange
  *
- * \b mBlackboardWriter
+ * \b tChange
+ *
+ * Change to blackboard element.
+ * Such changes can be packed as change sets to perform atomic
+ * changes to blackboards asynchronously.
+ * The template may be specialized for certain blackboard content types.
  *
  */
 //----------------------------------------------------------------------
-#ifndef _blackboard__mBlackboardWriter_h_
-#define _blackboard__mBlackboardWriter_h_
-
-#include "plugins/structure/tModule.h"
-#include "plugins/blackboard/tBlackboardClient.h"
+#ifndef __plugins__blackboard__tChange_h__
+#define __plugins__blackboard__tChange_h__
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
@@ -46,16 +48,13 @@
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// Debugging
-//----------------------------------------------------------------------
-
-//----------------------------------------------------------------------
 // Namespace declaration
 //----------------------------------------------------------------------
 namespace finroc
 {
 namespace blackboard
 {
+
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
@@ -63,39 +62,93 @@ namespace blackboard
 //----------------------------------------------------------------------
 // Class declaration
 //----------------------------------------------------------------------
-//! Writes entries [0..9] of float blackboard using ordinary blackboard locking
-class mBlackboardWriter : public structure::tModule
+//! Change to blackboard
+/*!
+ * Change to blackboard element.
+ * Such changes can be packed as change sets to perform atomic
+ * changes to blackboards asynchronously.
+ * The template may be specialized for certain blackboard content types.
+ */
+template <typename T>
+class tChange
 {
-  static finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> cCREATE_ACTION;
 
 //----------------------------------------------------------------------
-// Ports (These are the only variables that may be declared public)
-//----------------------------------------------------------------------
-public:
-
-  tBlackboardClient<float> bb_client;
-
-//----------------------------------------------------------------------
-// Public methods and typedefs (no fields/variables)
+// Public methods and typedefs
 //----------------------------------------------------------------------
 public:
 
-  mBlackboardWriter(finroc::core::tFrameworkElement *parent, const std::string &name = "BlackboardWriter");
+  tChange() : index(-1), new_element() {}
+
+  /*!
+   * \param index Index of element in blackboard to change
+   * \param new_element New element to place at this index
+   */
+  tChange(size_t index, T new_element) :
+    index(index),
+    new_element(new_element)
+  {}
+
+  /*!
+   * Applies change to blackboard buffer
+   *
+   * \param blackboard_buffer Blackboard buffer to apply change to
+   */
+  void Apply(std::vector<T>& blackboard_buffer)
+  {
+    if (index > static_cast<int>(blackboard_buffer.size()))
+    {
+      FINROC_LOG_PRINTF_STATIC(WARNING, "Blackboard change has index (%d) out of bounds (%d). Ignoring.", index, static_cast<int>(blackboard_buffer.size()));
+    }
+    else if (index >= 0)
+    {
+      blackboard_buffer[index] = new_element;
+    }
+  }
+
+  void Deserialize(rrlib::serialization::tInputStream& stream)
+  {
+    index = stream.ReadInt();
+    stream >> new_element;
+  }
+
+  void Serialize(rrlib::serialization::tOutputStream& stream) const
+  {
+    stream.WriteInt(index);
+    stream << new_element;
+  }
 
 //----------------------------------------------------------------------
 // Private fields and methods
 //----------------------------------------------------------------------
 private:
 
-  int update_counter;
+  /*! Index of element in blackboard to change */
+  int index;
 
-  virtual void Update();
+  /*! New element to place at this index */
+  T new_element;
 };
+
+template <typename T>
+rrlib::serialization::tOutputStream& operator << (rrlib::serialization::tOutputStream& stream, const tChange<T>& change)
+{
+  change.Serialize(stream);
+  return stream;
+}
+
+template <typename T>
+rrlib::serialization::tInputStream& operator >> (rrlib::serialization::tInputStream& stream, tChange<T>& change)
+{
+  change.Deserialize(stream);
+  return stream;
+}
 
 //----------------------------------------------------------------------
 // End of namespace declaration
 //----------------------------------------------------------------------
 }
 }
+
 
 #endif

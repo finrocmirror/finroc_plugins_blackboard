@@ -1,6 +1,6 @@
 //
 // You received this file as part of Finroc
-// A framework for integrated robot control
+// A Framework for intelligent robot control
 //
 // Copyright (C) Finroc GbR (finroc.org)
 //
@@ -19,19 +19,20 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
-/*!\file    mBlackboardWriter.cpp
+/*!\file    plugins/blackboard/internal/tBlackboardManager.cpp
  *
  * \author  Max Reichardt
  *
- * \date    2011-03-30
+ * \date    2012-12-23
  *
  */
 //----------------------------------------------------------------------
-#include "plugins/blackboard/test/mBlackboardWriter.h"
+#include "plugins/blackboard/internal/tBlackboardManager.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#include "core/tRuntimeEnvironment.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -45,7 +46,16 @@
 //----------------------------------------------------------------------
 // Namespace usage
 //----------------------------------------------------------------------
-using namespace finroc::blackboard;
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
+namespace finroc
+{
+namespace blackboard
+{
+namespace internal
+{
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
@@ -54,46 +64,20 @@ using namespace finroc::blackboard;
 //----------------------------------------------------------------------
 // Const values
 //----------------------------------------------------------------------
-finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> mBlackboardWriter::cCREATE_ACTION("BlackboardWriter");
+static const char* cMANAGER_NAME = "Blackboards";
+//static const char* cMANAGER_NAME_SLASHED = "/Blackboards/";
 
 //----------------------------------------------------------------------
 // Implementation
 //----------------------------------------------------------------------
 
-//----------------------------------------------------------------------
-// mBlackboardWriter constructors
-//----------------------------------------------------------------------
-mBlackboardWriter::mBlackboardWriter(finroc::core::tFrameworkElement *parent, const std::string &name)
-  : tModule(parent, name),
-    bb_client("blackboard", this),
-    update_counter(0)
+tBlackboardManager::tBlackboardManager() :
+  core::tFrameworkElement(&core::tRuntimeEnvironment::GetInstance(), cMANAGER_NAME)
 {}
 
 //----------------------------------------------------------------------
-// mBlackboardWriter Update
+// End of namespace declaration
 //----------------------------------------------------------------------
-void mBlackboardWriter::Update()
-{
-  try
-  {
-    // Acquire write lock
-    tBlackboardClient<float>::tWriteAccess acc(bb_client);
-
-    if (acc.Size() < 10)
-    {
-      acc.Resize(20);
-    }
-
-    // Change elements 0 to 9
-    for (size_t i = 0; i < 10; i++)
-    {
-      acc[i] = update_counter;
-    }
-  }
-  catch (tLockException& e)
-  {
-    FINROC_LOG_PRINT(WARNING, "Could not lock blackboard");
-  }
-  update_counter++;
 }
-
+}
+}

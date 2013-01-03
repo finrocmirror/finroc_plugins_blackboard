@@ -54,7 +54,7 @@ using namespace finroc::blackboard;
 //----------------------------------------------------------------------
 // Const values
 //----------------------------------------------------------------------
-finroc::core::tStandardCreateModuleAction<mBlackboardReader> mBlackboardReader::cCREATE_ACTION("BlackboardReader");
+finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardReader> mBlackboardReader::cCREATE_ACTION("BlackboardReader");
 
 //----------------------------------------------------------------------
 // Implementation
@@ -63,7 +63,7 @@ finroc::core::tStandardCreateModuleAction<mBlackboardReader> mBlackboardReader::
 //----------------------------------------------------------------------
 // mBlackboardReader constructors
 //----------------------------------------------------------------------
-mBlackboardReader::mBlackboardReader(finroc::core::tFrameworkElement *parent, const finroc::util::tString &name)
+mBlackboardReader::mBlackboardReader(finroc::core::tFrameworkElement *parent, const std::string &name)
   : tModule(parent, name),
     bb_client("blackboard", this)
 {}
@@ -87,7 +87,7 @@ void mBlackboardReader::Update()
     }
     FINROC_LOG_PRINT(USER, output.str());
   }
-  catch (tBBLockException& e)
+  catch (tLockException& e)
   {
     FINROC_LOG_PRINT(WARNING, "Could not lock blackboard");
   }

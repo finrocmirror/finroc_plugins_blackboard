@@ -1,6 +1,6 @@
 //
 // You received this file as part of Finroc
-// A framework for integrated robot control
+// A Framework for intelligent robot control
 //
 // Copyright (C) Finroc GbR (finroc.org)
 //
@@ -19,23 +19,23 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
-/*!\file    mBlackboardWriter.h
+/*!\file    plugins/blackboard/internal/tLockParameters.h
  *
  * \author  Max Reichardt
  *
- * \date    2011-03-30
+ * \date    2012-12-30
  *
- * \brief Contains mBlackboardWriter
+ * \brief   Contains tLockParameters
  *
- * \b mBlackboardWriter
+ * \b tLockParameters
+ *
+ * Parameter for blackboard write lock.
+ * Main purpose of using this class is the ability to detect remote calls automatically.
  *
  */
 //----------------------------------------------------------------------
-#ifndef _blackboard__mBlackboardWriter_h_
-#define _blackboard__mBlackboardWriter_h_
-
-#include "plugins/structure/tModule.h"
-#include "plugins/blackboard/tBlackboardClient.h"
+#ifndef __plugins__blackboard__internal__tLockParameters_h__
+#define __plugins__blackboard__internal__tLockParameters_h__
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
@@ -46,16 +46,15 @@
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// Debugging
-//----------------------------------------------------------------------
-
-//----------------------------------------------------------------------
 // Namespace declaration
 //----------------------------------------------------------------------
 namespace finroc
 {
 namespace blackboard
 {
+namespace internal
+{
+
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
@@ -63,39 +62,81 @@ namespace blackboard
 //----------------------------------------------------------------------
 // Class declaration
 //----------------------------------------------------------------------
-//! Writes entries [0..9] of float blackboard using ordinary blackboard locking
-class mBlackboardWriter : public structure::tModule
+//! Parameters for write lock
+/*!
+ * Parameter for blackboard write lock.
+ * Main purpose of using this class is the ability to detect remote calls automatically.
+ */
+class tLockParameters
 {
-  static finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> cCREATE_ACTION;
 
 //----------------------------------------------------------------------
-// Ports (These are the only variables that may be declared public)
-//----------------------------------------------------------------------
-public:
-
-  tBlackboardClient<float> bb_client;
-
-//----------------------------------------------------------------------
-// Public methods and typedefs (no fields/variables)
+// Public methods and typedefs
 //----------------------------------------------------------------------
 public:
 
-  mBlackboardWriter(finroc::core::tFrameworkElement *parent, const std::string &name = "BlackboardWriter");
+  tLockParameters() :
+    timeout(),
+    remote_call(false)
+  {}
+
+  /*!
+   * \param timeout Lock timeout in ms
+   */
+  tLockParameters(const rrlib::time::tDuration& timeout) :
+    timeout(timeout),
+    remote_call(false)
+  {}
+
+  /*!
+   * \return Lock timeout in ms
+   */
+  rrlib::time::tDuration GetTimeout() const
+  {
+    return timeout;
+  }
+
+  /*!
+   * \return Is this lock call originating from a remote runtime?
+   */
+  bool IsRemoteCall() const
+  {
+    return remote_call;
+  }
 
 //----------------------------------------------------------------------
 // Private fields and methods
 //----------------------------------------------------------------------
 private:
 
-  int update_counter;
+  friend rrlib::serialization::tInputStream& operator >> (rrlib::serialization::tInputStream& stream, tLockParameters& parameters);
 
-  virtual void Update();
+  /*! Lock timeout in ms */
+  rrlib::time::tDuration timeout;
+
+  /*! Is this lock call originating from a remote runtime? */
+  bool remote_call;
 };
+
+inline rrlib::serialization::tOutputStream& operator << (rrlib::serialization::tOutputStream& stream, const tLockParameters& parameters)
+{
+  stream << parameters.GetTimeout();
+  return stream;
+}
+
+inline rrlib::serialization::tInputStream& operator >> (rrlib::serialization::tInputStream& stream, tLockParameters& parameters)
+{
+  stream >> parameters.timeout;
+  parameters.remote_call = true;
+  return stream;
+}
 
 //----------------------------------------------------------------------
 // End of namespace declaration
 //----------------------------------------------------------------------
 }
 }
+}
+
 
 #endif
