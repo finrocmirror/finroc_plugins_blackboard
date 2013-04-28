@@ -146,6 +146,10 @@ core::tAbstractPort* tBlackboardBase::ReplicateWritePort(core::tAbstractPort& wr
 {
   core::tAbstractPortCreationInfo creation_info;
   creation_info.flags = core::tFrameworkElement::tFlag::ACCEPTS_DATA | core::tFrameworkElement::tFlag::EMITS_DATA;
+  if (typeid(port_group) == typeid(core::tPortGroup))
+  {
+    creation_info.flags |= static_cast<core::tPortGroup&>(port_group).GetDefaultPortFlags();
+  }
   creation_info.data_type = write_port.GetDataType();
   creation_info.parent = &port_group;
   creation_info.name = name;

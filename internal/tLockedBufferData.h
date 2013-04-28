@@ -169,12 +169,10 @@ rrlib::serialization::tInputStream& operator >> (rrlib::serialization::tInputStr
   buffer.const_buffer.Reset();
   if (buffer_set)
   {
-    buffer.const_buffer.Reset();
     stream >> buffer.buffer;
   }
   else
   {
-    buffer.const_buffer.Reset();
     buffer.buffer.Reset();
   }
   return stream;

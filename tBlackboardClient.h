@@ -467,7 +467,12 @@ private:
    */
   rpc_ports::tProxyPort<tServer, false> ReplicateWritePort(core::tPortWrapperBase& write_port, core::tFrameworkElement* port_group, const std::string& name)
   {
-    rpc_ports::tProxyPort<tServer, false> new_port(name, port_group);
+    typename core::tFrameworkElement::tFlags extra_flags;
+    if (typeid(*port_group) == typeid(core::tPortGroup))
+    {
+      extra_flags |= static_cast<core::tPortGroup&>(*port_group).GetDefaultPortFlags();
+    }
+    rpc_ports::tProxyPort<tServer, false> new_port(name, port_group, extra_flags);
     write_port.ConnectTo(new_port);
     return new_port;
   }
