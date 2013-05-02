@@ -304,7 +304,7 @@ private:
    */
   void ConsiderPublishing()
   {
-    if ((!single_buffered) || read_port.GetWrapped()->GetStrategy() > 0)
+    //if ((!single_buffered) || read_port.GetWrapped()->GetStrategy() > 0)  // TODO: Implementation needs to publish on strategy change, too (e.g. change log blackboard)
     {
       assert(!current_buffer->IsUnused());
       current_buffer->AddLocks(1);

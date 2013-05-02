@@ -241,10 +241,10 @@ public:
   /*!
    * \return Handle of server that handles calls (can be used to detect whether we're connected to a different blackboard). 0 if not connected to a server.
    */
-  /*int GetServerHandle() const
+  typename core::tFrameworkElement::tHandle GetServerHandle()
   {
-    return wrapped->GetWritePort()->GetServerHandle();
-  }*/
+    return write_port.GetServerHandle();
+  }
 
   /*!
    * \return Unused buffer (may be published/committed directly using Publish())
