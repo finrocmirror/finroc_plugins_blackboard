@@ -25,6 +25,8 @@
  *
  * \date    2012-12-31
  *
+ * \brief
+ *
  * Various definitions for blackboard plugin.
  *
  */

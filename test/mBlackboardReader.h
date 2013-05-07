@@ -19,13 +19,13 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
-/*!\file    mBlackboardReader.h
+/*!\file    plugins/blackboard/test/mBlackboardReader.h
  *
  * \author  Max Reichardt
  *
  * \date    2011-03-30
  *
- * \brief Contains mBlackboardReader
+ * \brief   Contains mBlackboardReader
  *
  * \b mBlackboardReader
  *
