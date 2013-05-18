@@ -85,7 +85,7 @@ class tBlackboard;
  * to the group's interface (to connect the internal clients to the outside).
  */
 template <typename T>
-class tBlackboardClient : boost::noncopyable
+class tBlackboardClient : private rrlib::util::tNoncopyable
 {
 
 //----------------------------------------------------------------------

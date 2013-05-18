@@ -32,6 +32,7 @@
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
 #include "plugins/structure/tSenseControlModule.h"
+#include <boost/algorithm/string.hpp>
 
 //----------------------------------------------------------------------
 // Internal includes with ""

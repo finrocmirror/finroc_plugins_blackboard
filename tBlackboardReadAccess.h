@@ -67,7 +67,7 @@ namespace blackboard
  * The lock is released as soon as the objects goes out of scope.
  */
 template <typename T>
-class tBlackboardReadAccess : public boost::noncopyable
+class tBlackboardReadAccess : private rrlib::util::tNoncopyable
 {
 
 //----------------------------------------------------------------------

@@ -75,7 +75,7 @@ class tLockedBuffer;
  * \tparam T Type of locked buffer (typically tAbstractBlackboardServer<U>::tBuffer)
  */
 template <typename T>
-class tLockedBufferData : public boost::noncopyable
+class tLockedBufferData : public rrlib::util::tNoncopyable
 {
 
 public:
