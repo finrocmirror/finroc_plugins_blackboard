@@ -156,7 +156,10 @@ template <typename T>
 void tBlackboardServer<T>::HandleException(rpc_ports::tFutureStatus exception_type)
 {
   rrlib::thread::tLock lock(this->BlackboardMutex());
-  FINROC_LOG_PRINT(DEBUG, "Blackboard unlock due to exception: ", make_builder::GetEnumString(exception_type));
+  if (exception_type != rpc_ports::tFutureStatus::READY)
+  {
+    FINROC_LOG_PRINT(DEBUG, "Blackboard unlock due to exception: ", make_builder::GetEnumString(exception_type));
+  }
 
   lock_id++;
   write_lock = tWriteLock::NONE;
@@ -187,8 +190,8 @@ void tBlackboardServer<T>::HandleResponse(tLockedBufferData<tBuffer> unlock_data
 {
   if (!unlock_data.buffer)
   {
-    HandleException(rpc_ports::tFutureStatus::INVALID_CALL);
-    FINROC_LOG_PRINT(WARNING, "Blackboard unlock without providing buffer");
+    HandleException(rpc_ports::tFutureStatus::READY);
+    //FINROC_LOG_PRINT(WARNING, "Blackboard unlock without providing buffer");
     return;
   }
 
