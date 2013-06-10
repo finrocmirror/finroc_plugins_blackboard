@@ -66,7 +66,7 @@ namespace blackboard
 //! Reads contents of blackboard and prints them to console.
 class mBlackboardReader : public structure::tModule
 {
-  static finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardReader> cCREATE_ACTION;
+  static runtime_construction::tStandardCreateModuleAction<mBlackboardReader> cCREATE_ACTION;
 
 //----------------------------------------------------------------------
 // Ports (These are the only variables that may be declared public)
@@ -80,7 +80,7 @@ public:
 //----------------------------------------------------------------------
 public:
 
-  mBlackboardReader(finroc::core::tFrameworkElement *parent, const std::string &name = "BlackboardReader");
+  mBlackboardReader(core::tFrameworkElement *parent, const std::string &name = "BlackboardReader");
 
 //----------------------------------------------------------------------
 // Private fields and methods

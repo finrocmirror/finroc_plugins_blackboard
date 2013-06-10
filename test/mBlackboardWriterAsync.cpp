@@ -45,7 +45,14 @@
 //----------------------------------------------------------------------
 // Namespace usage
 //----------------------------------------------------------------------
-using namespace finroc::blackboard;
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
+namespace finroc
+{
+namespace blackboard
+{
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
@@ -54,7 +61,7 @@ using namespace finroc::blackboard;
 //----------------------------------------------------------------------
 // Const values
 //----------------------------------------------------------------------
-finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriterAsync> mBlackboardWriterAsync::cCREATE_ACTION("BlackboardWriterAsync");
+runtime_construction::tStandardCreateModuleAction<mBlackboardWriterAsync> cCREATE_ACTION_FOR_M_BLACKBOARD_WRITER_ASYNC("BlackboardWriterAsync");
 
 //----------------------------------------------------------------------
 // Implementation
@@ -63,7 +70,7 @@ finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriterAsync
 //----------------------------------------------------------------------
 // mBlackboardWriterAsync constructors
 //----------------------------------------------------------------------
-mBlackboardWriterAsync::mBlackboardWriterAsync(finroc::core::tFrameworkElement *parent, const std::string &name)
+mBlackboardWriterAsync::mBlackboardWriterAsync(core::tFrameworkElement *parent, const std::string &name)
   : tModule(parent, name),
     bb_client("blackboard", this),
     update_counter(0)
@@ -90,3 +97,8 @@ void mBlackboardWriterAsync::Update()
   update_counter++;
 }
 
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}

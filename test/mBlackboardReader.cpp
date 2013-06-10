@@ -45,7 +45,14 @@
 //----------------------------------------------------------------------
 // Namespace usage
 //----------------------------------------------------------------------
-using namespace finroc::blackboard;
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
+namespace finroc
+{
+namespace blackboard
+{
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
@@ -54,7 +61,7 @@ using namespace finroc::blackboard;
 //----------------------------------------------------------------------
 // Const values
 //----------------------------------------------------------------------
-finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardReader> mBlackboardReader::cCREATE_ACTION("BlackboardReader");
+runtime_construction::tStandardCreateModuleAction<mBlackboardReader> cCREATE_ACTION_FOR_M_BLACKBOARD_READER("BlackboardReader");
 
 //----------------------------------------------------------------------
 // Implementation
@@ -63,7 +70,7 @@ finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardReader> mBl
 //----------------------------------------------------------------------
 // mBlackboardReader constructors
 //----------------------------------------------------------------------
-mBlackboardReader::mBlackboardReader(finroc::core::tFrameworkElement *parent, const std::string &name)
+mBlackboardReader::mBlackboardReader(core::tFrameworkElement *parent, const std::string &name)
   : tModule(parent, name),
     bb_client("blackboard", this)
 {}
@@ -93,3 +100,8 @@ void mBlackboardReader::Update()
   }
 }
 
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}

@@ -66,7 +66,7 @@ namespace blackboard
 //! Writes entries [0..9] of float blackboard using ordinary blackboard locking
 class mBlackboardWriter : public structure::tModule
 {
-  static finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> cCREATE_ACTION;
+  static runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> cCREATE_ACTION;
 
 //----------------------------------------------------------------------
 // Ports (These are the only variables that may be declared public)
@@ -80,7 +80,7 @@ public:
 //----------------------------------------------------------------------
 public:
 
-  mBlackboardWriter(finroc::core::tFrameworkElement *parent, const std::string &name = "BlackboardWriter");
+  mBlackboardWriter(core::tFrameworkElement *parent, const std::string &name = "BlackboardWriter");
 
 //----------------------------------------------------------------------
 // Private fields and methods

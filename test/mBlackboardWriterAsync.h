@@ -70,7 +70,7 @@ namespace blackboard
  */
 class mBlackboardWriterAsync : public structure::tModule
 {
-  static finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriterAsync> cCREATE_ACTION;
+  static runtime_construction::tStandardCreateModuleAction<mBlackboardWriterAsync> cCREATE_ACTION;
 
 //----------------------------------------------------------------------
 // Ports (These are the only variables that may be declared public)
@@ -84,7 +84,7 @@ public:
 //----------------------------------------------------------------------
 public:
 
-  mBlackboardWriterAsync(finroc::core::tFrameworkElement *parent, const std::string &name = "BlackboardWriterAsync");
+  mBlackboardWriterAsync(core::tFrameworkElement *parent, const std::string &name = "BlackboardWriterAsync");
 
 //----------------------------------------------------------------------
 // Private fields and methods

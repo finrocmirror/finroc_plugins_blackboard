@@ -45,7 +45,14 @@
 //----------------------------------------------------------------------
 // Namespace usage
 //----------------------------------------------------------------------
-using namespace finroc::blackboard;
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
+namespace finroc
+{
+namespace blackboard
+{
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
@@ -54,7 +61,7 @@ using namespace finroc::blackboard;
 //----------------------------------------------------------------------
 // Const values
 //----------------------------------------------------------------------
-finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> mBlackboardWriter::cCREATE_ACTION("BlackboardWriter");
+runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> cCREATE_ACTION_FOR_M_BLACKBOARD_WRITER("BlackboardWriter");
 
 //----------------------------------------------------------------------
 // Implementation
@@ -63,7 +70,7 @@ finroc::runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> mBl
 //----------------------------------------------------------------------
 // mBlackboardWriter constructors
 //----------------------------------------------------------------------
-mBlackboardWriter::mBlackboardWriter(finroc::core::tFrameworkElement *parent, const std::string &name)
+mBlackboardWriter::mBlackboardWriter(core::tFrameworkElement *parent, const std::string &name)
   : tModule(parent, name),
     bb_client("blackboard", this),
     update_counter(0)
@@ -95,5 +102,12 @@ void mBlackboardWriter::Update()
     FINROC_LOG_PRINT(WARNING, "Could not lock blackboard");
   }
   update_counter++;
+}
+
+
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
 }
 
