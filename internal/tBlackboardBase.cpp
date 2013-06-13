@@ -113,7 +113,7 @@ tBlackboardBase::tBlackboardBase(const tBlackboardBase& replicated_bb, structure
       }
       else if ((boost::starts_with(pg->GetName(), "Sensor") && forward_write_port_in_sensor) || (boost::starts_with(pg->GetName(), "Controller") && forward_write_port_in_controller))
       {
-        new_ports.push_back(ReplicateWritePort(*port, *parent->GetChild(pg->GetCName()), port->GetName()));
+        new_ports.push_back(ReplicateWritePort(*port, parent->GetInterface(pg->GetCName()), port->GetName()));
       }
     }
   }

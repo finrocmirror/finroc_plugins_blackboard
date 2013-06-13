@@ -101,12 +101,14 @@ tBlackboardClient<T>::tBlackboardClient(const std::string& name, structure::tMod
   outside_write_port2(),
   outside_read_port()
 {
-  bool plain_module = (parent->GetChild("Sensor Input") == NULL);
+  structure::tModule* module = dynamic_cast<structure::tModule*>(parent);
+  structure::tSenseControlModule* sense_control_module = dynamic_cast<structure::tSenseControlModule*>(parent);
+  assert((module == NULL || sense_control_module == NULL) && (module || sense_control_module));
 
   // Possibly create read ports in module
   if (create_read_port == tReadPorts::EXTERNAL)
   {
-    if (!plain_module)
+    if (sense_control_module)
     {
       outside_read_port = structure::tSenseControlModule::tSensorInput<tBuffer>(name, parent, core::tFrameworkElement::tFlag::EMITS_DATA);
     }
@@ -118,8 +120,8 @@ tBlackboardClient<T>::tBlackboardClient(const std::string& name, structure::tMod
   }
 
   // create write/full-access ports
-  core::tFrameworkElement* port_group = plain_module ? parent->GetChild("Output") : parent->GetChild("Controller Output");
-  outside_write_port1 = ReplicateWritePort(write_port, create_write_port_in != NULL ? create_write_port_in : port_group, name);
+  core::tFrameworkElement& port_group = module ? module->GetOutputs() : sense_control_module->GetControllerOutputs();
+  outside_write_port1 = ReplicateWritePort(write_port, create_write_port_in != NULL ? create_write_port_in : &port_group, name);
   if (create_write_port_in2 != NULL)
   {
     outside_write_port2 = ReplicateWritePort(write_port, create_write_port_in2, name);
@@ -194,7 +196,7 @@ tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, 
       }
       else if ((boost::starts_with(port_group->GetName(), "Sensor") && forward_write_port_in_sensor) || (boost::starts_with(port_group->GetName(), "Controller") && forward_write_port_in_controller))
       {
-        new_ports.push_back(ReplicateWritePort(port, parent->GetChild(port_group->GetCName()), port.GetName()));
+        new_ports.push_back(ReplicateWritePort(port, &parent->GetInterface(port_group->GetCName()), port.GetName()));
       }
     }
   }
