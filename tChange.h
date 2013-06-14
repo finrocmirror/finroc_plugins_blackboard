@@ -70,7 +70,7 @@ namespace blackboard
  * The template may be specialized for certain blackboard content types.
  */
 template <typename T>
-class tChange
+class tChange : public rrlib::util::tNoncopyable
 {
 
 //----------------------------------------------------------------------
@@ -89,6 +89,21 @@ public:
     new_element(new_element)
   {}
 
+  /*! move constructor */
+  tChange(tChange && other) : index(-1), new_element()
+  {
+    std::swap(index, other.index);
+    std::swap(new_element, other.new_element);
+  }
+
+  /*! move assignment */
+  tChange& operator=(tChange && other)
+  {
+    std::swap(index, other.index);
+    std::swap(new_element, other.new_element);
+    return *this;
+  }
+
   /*!
    * Applies change to blackboard buffer
    *
@@ -102,7 +117,7 @@ public:
     }
     else if (index >= 0)
     {
-      blackboard_buffer[index] = new_element;
+      std::swap(blackboard_buffer[index], new_element);
     }
   }
 
