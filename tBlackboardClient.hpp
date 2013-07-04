@@ -67,7 +67,7 @@ namespace blackboard
 template<typename T>
 tBlackboardClient<T>::tBlackboardClient(const std::string& name, core::tFrameworkElement* parent, bool push_updates, tAutoConnectMode auto_connect_mode, bool create_read_port) :
   read_port(PossiblyCreateReadPort(create_read_port, push_updates)),
-  write_port("write"),
+  write_port("write", internal::tBlackboardServer<T>::GetRPCInterfaceType()),
   backend(new internal::tBlackboardClientBackend(name, parent, write_port, read_port)),
   outside_write_port1(),
   outside_write_port2(),
@@ -79,7 +79,7 @@ tBlackboardClient<T>::tBlackboardClient(const std::string& name, core::tFramewor
 template<typename T>
 tBlackboardClient<T>::tBlackboardClient(internal::tBlackboardServer<T>& server, core::tFrameworkElement* parent, const std::string& non_default_name, bool push_updates, bool create_read_port) :
   read_port(PossiblyCreateReadPort(create_read_port, push_updates)),
-  write_port("write"),
+  write_port("write", internal::tBlackboardServer<T>::GetRPCInterfaceType()),
   backend(new internal::tBlackboardClientBackend(non_default_name.length() > 0 ? non_default_name : (server.GetName() + " Client"), parent, write_port, read_port)),
   outside_write_port1(),
   outside_write_port2(),
@@ -95,7 +95,7 @@ tBlackboardClient<T>::tBlackboardClient(internal::tBlackboardServer<T>& server, 
 template<typename T>
 tBlackboardClient<T>::tBlackboardClient(const std::string& name, structure::tModuleBase* parent, bool push_updates, tReadPorts create_read_port, core::tPortGroup* create_write_port_in, core::tPortGroup* create_write_port_in2) :
   read_port(PossiblyCreateReadPort(create_read_port != tReadPorts::NONE, push_updates)),
-  write_port("write"),
+  write_port("write", internal::tBlackboardServer<T>::GetRPCInterfaceType()),
   backend(new internal::tBlackboardClientBackend(name, parent->GetChild("Blackboards") ? parent->GetChild("Blackboards") : new core::tFrameworkElement(parent, "Blackboards"), write_port, read_port)),
   outside_write_port1(),
   outside_write_port2(),
