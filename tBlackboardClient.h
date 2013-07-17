@@ -44,7 +44,7 @@
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
 #include "plugins/rpc_ports/tProxyPort.h"
-#include "plugins/structure/tGroup.h"
+#include "plugins/structure/tSenseControlGroup.h"
 #include "plugins/structure/tModule.h"
 
 //----------------------------------------------------------------------
@@ -160,7 +160,7 @@ public:
                     tReadPorts create_read_port = tReadPorts::EXTERNAL, core::tPortGroup* create_write_port_in = NULL, core::tPortGroup* create_write_port_in2 = NULL);
 
   /*!
-   * Constructor to replicate access to inner tBlackboardClient in tGroup.
+   * Constructor to replicate access to inner tBlackboardClient in tSenseControlGroup.
    * (per default, full-blackboard-access-ports are created in the same port groups as in the inner group/module.
    *  In case of a plain tModule, ports in tSensorOutput and tControllerInput are created by default.)
    *
@@ -170,7 +170,7 @@ public:
    * \param forward_write_port_in_controller Forward write ports in controller port groups?
    * \param forward_write_port_in_sensor Forward write ports in sensor port groups?
    */
-  tBlackboardClient(const tBlackboardClient& replicated_bb, structure::tGroup* parent,
+  tBlackboardClient(const tBlackboardClient& replicated_bb, structure::tSenseControlGroup* parent,
                     bool create_read_port_in_ci = false, bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false);
 
   /*! move constructor */

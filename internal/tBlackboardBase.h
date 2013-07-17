@@ -42,6 +42,7 @@
 #include "plugins/rpc_ports/tProxyPort.h"
 #include "plugins/structure/tGroup.h"
 #include "plugins/structure/tModule.h"
+#include "plugins/structure/tSenseControlGroup.h"
 #include "plugins/structure/tSenseControlModule.h"
 
 //----------------------------------------------------------------------
@@ -87,7 +88,7 @@ protected:
   tBlackboardBase();
 
   /*!
-   * Constructor to replicate access to inner tBlackboard in tGroup.
+   * Constructor to replicate access to inner tBlackboard in tSenseControlGroup.
    * (per default, full-blackboard-access-ports are created in the same port groups as in the inner group/module.
    *  In case of a plain tModule, ports in tSensorOutput and tControllerInput are created by default.)
    *
@@ -97,7 +98,7 @@ protected:
    * \param forward_write_port_in_controller Forward write ports in controller port groups?
    * \param forward_write_port_in_sensor Forward write ports in sensor port groups?
    */
-  tBlackboardBase(const tBlackboardBase& replicated_bb, structure::tGroup* parent, bool create_read_port_in_co = false, bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false);
+  tBlackboardBase(const tBlackboardBase& replicated_bb, structure::tSenseControlGroup* parent, bool create_read_port_in_co = false, bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false);
 
   /*! move constructor */
   tBlackboardBase(tBlackboardBase && other);
@@ -106,7 +107,7 @@ protected:
   tBlackboardBase& operator=(tBlackboardBase && other);
 
   /*! Helper function to determine port group to create write ports in by default */
-  static core::tPortGroup* GetWritePortGroup(structure::tGroup* g)
+  static core::tPortGroup* GetWritePortGroup(structure::tSenseControlGroup* g)
   {
     return &g->GetControllerInputs();
   }
@@ -114,6 +115,11 @@ protected:
   static core::tPortGroup* GetWritePortGroup(structure::tSenseControlModule* g)
   {
     return &g->GetControllerInputs();
+  }
+
+  static core::tPortGroup* GetWritePortGroup(structure::tGroup* g)
+  {
+    return &g->GetInputs();
   }
 
   static core::tPortGroup* GetWritePortGroup(structure::tModule* g)

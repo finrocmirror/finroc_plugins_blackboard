@@ -129,7 +129,7 @@ tBlackboardClient<T>::tBlackboardClient(const std::string& name, structure::tMod
 }
 
 template<typename T>
-tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, structure::tGroup* parent, bool create_read_port_in_ci, bool forward_write_port_in_controller, bool forward_write_port_in_sensor) :
+tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, structure::tSenseControlGroup* parent, bool create_read_port_in_ci, bool forward_write_port_in_controller, bool forward_write_port_in_sensor) :
   read_port(),
   write_port(),
   backend(NULL),
@@ -154,11 +154,11 @@ tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, 
     // create port
     if (create_read_port_in_ci)
     {
-      outside_read_port = structure::tGroup::tControllerInput<tBuffer>(replicated_bb.GetOutsideReadPort().GetName(), parent);
+      outside_read_port = structure::tSenseControlGroup::tControllerInput<tBuffer>(replicated_bb.GetOutsideReadPort().GetName(), parent);
     }
     else
     {
-      outside_read_port = structure::tGroup::tSensorInput<tBuffer>(replicated_bb.GetOutsideReadPort().GetName(), parent);
+      outside_read_port = structure::tSenseControlGroup::tSensorInput<tBuffer>(replicated_bb.GetOutsideReadPort().GetName(), parent);
     }
     replicated_bb.GetOutsideReadPort().ConnectTo(outside_read_port);
   }

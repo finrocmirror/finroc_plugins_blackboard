@@ -76,7 +76,7 @@ tBlackboardBase::tBlackboardBase() :
   write_port2(NULL)
 {}
 
-tBlackboardBase::tBlackboardBase(const tBlackboardBase& replicated_bb, structure::tGroup* parent, bool create_read_port_in_co, bool forward_write_port_in_controller, bool forward_write_port_in_sensor) :
+tBlackboardBase::tBlackboardBase(const tBlackboardBase& replicated_bb, structure::tSenseControlGroup* parent, bool create_read_port_in_co, bool forward_write_port_in_controller, bool forward_write_port_in_sensor) :
   write_port1(NULL),
   write_port2(NULL)
 {

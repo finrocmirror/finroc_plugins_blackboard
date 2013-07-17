@@ -173,7 +173,7 @@ public:
    * \param forward_write_port_in_controller Forward write ports in controller port groups?
    * \param forward_write_port_in_sensor Forward write ports in sensor port groups?
    */
-  tBlackboard(tBlackboard& replicated_bb, structure::tGroup* parent, bool create_read_port_in_co = false,
+  tBlackboard(tBlackboard& replicated_bb, structure::tSenseControlGroup* parent, bool create_read_port_in_co = false,
               bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false) :
     tBlackboardBase(replicated_bb, parent, create_read_port_in_co, forward_write_port_in_controller, forward_write_port_in_sensor),
     wrapped_server(NULL),
@@ -201,11 +201,11 @@ public:
       // create port
       if (create_read_port_in_co)
       {
-        read_port = structure::tGroup::tControllerOutput<std::vector<T>>(replicated_bb.read_port.GetName(), parent);
+        read_port = structure::tSenseControlGroup::tControllerOutput<std::vector<T>>(replicated_bb.read_port.GetName(), parent);
       }
       else
       {
-        read_port = structure::tGroup::tSensorOutput<std::vector<T>>(replicated_bb.read_port.GetName(), parent);
+        read_port = structure::tSenseControlGroup::tSensorOutput<std::vector<T>>(replicated_bb.read_port.GetName(), parent);
       }
       replicated_bb.read_port.ConnectTo(read_port);
     }
@@ -314,7 +314,7 @@ private:
     typedef std::vector<T> tBuffer;
     typedef typename std::conditional < std::is_base_of<structure::tModule, TParent>::value, structure::tModule::tOutput<tBuffer>,
             typename std::conditional < std::is_base_of<structure::tSenseControlModule, TParent>::value, structure::tSenseControlModule::tSensorOutput<tBuffer>,
-            typename std::conditional < std::is_base_of<structure::tGroup, TParent>::value, structure::tGroup::tSensorOutput<tBuffer>,
+            typename std::conditional < std::is_base_of<structure::tSenseControlGroup, TParent>::value, structure::tSenseControlGroup::tSensorOutput<tBuffer>,
             data_ports::tPort<tBuffer >>::type >::type >::type type;
   };
 };

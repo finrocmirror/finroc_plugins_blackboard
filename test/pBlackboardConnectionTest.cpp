@@ -89,13 +89,13 @@ private:
 };
 
 /*! Group replicating Blackboard */
-class gBlackboardServer : public finroc::structure::tGroup
+class gBlackboardServer : public finroc::structure::tSenseControlGroup
 {
 public:
   tBlackboard<float> blackboard;
 
   gBlackboardServer(tFrameworkElement* parent) :
-    tGroup(parent, "BlackboardServerGroup", ""),
+    tSenseControlGroup(parent, "BlackboardServerGroup", ""),
     blackboard()
   {
     // Create server module
@@ -111,13 +111,13 @@ public:
 };
 
 /*! Group replicating BlackboardClient */
-class gBlackboardClient : public finroc::structure::tGroup
+class gBlackboardClient : public finroc::structure::tSenseControlGroup
 {
 public:
   tBlackboardClient<float> bb_client;
 
   gBlackboardClient(tFrameworkElement* parent) :
-    tGroup(parent, "BlackboardClientGroup", ""),
+    tSenseControlGroup(parent, "BlackboardClientGroup", ""),
     bb_client()
   {
     // Create client modules
