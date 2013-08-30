@@ -241,14 +241,8 @@ public:
     return wrapped_client;
   }
 
-  /*! same as tFrameworkElement::GetCName() */
-  const char* GetCName() const
-  {
-    return wrapped_server->GetCName();
-  }
-
   /*! same as tFrameworkElement::GetName() */
-  std::string GetName() const
+  const std::string& GetName() const
   {
     return wrapped_server->GetName();
   }

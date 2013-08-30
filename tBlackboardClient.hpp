@@ -196,7 +196,7 @@ tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, 
       }
       else if ((boost::starts_with(port_group->GetName(), "Sensor") && forward_write_port_in_sensor) || (boost::starts_with(port_group->GetName(), "Controller") && forward_write_port_in_controller))
       {
-        new_ports.push_back(ReplicateWritePort(port, &parent->GetInterface(port_group->GetCName()), port.GetName()));
+        new_ports.push_back(ReplicateWritePort(port, &parent->GetInterface(port_group->GetName()), port.GetName()));
       }
     }
   }
