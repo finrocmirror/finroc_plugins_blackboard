@@ -217,7 +217,7 @@ public:
   /*!
    * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's read port. May not exist.
    */
-  data_ports::tProxyPort<tBuffer, false> GetOutsideReadPort() const
+  data_ports::tPort<tBuffer> GetOutsideReadPort() const
   {
     return outside_read_port;
   }
@@ -411,7 +411,7 @@ private:
   rpc_ports::tProxyPort<tServer, false> outside_write_port1, outside_write_port2;
 
   /*! Replicated read port in group's/module's tPortGroups */
-  data_ports::tProxyPort<tBuffer, false> outside_read_port;
+  data_ports::tPort<tBuffer> outside_read_port;
 
 
   /*!
