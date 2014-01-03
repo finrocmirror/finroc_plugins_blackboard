@@ -98,7 +98,7 @@ public:
    */
   core::tAbstractPort* GetWritePort()
   {
-    return read_port;
+    return write_port;
   }
 
   /*!
