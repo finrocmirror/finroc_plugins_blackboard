@@ -139,6 +139,7 @@ public:
       assert(buffer_source.GetWrapped());
       data.buffer = buffer_source.GetUnusedBuffer();
       rrlib::rtti::sStaticTypeInfo<T>::DeepCopy(*data.const_buffer, *data.buffer, NULL);
+      data.const_buffer.Reset(); // we do not need const_buffer anymore and it (soon) contains outdated data
     }
     return data.buffer.get();
   }
