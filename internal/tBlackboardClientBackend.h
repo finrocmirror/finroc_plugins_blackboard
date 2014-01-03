@@ -86,6 +86,22 @@ public:
   tBlackboardClientBackend(const std::string& name, core::tFrameworkElement* parent, core::tPortWrapperBase& write_port, core::tPortWrapperBase& read_port);
 
   /*!
+   * \return Read port
+   */
+  core::tAbstractPort* GetReadPort()
+  {
+    return read_port;
+  }
+
+  /*!
+   * \return Write port
+   */
+  core::tAbstractPort* GetWritePort()
+  {
+    return read_port;
+  }
+
+  /*!
    * \return Unused buffer of specified type (typically for asynchronous changes and direct buffer commits)
    */
   template <typename T>
@@ -95,10 +111,10 @@ public:
     return data_ports::api::tPortDataPointerImplementation<T, false>(pointer);
   }
 
-  void SetAutoConnectMode(tAutoConnectMode new_mode)
+  /*void SetAutoConnectMode(tAutoConnectMode new_mode)
   {
-    // TODO
-  }
+    // TODO?
+  }*/
 
 //----------------------------------------------------------------------
 // Private fields and methods

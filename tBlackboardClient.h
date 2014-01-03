@@ -119,7 +119,7 @@ public:
   }
 
   /*!
-   * Connects to global blackboard
+   * Creates plain blackboard client (without any additional ports in any interfaces)
    *
    * \param name Name/Uid of blackboard
    * \param parent Parent of blackboard client
@@ -127,8 +127,7 @@ public:
    * \param auto_connect_mode Desired mode of auto-connecting
    * \param read_port Create read port?
    */
-  tBlackboardClient(const std::string& name, core::tFrameworkElement* parent, bool push_updates = false,
-                    tAutoConnectMode auto_connect_mode = tAutoConnectMode::ALL, bool read_port = true);
+  tBlackboardClient(const std::string& name, core::tFrameworkElement* parent, bool push_updates = false, bool read_port = true);
 
   /*!
    * Connects to local blackboard

@@ -78,7 +78,7 @@ class tChange : public rrlib::util::tNoncopyable
 //----------------------------------------------------------------------
 public:
 
-  tChange() : index(-1), new_element() {}
+  tChange() : index(-1), new_element(rrlib::rtti::sStaticTypeInfo<T>::CreateByValue()) {}
 
   /*!
    * \param index Index of element in blackboard to change
@@ -90,7 +90,7 @@ public:
   {}
 
   /*! move constructor */
-  tChange(tChange && other) : index(-1), new_element()
+  tChange(tChange && other) : index(-1), new_element(rrlib::rtti::sStaticTypeInfo<T>::CreateByValue())
   {
     std::swap(index, other.index);
     std::swap(new_element, other.new_element);

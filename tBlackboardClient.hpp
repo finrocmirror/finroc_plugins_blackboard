@@ -65,7 +65,7 @@ namespace blackboard
 //----------------------------------------------------------------------
 
 template<typename T>
-tBlackboardClient<T>::tBlackboardClient(const std::string& name, core::tFrameworkElement* parent, bool push_updates, tAutoConnectMode auto_connect_mode, bool create_read_port) :
+tBlackboardClient<T>::tBlackboardClient(const std::string& name, core::tFrameworkElement* parent, bool push_updates, bool create_read_port) :
   read_port(PossiblyCreateReadPort(create_read_port, push_updates)),
   write_port("write", internal::tBlackboardServer<T>::GetRPCInterfaceType()),
   backend(new internal::tBlackboardClientBackend(name, parent, write_port, read_port)),
@@ -73,7 +73,7 @@ tBlackboardClient<T>::tBlackboardClient(const std::string& name, core::tFramewor
   outside_write_port2(),
   outside_read_port()
 {
-  backend->SetAutoConnectMode(auto_connect_mode);
+  //backend->SetAutoConnectMode(auto_connect_mode);
 }
 
 template<typename T>
