@@ -64,11 +64,16 @@ namespace internal
 // Implementation
 //----------------------------------------------------------------------
 
+inline core::tFrameworkElement::tFlags GenerateConstructorFlags(bool shared)
+{
+  return shared ? core::tFrameworkElement::tFlags(core::tFrameworkElement::tFlag::SHARED) : core::tFrameworkElement::tFlags();
+}
+
 template <typename T>
 tBlackboardServer<T>::tBlackboardServer(const std::string& name, core::tFrameworkElement* parent, bool multi_buffered, size_t elements, bool shared) :
-  tAbstractBlackboardServer(parent, name, shared ? core::tFrameworkElement::tFlags(core::tFrameworkElement::tFlag::SHARED) : core::tFrameworkElement::tFlags()),
-  read_port("read", this, core::tFrameworkElement::tFlag::FINSTRUCT_READ_ONLY),
-  write_port(rpc_ports::tServerPort<tBlackboardServer<T>>(*this, "write", this, GetRPCInterfaceType())),
+  tAbstractBlackboardServer(parent, name, GenerateConstructorFlags(shared)),
+  read_port("read", this, core::tFrameworkElement::tFlag::FINSTRUCT_READ_ONLY | GenerateConstructorFlags(shared)),
+  write_port(rpc_ports::tServerPort<tBlackboardServer<T>>(*this, "write", this, GetRPCInterfaceType(), GenerateConstructorFlags(shared))),
   pending_change_tasks(),
   pending_lock_requests(),
   current_buffer(read_port.GetWrapped()->GetCurrentValueRaw()),
