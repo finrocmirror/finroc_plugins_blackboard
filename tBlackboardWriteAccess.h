@@ -218,7 +218,7 @@ private:
       }
       catch (const rpc_ports::tRPCException& e)
       {
-        throw tLockException();
+        throw tLockException(e.GetType());
       }
     }
   }
@@ -230,7 +230,7 @@ private:
   {
     if (!this->blackboard)
     {
-      throw tLockException();
+      throw tLockException(rpc_ports::tFutureStatus::INVALID_CALL);
     }
     FINROC_LOG_PRINT(DEBUG_VERBOSE_1, "Acquiring write lock on blackboard '", blackboard.GetName(), "' at ", rrlib::time::Now());
     locked_buffer_future = this->blackboard.WriteLock(timeout);

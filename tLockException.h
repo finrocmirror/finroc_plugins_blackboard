@@ -62,9 +62,9 @@ namespace blackboard
 //----------------------------------------------------------------------
 //! Blackboard lock exception
 /*!
- * Thrown when blackboard lock takes too long
+ * Thrown when blackboard lock fails
  */
-class tLockException : public std::exception
+class tLockException : public rpc_ports::tRPCException
 {
 
 //----------------------------------------------------------------------
@@ -72,10 +72,9 @@ class tLockException : public std::exception
 //----------------------------------------------------------------------
 public:
 
-  virtual const char* what() const throw() override
-  {
-    return "Lock failed";
-  }
+  tLockException(rpc_ports::tFutureStatus type) :
+    rpc_ports::tRPCException(type)
+  {}
 
 //----------------------------------------------------------------------
 // Private fields and methods
