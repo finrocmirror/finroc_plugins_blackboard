@@ -90,7 +90,7 @@ protected:
     return blackboard_mutex;
   }
 
-  virtual void PrepareDelete() {} // TODO: mark override in gcc 4.7
+  virtual void PrepareDelete() override {}
 
 //----------------------------------------------------------------------
 // Private fields and methods

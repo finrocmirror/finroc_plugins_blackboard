@@ -89,7 +89,7 @@ private:
 
   int update_counter;
 
-  virtual void Update();
+  virtual void Update() override;
 };
 
 //----------------------------------------------------------------------

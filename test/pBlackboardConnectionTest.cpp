@@ -85,7 +85,7 @@ public:
   {}
 
 private:
-  virtual void Update() {}
+  virtual void Update() override {}
 };
 
 /*! Group replicating Blackboard */

@@ -335,9 +335,9 @@ private:
     pending_change_tasks.push_back(std::move(change_set));
   }
 
-  virtual void HandleException(rpc_ports::tFutureStatus exception_type);
+  virtual void HandleException(rpc_ports::tFutureStatus exception_type) override;
 
-  virtual void HandleResponse(tLockedBufferData<tBuffer> call_result);
+  virtual void HandleResponse(tLockedBufferData<tBuffer> call_result) override;
 
   /*!
    * Replaces 'current_buffer' with new buffer that is unique
@@ -356,7 +356,7 @@ private:
     current_buffer.reset(unused_buffer.release());
   }
 
-  virtual void PrepareDelete() // TODO: mark override in gcc 4.7
+  virtual void PrepareDelete() override
   {
     {
       rrlib::thread::tLock lock(this->BlackboardMutex());
