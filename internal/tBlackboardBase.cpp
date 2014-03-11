@@ -32,7 +32,7 @@
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
-#include <boost/algorithm/string.hpp>
+#include "rrlib/util/string.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -111,7 +111,7 @@ tBlackboardBase::tBlackboardBase(const tBlackboardBase& replicated_bb, structure
           new_ports.push_back(ReplicateWritePort(*port, parent->GetControllerOutputs(), port->GetName()));
         }
       }
-      else if ((boost::starts_with(pg->GetName(), "Sensor") && forward_write_port_in_sensor) || (boost::starts_with(pg->GetName(), "Controller") && forward_write_port_in_controller))
+      else if ((rrlib::util::StartsWith(pg->GetName(), "Sensor") && forward_write_port_in_sensor) || (rrlib::util::StartsWith(pg->GetName(), "Controller") && forward_write_port_in_controller))
       {
         new_ports.push_back(ReplicateWritePort(*port, parent->GetInterface(pg->GetName()), port->GetName()));
       }

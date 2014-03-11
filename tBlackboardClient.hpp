@@ -32,7 +32,7 @@
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
 #include "plugins/structure/tSenseControlModule.h"
-#include <boost/algorithm/string.hpp>
+#include "rrlib/util/string.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -194,7 +194,7 @@ tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, 
           new_ports.push_back(ReplicateWritePort(port, &parent->GetControllerOutputs(), port.GetName()));
         }
       }
-      else if ((boost::starts_with(port_group->GetName(), "Sensor") && forward_write_port_in_sensor) || (boost::starts_with(port_group->GetName(), "Controller") && forward_write_port_in_controller))
+      else if ((rrlib::util::StartsWith(port_group->GetName(), "Sensor") && forward_write_port_in_sensor) || (rrlib::util::StartsWith(port_group->GetName(), "Controller") && forward_write_port_in_controller))
       {
         new_ports.push_back(ReplicateWritePort(port, &parent->GetInterface(port_group->GetName()), port.GetName()));
       }
@@ -248,11 +248,11 @@ void tBlackboardClient<T>::CheckConnect(core::tPortWrapperBase p1, core::tPortWr
   {
     core::tFrameworkElement* parent1 = p1.GetParent();
     core::tFrameworkElement* parent2 = p2.GetParent();
-    if ((boost::ends_with(parent1->GetName(), "Output") && boost::ends_with(parent2->GetName(), "Input")) ||
-        (boost::ends_with(parent1->GetName(), "Input") && boost::ends_with(parent2->GetName(), "Output")))
+    if ((rrlib::util::EndsWith(parent1->GetName(), "Output") && rrlib::util::EndsWith(parent2->GetName(), "Input")) ||
+        (rrlib::util::EndsWith(parent1->GetName(), "Input") && rrlib::util::EndsWith(parent2->GetName(), "Output")))
     {
-      if (!((boost::starts_with(parent1->GetName(), "Sensor") && boost::starts_with(parent2->GetName(), "Controller")) ||
-            (boost::starts_with(parent1->GetName(), "Controller") && boost::starts_with(parent2->GetName(), "Sensor"))))
+      if (!((rrlib::util::StartsWith(parent1->GetName(), "Sensor") && rrlib::util::StartsWith(parent2->GetName(), "Controller")) ||
+            (rrlib::util::StartsWith(parent1->GetName(), "Controller") && rrlib::util::StartsWith(parent2->GetName(), "Sensor"))))
       {
         p1.ConnectTo(p2);
       }
@@ -267,11 +267,11 @@ void tBlackboardClient<T>::CheckClientConnect(core::tPortWrapperBase p1, core::t
   {
     core::tFrameworkElement* parent1 = p1.GetParent();
     core::tFrameworkElement* parent2 = p2.GetParent();
-    if ((boost::ends_with(parent1->GetName(), "Input") && boost::ends_with(parent2->GetName(), "Input")) ||
-        (boost::ends_with(parent1->GetName(), "Output") && boost::ends_with(parent2->GetName(), "Output")))
+    if ((rrlib::util::EndsWith(parent1->GetName(), "Input") && rrlib::util::EndsWith(parent2->GetName(), "Input")) ||
+        (rrlib::util::EndsWith(parent1->GetName(), "Output") && rrlib::util::EndsWith(parent2->GetName(), "Output")))
     {
-      if (!((boost::starts_with(parent1->GetName(), "Sensor") && boost::starts_with(parent2->GetName(), "Controller")) ||
-            (boost::starts_with(parent1->GetName(), "Controller") && boost::starts_with(parent2->GetName(), "Sensor"))))
+      if (!((rrlib::util::StartsWith(parent1->GetName(), "Sensor") && rrlib::util::StartsWith(parent2->GetName(), "Controller")) ||
+            (rrlib::util::StartsWith(parent1->GetName(), "Controller") && rrlib::util::StartsWith(parent2->GetName(), "Sensor"))))
       {
         p1.ConnectTo(p2);
       }
