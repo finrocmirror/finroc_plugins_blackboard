@@ -51,6 +51,7 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
+#include "plugins/blackboard/tChange.h"
 #include "plugins/blackboard/internal/tAbstractBlackboardServer.h"
 #include "plugins/blackboard/internal/tLockedBuffer.h"
 #include "plugins/blackboard/internal/tLockParameters.h"
