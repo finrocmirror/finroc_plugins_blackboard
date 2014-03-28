@@ -323,7 +323,7 @@ private:
    */
   static inline void CopyBlackboardBuffer(const tBuffer& src, tBuffer& target)
   {
-    rrlib::rtti::sStaticTypeInfo<tBuffer>::DeepCopy(src, target, NULL);
+    rrlib::rtti::GenericOperations<tBuffer>::DeepCopy(src, target);
   }
 
   /*!
