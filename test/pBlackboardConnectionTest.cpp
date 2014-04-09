@@ -64,7 +64,6 @@ using namespace finroc::core;
 const std::string cPROGRAM_DESCRIPTION = "This is a simple test program for connectiion variants of local blackboards.";
 const std::string cCOMMAND_LINE_ARGUMENTS = "";
 const std::string cADDITIONAL_HELP_TEXT = "";
-const std::string cMAIN_THREAD_CONTAINER_NAME = "Main Thread";
 bool make_all_port_links_unique = true;
 
 //----------------------------------------------------------------------
@@ -131,8 +130,10 @@ public:
 };
 
 
-void InitMainGroup(finroc::structure::tThreadContainer *main_thread, const std::vector<std::string> &remaining_arguments)
+void CreateMainGroup(const std::vector<std::string> &remaining_arguments)
 {
+  finroc::structure::tTopLevelThreadContainer<> *main_thread = new finroc::structure::tTopLevelThreadContainer<>("Main Thread", __FILE__".xml", true, make_all_port_links_unique);
+
   // Create groups and connect them
   gBlackboardServer* server = new gBlackboardServer(main_thread);
   gBlackboardClient* client = new gBlackboardClient(main_thread);
