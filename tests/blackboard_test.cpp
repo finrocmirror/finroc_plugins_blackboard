@@ -74,18 +74,19 @@ namespace blackboard
 //----------------------------------------------------------------------
 
 /*! Module containing Blackboard */
-class mBlackboardServer : public finroc::structure::tModule
+class mBlackboardServer : public finroc::structure::tSenseControlModule
 {
 public:
   tBlackboard<float> blackboard;
 
   mBlackboardServer(tFrameworkElement* parent) :
-    tModule(parent, "BlackboardServer"),
+    tSenseControlModule(parent, "BlackboardServer"),
     blackboard("Float Blackboard", this)
   {}
 
 private:
-  virtual void Update() override {}
+  virtual void Sense() override {}
+  virtual void Control() override {}
 };
 
 /*! Group replicating Blackboard */
@@ -105,7 +106,7 @@ public:
     blackboard = tBlackboard<float>(server->blackboard, this);
 
     // Create asynch writer and connect it to blackboard
-    mBlackboardWriterAsync* async_writer = new mBlackboardWriterAsync(this);
+    mBlackboardWriter* async_writer = new mBlackboardWriter(this);
     async_writer->bb_client.ConnectTo(server->blackboard);
   }
 };
@@ -123,7 +124,7 @@ public:
     reader(nullptr)
   {
     // Create client modules
-    mBlackboardWriter* writer = new mBlackboardWriter(this);
+    mBlackboardWriterAsync* writer = new mBlackboardWriterAsync(this);
     reader = new mBlackboardReader(this);
 
     // Replicate blackboard in group
@@ -211,7 +212,6 @@ class BlackboardTest : public rrlib::util::tUnitTestSuite
 
   void TestBlackboardConnecting()
   {
-    FINROC_LOG_PRINT(USER, " (note that the following 4 warning messages are not a problem; it is planned to remove them)");
     core::tFrameworkElement* parent = new core::tFrameworkElement(main_thread, "TestBlackboardConnecting");
 
     // Create groups and connect them
@@ -220,11 +220,10 @@ class BlackboardTest : public rrlib::util::tUnitTestSuite
     client->bb_client.ConnectTo(server->blackboard);
     main_thread->Init();
 
-    main_thread->ExecuteCycle();
     for (size_t i = 0; i < 10; i++)
     {
       main_thread->ExecuteCycle();
-      CheckVector(client->reader->GetBlackboardCopy(), i + 1);
+      CheckVector(client->reader->GetBlackboardCopy(), i);
     }
   }
 };
