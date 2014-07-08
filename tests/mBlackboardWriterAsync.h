@@ -19,83 +19,86 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    plugins/blackboard/test/pBlackboardTest.cpp
+/*!\file    plugins/blackboard/tests/mBlackboardWriterAsync.h
  *
  * \author  Max Reichardt
  *
  * \date    2011-03-30
  *
- * This is a simple test program that demonstrates how to use blackboards.
+ * \brief   Contains mBlackboardWriterAsync
+ *
+ * \b mBlackboardWriterAsync
+ *
  */
 //----------------------------------------------------------------------
-#include "plugins/structure/default_main_wrapper.h"
+#ifndef __plugins__blackboard__tests__mBlackboardWriterAsync_h_
+#define __plugins__blackboard__tests__mBlackboardWriterAsync_h_
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
-#include "plugins/blackboard/tBlackboard.h"
+#include "plugins/structure/tModule.h"
+#include "plugins/blackboard/tBlackboardClient.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
-#include "plugins/blackboard/test/mBlackboardReader.h"
-#include "plugins/blackboard/test/mBlackboardWriter.h"
-#include "plugins/blackboard/test/mBlackboardWriterAsync.h"
 
 //----------------------------------------------------------------------
 // Debugging
 //----------------------------------------------------------------------
-#include <cassert>
 
 //----------------------------------------------------------------------
-// Namespace usage
+// Namespace declaration
 //----------------------------------------------------------------------
-using namespace finroc::blackboard;
-
+namespace finroc
+{
+namespace blackboard
+{
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// Const values
+// Class declaration
 //----------------------------------------------------------------------
-const std::string cPROGRAM_DESCRIPTION = "This is a simple test program that demonstrates how to use blackboards.";
-const std::string cCOMMAND_LINE_ARGUMENTS = "";
-const std::string cADDITIONAL_HELP_TEXT = "";
-bool make_all_port_links_unique = true;
-
-//----------------------------------------------------------------------
-// Implementation
-//----------------------------------------------------------------------
-
-//----------------------------------------------------------------------
-// StartUp
-//----------------------------------------------------------------------
-void StartUp()
-{}
-
-//----------------------------------------------------------------------
-// CreateMainGroup
-//----------------------------------------------------------------------
-void CreateMainGroup(const std::vector<std::string> &remaining_arguments)
+//! Writes entries [15..17] using async change commands.
+/*!
+ * Note, that these transaction-like changes do not require any locking
+ * and do not block.
+ */
+class mBlackboardWriterAsync : public structure::tModule
 {
-  finroc::structure::tTopLevelThreadContainer<> *main_thread = new finroc::structure::tTopLevelThreadContainer<>("Main Thread", __FILE__".xml", true, make_all_port_links_unique);
 
-  std::string bb_name("Float Blackboard");
+//----------------------------------------------------------------------
+// Ports (These are the only variables that may be declared public)
+//----------------------------------------------------------------------
+public:
 
-  // create single-buffered float blackboard with capacity 20
-  tBlackboard<float> blackboard(bb_name, main_thread, false, 20, false, tReadPorts::NONE, NULL);
+  tBlackboardClient<float> bb_client;
 
-  // create modules that access blackboard
-  mBlackboardReader* reader = new mBlackboardReader(main_thread);
-  mBlackboardWriter* writer = new mBlackboardWriter(main_thread);
-  mBlackboardWriterAsync* async_writer = new mBlackboardWriterAsync(main_thread);
+//----------------------------------------------------------------------
+// Public methods and typedefs (no fields/variables)
+//----------------------------------------------------------------------
+public:
 
-  // connect modules with blackboard
-  blackboard.GetWritePort().ConnectTo(writer->bb_client.GetOutsideWritePort());
-  blackboard.GetWritePort().ConnectTo(async_writer->bb_client.GetOutsideWritePort());
-  blackboard.GetWritePort().ConnectTo(reader->bb_client.GetOutsideWritePort());
-  blackboard.GetReadPort().ConnectTo(reader->bb_client.GetOutsideReadPort());
+  mBlackboardWriterAsync(core::tFrameworkElement *parent, const std::string &name = "BlackboardWriterAsync");
 
-  main_thread->SetCycleTime(500);
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
+
+  int update_counter;
+
+  virtual void Update() override;
+
+};
+
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
 }
+}
+
+#endif

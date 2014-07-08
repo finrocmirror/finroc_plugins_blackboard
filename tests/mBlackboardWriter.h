@@ -19,7 +19,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    plugins/blackboard/test/mBlackboardWriter.h
+/*!\file    plugins/blackboard/tests/mBlackboardWriter.h
  *
  * \author  Max Reichardt
  *
@@ -31,15 +31,14 @@
  *
  */
 //----------------------------------------------------------------------
-#ifndef _blackboard__mBlackboardWriter_h_
-#define _blackboard__mBlackboardWriter_h_
-
-#include "plugins/structure/tModule.h"
-#include "plugins/blackboard/tBlackboardClient.h"
+#ifndef __plugins__blackboard__tests__mBlackboardWriter_h_
+#define __plugins__blackboard__tests__mBlackboardWriter_h_
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#include "plugins/structure/tModule.h"
+#include "plugins/blackboard/tBlackboardClient.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -66,7 +65,6 @@ namespace blackboard
 //! Writes entries [0..9] of float blackboard using ordinary blackboard locking
 class mBlackboardWriter : public structure::tModule
 {
-  static runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> cCREATE_ACTION;
 
 //----------------------------------------------------------------------
 // Ports (These are the only variables that may be declared public)

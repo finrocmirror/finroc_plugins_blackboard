@@ -19,19 +19,26 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    plugins/blackboard/test/mBlackboardWriter.cpp
+/*!\file    plugins/blackboard/tests/mBlackboardReader.h
  *
  * \author  Max Reichardt
  *
  * \date    2011-03-30
  *
+ * \brief   Contains mBlackboardReader
+ *
+ * \b mBlackboardReader
+ *
  */
 //----------------------------------------------------------------------
-#include "plugins/blackboard/test/mBlackboardWriter.h"
+#ifndef __plugins__blackboard__tests__mBlackboardReader_h_
+#define __plugins__blackboard__tests__mBlackboardReader_h_
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#include "plugins/structure/tModule.h"
+#include "plugins/blackboard/tBlackboardClient.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -39,11 +46,6 @@
 
 //----------------------------------------------------------------------
 // Debugging
-//----------------------------------------------------------------------
-#include <cassert>
-
-//----------------------------------------------------------------------
-// Namespace usage
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
@@ -53,57 +55,49 @@ namespace finroc
 {
 namespace blackboard
 {
-
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// Const values
+// Class declaration
 //----------------------------------------------------------------------
-runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> cCREATE_ACTION_FOR_M_BLACKBOARD_WRITER("BlackboardWriter");
-
-//----------------------------------------------------------------------
-// Implementation
-//----------------------------------------------------------------------
-
-//----------------------------------------------------------------------
-// mBlackboardWriter constructors
-//----------------------------------------------------------------------
-mBlackboardWriter::mBlackboardWriter(core::tFrameworkElement *parent, const std::string &name)
-  : tModule(parent, name),
-    bb_client("blackboard", this),
-    update_counter(0)
-{}
-
-//----------------------------------------------------------------------
-// mBlackboardWriter Update
-//----------------------------------------------------------------------
-void mBlackboardWriter::Update()
+//! Reads contents of blackboard and copies them to local variable
+class mBlackboardReader : public structure::tModule
 {
-  try
+
+//----------------------------------------------------------------------
+// Ports (These are the only variables that may be declared public)
+//----------------------------------------------------------------------
+public:
+
+  tBlackboardClient<float> bb_client;
+
+//----------------------------------------------------------------------
+// Public methods and typedefs (no fields/variables)
+//----------------------------------------------------------------------
+public:
+
+  mBlackboardReader(core::tFrameworkElement *parent, const std::string &name = "BlackboardReader");
+
+  /*!
+   * \return Copy of blackboard content
+   */
+  const std::vector<float>& GetBlackboardCopy()
   {
-    // Acquire write lock
-    tBlackboardClient<float>::tWriteAccess acc(bb_client);
-
-    if (acc.Size() < 10)
-    {
-      acc.Resize(20);
-    }
-
-    // Change elements 0 to 9
-    for (size_t i = 0; i < 10; i++)
-    {
-      acc[i] = update_counter;
-    }
+    return blackboard_content_copy;
   }
-  catch (tLockException& e)
-  {
-    FINROC_LOG_PRINT(WARNING, "Could not lock blackboard");
-  }
-  update_counter++;
-}
 
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
+
+  /*! Copy of blackboard content */
+  std::vector<float> blackboard_content_copy;
+
+  virtual void Update() override;
+};
 
 //----------------------------------------------------------------------
 // End of namespace declaration
@@ -111,3 +105,4 @@ void mBlackboardWriter::Update()
 }
 }
 
+#endif

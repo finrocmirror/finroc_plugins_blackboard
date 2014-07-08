@@ -19,23 +19,15 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    plugins/blackboard/test/mBlackboardReader.h
+/*!\file    plugins/blackboard/tests/mBlackboardReader.cpp
  *
  * \author  Max Reichardt
  *
  * \date    2011-03-30
  *
- * \brief   Contains mBlackboardReader
- *
- * \b mBlackboardReader
- *
  */
 //----------------------------------------------------------------------
-#ifndef _blackboard__mBlackboardReader_h_
-#define _blackboard__mBlackboardReader_h_
-
-#include "plugins/structure/tModule.h"
-#include "plugins/blackboard/tBlackboardClient.h"
+#include "plugins/blackboard/tests/mBlackboardReader.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
@@ -48,6 +40,11 @@
 //----------------------------------------------------------------------
 // Debugging
 //----------------------------------------------------------------------
+#include <cassert>
+
+//----------------------------------------------------------------------
+// Namespace usage
+//----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
 // Namespace declaration
@@ -56,44 +53,60 @@ namespace finroc
 {
 namespace blackboard
 {
+
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// Class declaration
+// Const values
 //----------------------------------------------------------------------
-//! Reads contents of blackboard and prints them to console.
-class mBlackboardReader : public structure::tModule
+runtime_construction::tStandardCreateModuleAction<mBlackboardReader> cCREATE_ACTION_FOR_M_BLACKBOARD_READER("BlackboardReader");
+
+//----------------------------------------------------------------------
+// Implementation
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// mBlackboardReader constructors
+//----------------------------------------------------------------------
+mBlackboardReader::mBlackboardReader(core::tFrameworkElement *parent, const std::string &name)
+  : tModule(parent, name),
+    bb_client("blackboard", this)
+{}
+
+//----------------------------------------------------------------------
+// mBlackboardReader Update
+//----------------------------------------------------------------------
+void mBlackboardReader::Update()
 {
-  static runtime_construction::tStandardCreateModuleAction<mBlackboardReader> cCREATE_ACTION;
+  try
+  {
+    // Acquire read lock
+    tBlackboardClient<float>::tReadAccess acc(bb_client);
+    blackboard_content_copy.resize(acc.Size());
+    for (size_t i = 0; i < acc.Size(); ++i)
+    {
+      blackboard_content_copy[i] = acc[i];
+    }
 
-//----------------------------------------------------------------------
-// Ports (These are the only variables that may be declared public)
-//----------------------------------------------------------------------
-public:
-
-  tBlackboardClient<float> bb_client;
-
-//----------------------------------------------------------------------
-// Public methods and typedefs (no fields/variables)
-//----------------------------------------------------------------------
-public:
-
-  mBlackboardReader(core::tFrameworkElement *parent, const std::string &name = "BlackboardReader");
-
-//----------------------------------------------------------------------
-// Private fields and methods
-//----------------------------------------------------------------------
-private:
-
-  virtual void Update() override;
-};
+    // Print blackboard contents
+    std::stringstream output;
+    output << "Current blackboard content:";
+    for (size_t i = 0; i < acc.Size(); i++)
+    {
+      output << " " << acc[i];
+    }
+    FINROC_LOG_PRINT(DEBUG_VERBOSE_1, output.str());
+  }
+  catch (const tLockException& e)
+  {
+    FINROC_LOG_PRINT(ERROR, "Could not lock blackboard: ", e);
+  }
+}
 
 //----------------------------------------------------------------------
 // End of namespace declaration
 //----------------------------------------------------------------------
 }
 }
-
-#endif

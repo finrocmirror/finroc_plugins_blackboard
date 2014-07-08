@@ -19,23 +19,15 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    plugins/blackboard/test/mBlackboardWriterAsync.h
+/*!\file    plugins/blackboard/tests/mBlackboardWriterAsync.cpp
  *
  * \author  Max Reichardt
  *
  * \date    2011-03-30
  *
- * \brief   Contains mBlackboardWriterAsync
- *
- * \b mBlackboardWriterAsync
- *
  */
 //----------------------------------------------------------------------
-#ifndef _blackboard__mBlackboardWriterAsync_h_
-#define _blackboard__mBlackboardWriterAsync_h_
-
-#include "plugins/structure/tModule.h"
-#include "plugins/blackboard/tBlackboardClient.h"
+#include "plugins/blackboard/tests/mBlackboardWriterAsync.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
@@ -48,6 +40,11 @@
 //----------------------------------------------------------------------
 // Debugging
 //----------------------------------------------------------------------
+#include <cassert>
+
+//----------------------------------------------------------------------
+// Namespace usage
+//----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
 // Namespace declaration
@@ -56,51 +53,52 @@ namespace finroc
 {
 namespace blackboard
 {
+
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// Class declaration
+// Const values
 //----------------------------------------------------------------------
-//! Writes entries [15..17] using async change commands.
-/*!
- * Note, that these transaction-like changes do not require any locking
- * and do not block.
- */
-class mBlackboardWriterAsync : public structure::tModule
+runtime_construction::tStandardCreateModuleAction<mBlackboardWriterAsync> cCREATE_ACTION_FOR_M_BLACKBOARD_WRITER_ASYNC("BlackboardWriterAsync");
+
+//----------------------------------------------------------------------
+// Implementation
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// mBlackboardWriterAsync constructors
+//----------------------------------------------------------------------
+mBlackboardWriterAsync::mBlackboardWriterAsync(core::tFrameworkElement *parent, const std::string &name)
+  : tModule(parent, name),
+    bb_client("blackboard", this),
+    update_counter(0)
+{}
+
+//----------------------------------------------------------------------
+// mBlackboardWriterAsync Update
+//----------------------------------------------------------------------
+void mBlackboardWriterAsync::Update()
 {
-  static runtime_construction::tStandardCreateModuleAction<mBlackboardWriterAsync> cCREATE_ACTION;
+  // acquire buffer for async change-transaction
+  data_ports::tPortDataPointer<std::vector<tChange<float>>> change_buf(bb_client.GetUnusedChangeBuffer());
 
-//----------------------------------------------------------------------
-// Ports (These are the only variables that may be declared public)
-//----------------------------------------------------------------------
-public:
+  // fill buffer
+  change_buf->clear();
+  change_buf->push_back(tChange<float>(15, update_counter));
+  change_buf->push_back(tChange<float>(16, update_counter + 1));
+  change_buf->push_back(tChange<float>(17, update_counter + 2));
 
-  tBlackboardClient<float> bb_client;
+  // Commit asynch change
+  bb_client.AsynchronousChange(change_buf);
 
-//----------------------------------------------------------------------
-// Public methods and typedefs (no fields/variables)
-//----------------------------------------------------------------------
-public:
-
-  mBlackboardWriterAsync(core::tFrameworkElement *parent, const std::string &name = "BlackboardWriterAsync");
-
-//----------------------------------------------------------------------
-// Private fields and methods
-//----------------------------------------------------------------------
-private:
-
-  int update_counter;
-
-  virtual void Update() override;
-
-};
+  // increment update counter
+  update_counter++;
+}
 
 //----------------------------------------------------------------------
 // End of namespace declaration
 //----------------------------------------------------------------------
 }
 }
-
-#endif

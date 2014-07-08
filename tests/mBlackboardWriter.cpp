@@ -19,7 +19,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    plugins/blackboard/test/mBlackboardWriterAsync.cpp
+/*!\file    plugins/blackboard/test/mBlackboardWriter.cpp
  *
  * \author  Max Reichardt
  *
@@ -27,7 +27,7 @@
  *
  */
 //----------------------------------------------------------------------
-#include "plugins/blackboard/test/mBlackboardWriterAsync.h"
+#include "plugins/blackboard/tests/mBlackboardWriter.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
@@ -61,44 +61,53 @@ namespace blackboard
 //----------------------------------------------------------------------
 // Const values
 //----------------------------------------------------------------------
-runtime_construction::tStandardCreateModuleAction<mBlackboardWriterAsync> cCREATE_ACTION_FOR_M_BLACKBOARD_WRITER_ASYNC("BlackboardWriterAsync");
+runtime_construction::tStandardCreateModuleAction<mBlackboardWriter> cCREATE_ACTION_FOR_M_BLACKBOARD_WRITER("BlackboardWriter");
 
 //----------------------------------------------------------------------
 // Implementation
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// mBlackboardWriterAsync constructors
+// mBlackboardWriter constructors
 //----------------------------------------------------------------------
-mBlackboardWriterAsync::mBlackboardWriterAsync(core::tFrameworkElement *parent, const std::string &name)
+mBlackboardWriter::mBlackboardWriter(core::tFrameworkElement *parent, const std::string &name)
   : tModule(parent, name),
     bb_client("blackboard", this),
     update_counter(0)
 {}
 
 //----------------------------------------------------------------------
-// mBlackboardWriterAsync Update
+// mBlackboardWriter Update
 //----------------------------------------------------------------------
-void mBlackboardWriterAsync::Update()
+void mBlackboardWriter::Update()
 {
-  // acquire buffer for async change-transaction
-  data_ports::tPortDataPointer<std::vector<tChange<float>>> change_buf(bb_client.GetUnusedChangeBuffer());
+  try
+  {
+    // Acquire write lock
+    tBlackboardClient<float>::tWriteAccess acc(bb_client);
 
-  // fill buffer
-  change_buf->clear();
-  change_buf->push_back(tChange<float>(15, update_counter));
-  change_buf->push_back(tChange<float>(16, update_counter + 1));
-  change_buf->push_back(tChange<float>(17, update_counter + 2));
+    if (acc.Size() < 10)
+    {
+      acc.Resize(20);
+    }
 
-  // Commit asynch change
-  bb_client.AsynchronousChange(change_buf);
-
-  // increment update counter
+    // Change elements 0 to 9
+    for (size_t i = 0; i < 10; i++)
+    {
+      acc[i] = update_counter;
+    }
+  }
+  catch (const tLockException& e)
+  {
+    FINROC_LOG_PRINT(ERROR, "Could not lock blackboard: ", e);
+  }
   update_counter++;
 }
+
 
 //----------------------------------------------------------------------
 // End of namespace declaration
 //----------------------------------------------------------------------
 }
 }
+
