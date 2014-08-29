@@ -77,6 +77,14 @@ public:
 
   tAbstractBlackboardServer(core::tFrameworkElement* parent, const std::string& name, tFrameworkElement::tFlags flags = tFlags());
 
+  /*!
+   * \return Revision of blackboard content (is incremented whenever blackboard content changes - signaling that a new version is available)
+   */
+  inline uint64_t GetRevisionCounter()
+  {
+    return revision_counter;
+  }
+
 //----------------------------------------------------------------------
 // Protected methods
 //----------------------------------------------------------------------
@@ -88,6 +96,14 @@ protected:
   rrlib::thread::tOrderedMutex& BlackboardMutex()
   {
     return blackboard_mutex;
+  }
+
+  /*!
+   * Increments revision counter by one
+   */
+  inline void IncrementRevisionCounter()
+  {
+    revision_counter++;
   }
 
   virtual void PrepareDelete() override {}
@@ -102,6 +118,12 @@ private:
    * (needs to be deeper than runtime - (for initial pushes etc.))
    */
   rrlib::thread::tOrderedMutex blackboard_mutex;
+
+  /*!
+   * Revision counter: Incremented each time blackboard content changes
+   * (precisely: whenever ConsiderPublishing() is called)
+   */
+  std::atomic<uint64_t> revision_counter;
 };
 
 //----------------------------------------------------------------------

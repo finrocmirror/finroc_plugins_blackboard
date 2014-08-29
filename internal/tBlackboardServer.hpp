@@ -153,7 +153,8 @@ template <typename T>
 rrlib::rtti::tType tBlackboardServer<T>::GetRPCInterfaceType()
 {
   static rpc_ports::tRPCInterfaceType<tBlackboardServer<T>> type("Blackboard<" + rrlib::rtti::tDataType<T>().GetName() + ">",
-      &tBlackboardServer<T>::AsynchronousChange, &tBlackboardServer<T>::DirectCommit, &tBlackboardServer<T>::ReadLock, &tBlackboardServer<T>::WriteLock);
+      &tBlackboardServer<T>::AsynchronousChange, &tBlackboardServer<T>::DirectCommit, &tBlackboardServer<T>::ReadLock,
+      &tBlackboardServer<T>::WriteLock, &tBlackboardServer<T>::GetRevisionCounter);
   return type;
 }
 

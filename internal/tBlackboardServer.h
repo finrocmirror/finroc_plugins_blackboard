@@ -109,7 +109,6 @@ public:
   typedef std::vector<tSingleChange> tChangeSet;
   typedef data_ports::tPortDataPointer<tChangeSet> tChangeSetPointer;
 
-
   /*!
    * \param name Name/Uid of blackboard
    * \param parent Parent of blackboard server
@@ -149,6 +148,14 @@ public:
   data_ports::tOutputPort<tBuffer> GetReadPort()
   {
     return read_port;
+  }
+
+  /*!
+   * \return Revision of blackboard content (is incremented whenever blackboard content changes - signaling that a new version is available)
+   */
+  inline uint64_t GetRevisionCounter()
+  {
+    return tAbstractBlackboardServer::GetRevisionCounter();
   }
 
   /*!
@@ -311,6 +318,7 @@ private:
       current_buffer->AddLocks(1);
       tConstBufferPointer pointer_clone(data_ports::standard::tStandardPort::tLockingManagerPointer(current_buffer.get()), *read_port.GetWrapped());
       read_port.Publish(pointer_clone);
+      this->IncrementRevisionCounter();
     }
   }
 

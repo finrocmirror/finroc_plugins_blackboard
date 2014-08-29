@@ -280,6 +280,14 @@ public:
   }
 
   /*!
+   * \return Revision of blackboard content (is incremented whenever blackboard content changes - signaling that a new version is available)
+   */
+  uint64_t GetRevision()
+  {
+    return wrapped_server->GetRevisionCounter();
+  }
+
+  /*!
    * \return Port to use, when modules inside group containing blackboard want to connect to this blackboard's primary write port
    */
   rpc_ports::tServerPort<internal::tBlackboardServer<T>> GetWritePort() const

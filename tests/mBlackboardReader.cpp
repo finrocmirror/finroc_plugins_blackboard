@@ -92,7 +92,7 @@ void mBlackboardReader::Update()
 
     // Print blackboard contents
     std::stringstream output;
-    output << "Current blackboard content:";
+    output << "Current blackboard content (revision " << bb_client.GetRevision() << "):" ;
     for (size_t i = 0; i < acc.Size(); i++)
     {
       output << " " << acc[i];

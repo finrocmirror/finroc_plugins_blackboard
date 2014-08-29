@@ -73,7 +73,8 @@ namespace internal
 //----------------------------------------------------------------------
 tAbstractBlackboardServer::tAbstractBlackboardServer(core::tFrameworkElement* parent, const std::string& name, tFrameworkElement::tFlags flags) :
   tFrameworkElement(parent, name, flags),
-  blackboard_mutex("Blackboard", static_cast<int>(core::tLockOrderLevel::INNER_MOST) - 1000)
+  blackboard_mutex("Blackboard", static_cast<int>(core::tLockOrderLevel::INNER_MOST) - 1000),
+  revision_counter(0)
 {
 }
 

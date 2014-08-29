@@ -222,6 +222,15 @@ public:
   }
 
   /*!
+   * \return Revision of blackboard content (is incremented whenever blackboard content changes - signaling that a new version is available)
+   * \throws Throws an tRPCException if blackboard is not connected or timeout expired
+   */
+  uint64_t GetRevision(const rrlib::time::tDuration& timeout = std::chrono::seconds(2))
+  {
+    return write_port.CallSynchronous(timeout, &tServer::GetRevisionCounter);
+  }
+
+  /*!
    * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's primary write port
    */
   rpc_ports::tProxyPort<tServer, false> GetOutsideWritePort() const
