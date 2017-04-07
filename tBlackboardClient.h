@@ -50,8 +50,8 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
+#include "plugins/blackboard/internal/tBlackboardBase.h"
 #include "plugins/blackboard/tChange.h"
-#include "plugins/blackboard/internal/tBlackboardClientBackend.h"
 #include "plugins/blackboard/internal/tBlackboardServer.h"
 
 //----------------------------------------------------------------------
@@ -103,6 +103,13 @@ public:
   typedef data_ports::tPortDataPointer<const tBuffer> tConstBufferPointer;
   typedef std::vector<tChange<T>> tChangeSet;
   typedef data_ports::tPortDataPointer<tChangeSet> tChangeSetPointer;
+  typedef typename data_ports::standard::tStandardPort::tBufferPool tChangeSetBufferPool;
+
+  typedef core::tFrameworkElement::tFlag tFlag;
+  typedef core::tFrameworkElement::tFlag tFlags;
+  typedef data_ports::tInputPort<tBuffer> tReadPort;
+  typedef rpc_ports::tClientPort<tServer> tWritePort;
+
 
   /*!
    * Empty constructor for blackboard clients that are not initialized in
@@ -111,52 +118,24 @@ public:
   tBlackboardClient() :
     read_port(),
     write_port(),
-    backend(NULL),
-    outside_write_port1(),
-    outside_write_port2(),
-    outside_read_port()
+    change_set_buffer_pool()
   {
   }
 
   /*!
-   * Creates plain blackboard client (without any additional ports in any interfaces)
+   * Creates blackboard client
    *
-   * \param name Name/Uid of blackboard
-   * \param parent Parent of blackboard client
-   * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
-   * \param auto_connect_mode Desired mode of auto-connecting
-   * \param read_port Create read port?
+   * \param name Name/Uid of blackboard (will be name of write port)
+   * \param parent Parent component of blackboard client
+   * \param push_updates Use push strategy for read port? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
+   * \param create_read_port_in If not nullptr, creates data port for reading blackboard in specified component interface (possibly relevant for data dependencies -> scheduling order)
+   * \param read_port_name Name for read port. If empty, blackboard name will be used.
    */
-  tBlackboardClient(const std::string& name, core::tFrameworkElement* parent, bool push_updates = false, bool read_port = true);
-
-  /*!
-   * Connects to local blackboard
-   *
-   * \param server Blackboard server to connect to (in case it is available as object)
-   * \param parent Parent of blackboard client
-   * \param non_default_name Default name is "<server name> Client". Specifiy non-empty string for other name
-   * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
-   * \param read_port Create read port?
-   */
-  tBlackboardClient(internal::tBlackboardServer<T>& server, core::tFrameworkElement* parent,
-                    const std::string& non_default_name = "", bool push_updates = false, bool read_port = true);
-
-  /*!
-   * Constructor for use tModule and tSenseControlModule.
-   * Does NOT connect to global blackboards - but rather uses group's/module's input/output port groups.
-   *
-   * (per default, full-blackboard-access-ports are created in Output/ControllerOutput.
-   *  If this is not desired, the last two constructor parameters can be used to specify alternatives.)
-   *
-   * \param name Name of blackboard
-   * \param parent Parent of blackboard
-   * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
-   * \param create_read_port Which read ports to create for blackboard
-   * \param create_write_port_in If not NULL, creates write port in specified port group instead of Input/ControllerInput
-   * \param create_write_port_in2 If not NULL, creates another write port in specified port group
-   */
-  tBlackboardClient(const std::string& name, structure::tModuleBase* parent, bool push_updates = false,
-                    tReadPorts create_read_port = tReadPorts::EXTERNAL, core::tPortGroup* create_write_port_in = NULL, core::tPortGroup* create_write_port_in2 = NULL);
+  template <typename TParent>
+  tBlackboardClient(const std::string& name, TParent* parent, bool push_updates = false, tInterface* create_read_port_in = UseDefaultComponentInterface(), const std::string& read_port_name = "") :
+    tBlackboardClient(push_updates, parent->GetServices(), name, create_read_port_in == UseDefaultComponentInterface() ? GetDefaultReadPortInterface(parent, nullptr) : create_read_port_in, read_port_name.length() ? read_port_name : name)
+  {
+  }
 
   /*!
    * Constructor to replicate access to inner tBlackboardClient in tSenseControlGroup.
@@ -164,13 +143,29 @@ public:
    *  In case of a plain tModule, ports in tSensorOutput and tControllerInput are created by default.)
    *
    * \param replicated_bb Blackboard to provide access to
-   * \param parent Parent of blackboard
-   * \param create_read_port_in_ci In case we have a plain tModule: Create read port in Controller Input (rather than Sensor Input?)
-   * \param forward_write_port_in_controller Forward write ports in controller port groups?
-   * \param forward_write_port_in_sensor Forward write ports in sensor port groups?
+   * \param parent Composite component that replicates blackboard
+   * \param create_read_port_in If not nullptr and blackboard has a read port, creates data port for reading blackboard in specified component interface (possibly relevant for data dependencies -> scheduling order)
+   * \param blackboard_name Name for blackboard (== name for write port). If empty, replicated blackboard's name will be used.
+   * \param read_port_name Name for read port. If empty, replicated blackboard's read port name will be used.
    */
-  tBlackboardClient(const tBlackboardClient& replicated_bb, structure::tSenseControlGroup* parent,
-                    bool create_read_port_in_ci = false, bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false);
+  template <typename TParent>
+  tBlackboardClient(const tBlackboardClient& replicated_bb, TParent* parent, tInterface* create_read_port_in = UseDefaultComponentInterface(),
+                    const std::string& blackboard_name = "", const std::string& read_port_name = "") :
+    read_port(),
+    write_port(),
+    change_set_buffer_pool()
+  {
+    // hack to get rpc port that is actually a proxy into a client port
+    static_cast<core::tPortWrapperBase&>(write_port) = core::tPortWrapperBase(parent->GetServices().CreatePort(blackboard_name.length() ? blackboard_name : replicated_bb.write_port.GetName(), replicated_bb.write_port.GetDataType(),
+        core::tFrameworkElement::tFlag::ACCEPTS_DATA | core::tFrameworkElement::tFlag::EMITS_DATA | (replicated_bb.write_port.GetFlag(tFlag::OUTPUT_PORT) ? tFlag::OUTPUT_PORT : tFlag::PORT)));
+    write_port.ConnectTo(replicated_bb.write_port);
+    if (replicated_bb.read_port.GetWrapped() && create_read_port_in)
+    {
+      create_read_port_in = create_read_port_in == UseDefaultComponentInterface() ? GetDefaultReadPortInterface(parent, replicated_bb.read_port.GetWrapped()) : create_read_port_in;
+      read_port = tReadPort(read_port_name.length() ? read_port_name : replicated_bb.read_port.GetName(), create_read_port_in, create_read_port_in->GetDefaultPortFlags() | tFlag::EMITS_DATA | tFlag::ACCEPTS_DATA | tFlag::PUSH_STRATEGY);
+      replicated_bb.read_port.GetWrapped()->ConnectTo(*read_port.GetWrapped());
+    }
+  }
 
   /*! move constructor */
   tBlackboardClient(tBlackboardClient && o);
@@ -210,15 +205,15 @@ public:
    */
   inline std::string GetName() const
   {
-    return backend->GetName();
+    return write_port.GetName();
   }
 
   /*!
-   * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's read port. May not exist.
+   * \return Port for reading - in case pushing of updates is activated
    */
-  data_ports::tPort<tBuffer> GetOutsideReadPort() const
+  tReadPort GetReadPort() const
   {
-    return outside_read_port;
+    return read_port;
   }
 
   /*!
@@ -231,22 +226,6 @@ public:
   }
 
   /*!
-   * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's primary write port
-   */
-  rpc_ports::tProxyPort<tServer, false> GetOutsideWritePort() const
-  {
-    return outside_write_port1;
-  }
-
-  /*!
-   * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's secondary write port
-   */
-  rpc_ports::tProxyPort<tServer, false> GetOutsideWritePort2() const
-  {
-    return outside_write_port2;
-  }
-
-  /*!
    * \return Handle of server that handles calls (can be used to detect whether we're connected to a different blackboard). 0 if not connected to a server.
    */
   typename core::tFrameworkElement::tHandle GetServerHandle()
@@ -255,11 +234,19 @@ public:
   }
 
   /*!
+   * \return Port for full blackboard access
+   */
+  tWritePort GetWritePort() const
+  {
+    return write_port;
+  }
+
+  /*!
    * \return Unused buffer (may be published/committed directly using Publish())
    */
   inline tBufferPointer GetUnusedBuffer()
   {
-    return backend->GetUnusedBuffer<tBuffer>();
+    return read_port.GetUnusedBuffer();
   }
 
   /*!
@@ -267,15 +254,9 @@ public:
    */
   inline tChangeSetPointer GetUnusedChangeBuffer()
   {
-    return backend->GetUnusedBuffer<tChangeSet>();
-  }
-
-  /*!
-   * \return Wrapped raw blackboard backend
-   */
-  inline internal::tBlackboardClientBackend* GetBackend() const
-  {
-    return backend;
+    auto buffer = change_set_buffer_pool->GetUnusedBuffer(rrlib::rtti::tDataType<tChangeSet>());
+    buffer->SetUnused(true);
+    return data_ports::api::tPortDataPointerImplementation<tChangeSet, false>(buffer);
   }
 
   /*!
@@ -314,8 +295,22 @@ public:
    */
   inline void Init()
   {
-    backend->Init();
+    write_port.Init();
+    if (read_port.GetWrapped())
+    {
+      read_port.Init();
+    }
   }
+
+  /*!
+   * Deletes this blackboard (its server/client/ports in particular). Object is empty afterwards (equals to a tBlackboard()).
+   */
+  void ManagedDelete()
+  {
+    read_port.ManagedDelete();
+    write_port.ManagedDelete();
+  }
+
 
   /*!
    * Directly commit/publish completely new buffer
@@ -380,6 +375,13 @@ public:
     }
   }
 
+  /*! \return Returns constant that indicates that default component interface for read port should be used */
+  static tInterface* UseDefaultComponentInterface()
+  {
+    return internal::tBlackboardBase::UseDefaultComponentInterface();
+  }
+
+
   /*!
    * Acquire write lock on blackboard.
    *
@@ -398,7 +400,7 @@ public:
 
   operator bool() const
   {
-    return backend != NULL;
+    return change_set_buffer_pool.get();
   }
 
 //----------------------------------------------------------------------
@@ -406,83 +408,65 @@ public:
 //----------------------------------------------------------------------
 private:
 
+  friend class tBlackboard<T>;
+
   /*! Port for reading - in case pushing of updates is activated */
-  data_ports::tInputPort<tBuffer> read_port;
+  tReadPort read_port;
 
   /*! Port for full blackboard access */
-  rpc_ports::tClientPort<tServer> write_port;
+  tWritePort write_port;
 
-  /*! Wrapped blackboard backend */
-  internal::tBlackboardClientBackend* backend;
-
-  /*! Replicated ports in group's/module's tPortGroups */
-  rpc_ports::tProxyPort<tServer, false> outside_write_port1, outside_write_port2;
-
-  /*! Replicated read port in group's/module's tPortGroups */
-  data_ports::tPort<tBuffer> outside_read_port;
+  /*! Additional port buffer pool */
+  std::unique_ptr<tChangeSetBufferPool> change_set_buffer_pool;
 
 
   /*!
-   * Check whether these ports can be connected - if yes, do so
-   * (connecting to blackboard)
+   * Creates blackboard client
+   *
+   * \param push_updates Use push strategy for read port? (Any blackboard updates will be pushed to read port; required for changed-flag to work properly; disabled by default (network-bandwidth))
+   * \param create_write_port_in Interface to create RPC for blackboard access in
+   * \param write_port_name Name for write port
+   * \param create_read_port_in If not nullptr, creates data port for reading blackboard in specified component interface (possibly relevant for data dependencies -> scheduling order)
+   * \param read_port_name Name for read port. If empty, blackboard name will be used.
    */
-  void CheckConnect(core::tPortWrapperBase p1, core::tPortWrapperBase p2);
-
-  /*!
-   * Check whether these ports can be connected - if yes, do so
-   * (connecting to outer blackboard client)
-   */
-  void CheckClientConnect(core::tPortWrapperBase p1, core::tPortWrapperBase p2);
+  tBlackboardClient(bool push_updates, tInterface& create_write_port_in, const std::string& write_port_name, tInterface* create_read_port_in, const std::string& read_port_name);
 
   /*!
    * \return Log description
    */
   inline const core::tFrameworkElement& GetLogDescription() const
   {
-    return *backend;
+    return *write_port.GetWrapped();
   }
 
-  /*!
-   * (Helper to make constructors shorter)
-   * Creates read port
-   *
-   * \param create Actually create port?
-   * \param push_updates Use push strategy? (Any blackboard updates will be pushed to read port)
-   * \return Created read port
-   */
-  static data_ports::tInputPort<tBuffer> PossiblyCreateReadPort(bool create, bool push_updates)
+  /*! Helper function to determine component interface to create read ports in by default */
+  static tInterface* GetDefaultReadPortInterface(structure::tSenseControlGroup* g, core::tAbstractPort* replicated_port)
   {
-    if (create)
+    if (replicated_port && replicated_port->GetParent()->GetFlag(tFlag::CONTROLLER_DATA))
     {
-      data_ports::tInputPort<tBuffer> read_port = data_ports::tInputPort<tBuffer>("read");
-      if (!push_updates)
-      {
-        read_port.SetPushStrategy(false);
-      }
-      return read_port;
+      return &g->GetControllerInputs();
     }
-    return data_ports::tInputPort<tBuffer>();
+    return &g->GetSensorInputs();
   }
-
-  /*!
-   * Create blackboard write port in specified port group and connect it to
-   * (original blackboard client) write port.
-   *
-   * \param write_port Port to connect newly created port to
-   * \param port_group Port group to create port in
-   * \param name Name of new port
-   * \return Created Port
-   */
-  rpc_ports::tProxyPort<tServer, false> ReplicateWritePort(core::tPortWrapperBase& write_port, core::tFrameworkElement* port_group, const std::string& name)
+  static tInterface* GetDefaultReadPortInterface(structure::tSenseControlModule* g, core::tAbstractPort* replicated_port)
   {
-    typename core::tFrameworkElement::tFlags extra_flags;
-    if (typeid(*port_group) == typeid(core::tPortGroup))
+    if (replicated_port && replicated_port->GetParent()->GetFlag(tFlag::CONTROLLER_DATA))
     {
-      extra_flags |= static_cast<core::tPortGroup&>(*port_group).GetDefaultPortFlags();
+      return &g->GetControllerInputs();
     }
-    rpc_ports::tProxyPort<tServer, false> new_port(name, port_group, extra_flags);
-    write_port.ConnectTo(new_port);
-    return new_port;
+    return &g->GetSensorInputs();
+  }
+  static tInterface* GetDefaultReadPortInterface(structure::tGroup* g, core::tAbstractPort* replicated_port)
+  {
+    return &g->GetInputs();
+  }
+  static tInterface* GetDefaultReadPortInterface(structure::tModule* g, core::tAbstractPort* replicated_port)
+  {
+    return &g->GetInputs();
+  }
+  static tInterface* GetDefaultReadPortInterface(core::tFrameworkElement* g, core::tAbstractPort* replicated_port)
+  {
+    return nullptr;
   }
 };
 

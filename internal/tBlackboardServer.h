@@ -108,15 +108,18 @@ public:
   typedef tChange<T> tSingleChange;
   typedef std::vector<tSingleChange> tChangeSet;
   typedef data_ports::tPortDataPointer<tChangeSet> tChangeSetPointer;
+  typedef data_ports::tOutputPort<tBuffer> tReadPort;
 
   /*!
    * \param name Name/Uid of blackboard
-   * \param parent Parent of blackboard server
+   * \param parent Parent of blackboard server (usually component-internal blackboard element)
    * \param multi_buffered Create blackboard server that is in multi_buffered mode initially?
    * \param elements Initial number of elements
-   * \param shared Share blackboard with other runtime environments?
+   * \param create_write_port_in Interface to create write port in
+   * \param create_read_port_in If not nullptr, creates data port for reading blackboard in specified component interface (possibly relevant for data dependencies -> scheduling order)
+   * \param read_port_name Name for read port. If empty, blackboard name will be used.
    */
-  tBlackboardServer(const std::string& name, core::tFrameworkElement* parent = NULL, bool multi_buffered = false, size_t elements = 0, bool shared = true);
+  tBlackboardServer(const std::string& name, core::tFrameworkElement& parent, bool multi_buffered, size_t elements, tInterface& create_write_port_in, tInterface* create_read_port_in = nullptr, const std::string& read_port_name = "");
 
   virtual ~tBlackboardServer() {}
 
@@ -364,14 +367,16 @@ private:
     current_buffer.reset(unused_buffer.release());
   }
 
-  virtual void PrepareDelete() override
+  virtual void OnManagedDelete() override
   {
     {
       rrlib::thread::tLock lock(this->BlackboardMutex());
       lock_id = std::numeric_limits<uint64_t>::max();
       unlock_future = tUnlockFuture();
     }
-    tAbstractBlackboardServer::PrepareDelete();
+    tAbstractBlackboardServer::OnManagedDelete();
+    read_port.ManagedDelete();
+    write_port.ManagedDelete();
   }
 
   /*!

@@ -106,7 +106,7 @@ protected:
     revision_counter++;
   }
 
-  virtual void PrepareDelete() override {}
+  virtual void OnManagedDelete() override {}
 
 //----------------------------------------------------------------------
 // Private fields and methods

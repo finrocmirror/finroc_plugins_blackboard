@@ -39,6 +39,7 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
+#include "plugins/blackboard/mBlackboardServer.h"
 #include "plugins/blackboard/tBlackboard.h"
 #include "plugins/blackboard/tests/mBlackboardReader.h"
 #include "plugins/blackboard/tests/mBlackboardWriter.h"
@@ -73,34 +74,18 @@ namespace blackboard
 // Implementation
 //----------------------------------------------------------------------
 
-/*! Module containing Blackboard */
-class mBlackboardServer : public finroc::structure::tSenseControlModule
-{
-public:
-  tBlackboard<float> blackboard;
-
-  mBlackboardServer(tFrameworkElement* parent) :
-    tSenseControlModule(parent, "BlackboardServer"),
-    blackboard("Float Blackboard", this)
-  {}
-
-private:
-  virtual void Sense() override {}
-  virtual void Control() override {}
-};
-
 /*! Group replicating Blackboard */
-class gBlackboardServer : public finroc::structure::tSenseControlGroup
+class gBlackboardServer : public finroc::structure::tGroup
 {
 public:
   tBlackboard<float> blackboard;
 
   gBlackboardServer(tFrameworkElement* parent) :
-    tSenseControlGroup(parent, "BlackboardServerGroup", ""),
+    tGroup(parent, "BlackboardServerGroup", ""),
     blackboard()
   {
     // Create server module
-    mBlackboardServer* server = new mBlackboardServer(this);
+    mBlackboardServer<float>* server = new mBlackboardServer<float>(this, "BlackboardServer");
 
     // Replicate blackboard in group
     blackboard = tBlackboard<float>(server->blackboard, this);
@@ -112,14 +97,14 @@ public:
 };
 
 /*! Group replicating BlackboardClient */
-class gBlackboardClient : public finroc::structure::tSenseControlGroup
+class gBlackboardClient : public finroc::structure::tGroup
 {
 public:
   tBlackboardClient<float> bb_client;
   mBlackboardReader* reader;
 
   gBlackboardClient(tFrameworkElement* parent) :
-    tSenseControlGroup(parent, "BlackboardClientGroup", ""),
+    tGroup(parent, "BlackboardClientGroup", ""),
     bb_client(),
     reader(nullptr)
   {
@@ -152,7 +137,7 @@ class BlackboardTest : public rrlib::util::tUnitTestSuite
     std::string bb_name("Float Blackboard");
 
     // create single-buffered float blackboard with capacity 20
-    tBlackboard<float> blackboard(bb_name, main_thread, false, 20, false, tReadPorts::NONE, NULL);
+    mBlackboardServer<float, 20, false>* server_module = new mBlackboardServer<float, 20, false>(parent, bb_name);
 
     // create modules that access blackboard
     mBlackboardWriter* writer = new mBlackboardWriter(parent);
@@ -161,12 +146,12 @@ class BlackboardTest : public rrlib::util::tUnitTestSuite
 
     // connect modules with blackboard
     // TODO: change when blackboards are located beneath 'blackboards' element
-    writer->bb_client.GetOutsideReadPort().ConnectTo(blackboard.GetReadPort());
-    writer->bb_client.GetOutsideWritePort().ConnectTo(blackboard.GetWritePort());
-    async_writer->bb_client.GetOutsideReadPort().ConnectTo(blackboard.GetReadPort());
-    async_writer->bb_client.GetOutsideWritePort().ConnectTo(blackboard.GetWritePort());
-    reader->bb_client.GetOutsideReadPort().ConnectTo(blackboard.GetReadPort());
-    reader->bb_client.GetOutsideWritePort().ConnectTo(blackboard.GetWritePort());
+    writer->bb_client.GetReadPort().ConnectTo(server_module->blackboard.GetReadPort());
+    writer->bb_client.GetWritePort().ConnectTo(server_module->blackboard.GetWritePort());
+    async_writer->bb_client.GetReadPort().ConnectTo(server_module->blackboard.GetReadPort());
+    async_writer->bb_client.GetWritePort().ConnectTo(server_module->blackboard.GetWritePort());
+    reader->bb_client.GetReadPort().ConnectTo(server_module->blackboard.GetReadPort());
+    reader->bb_client.GetWritePort().ConnectTo(server_module->blackboard.GetWritePort());
 
     // start thread
     main_thread->Init();
@@ -178,7 +163,7 @@ class BlackboardTest : public rrlib::util::tUnitTestSuite
     }
 
     // disconnect read ports
-    blackboard.GetReadPort().GetWrapped()->DisconnectAll();
+    server_module->blackboard.GetReadPort().DisconnectAll();
 
     for (size_t i = 10; i < 20; i++)
     {

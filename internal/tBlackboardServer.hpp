@@ -64,16 +64,30 @@ namespace internal
 // Implementation
 //----------------------------------------------------------------------
 
-inline core::tFrameworkElement::tFlags GenerateConstructorFlags(bool shared)
+namespace
 {
-  return shared ? core::tFrameworkElement::tFlags(core::tFrameworkElement::tFlag::SHARED) : core::tFrameworkElement::tFlags();
+// Used to reset port wrappers in BlackboardServer - to make sure that ManagedDelete() is not called on already deleted ports
+class tPortWrapperResetter : public core::tAnnotation
+{
+public:
+  tPortWrapperResetter(core::tPortWrapperBase& wrapper) : wrapper(wrapper)
+  {}
+
+  core::tPortWrapperBase& wrapper;
+
+  virtual void OnManagedDelete() override
+  {
+    wrapper = core::tPortWrapperBase();
+  }
+};
+
 }
 
 template <typename T>
-tBlackboardServer<T>::tBlackboardServer(const std::string& name, core::tFrameworkElement* parent, bool multi_buffered, size_t elements, bool shared) :
-  tAbstractBlackboardServer(parent, name, GenerateConstructorFlags(shared)),
-  read_port("read", this, core::tFrameworkElement::tFlag::FINSTRUCT_READ_ONLY | GenerateConstructorFlags(shared)),
-  write_port(rpc_ports::tServerPort<tBlackboardServer<T>>(*this, "write", this, GetRPCInterfaceType(), GenerateConstructorFlags(shared))),
+tBlackboardServer<T>::tBlackboardServer(const std::string& name, core::tFrameworkElement& parent, bool multi_buffered, size_t elements, tInterface& create_write_port_in, tInterface* create_read_port_in, const std::string& read_port_name) :
+  tAbstractBlackboardServer(&parent, name),
+  read_port(read_port_name.length() ? read_port_name : name, create_read_port_in ? static_cast<core::tFrameworkElement*>(create_read_port_in) : static_cast<core::tFrameworkElement*>(this), (create_read_port_in ? create_read_port_in->GetDefaultPortFlags() : tFlags()) | data_ports::cDEFAULT_OUTPUT_PORT_FLAGS | tFlag::FINSTRUCT_READ_ONLY),
+  write_port(rpc_ports::tServerPort<tBlackboardServer<T>>(*this, name, &create_write_port_in, GetRPCInterfaceType(), create_write_port_in.GetDefaultPortFlags())),
   pending_change_tasks(),
   pending_lock_requests(),
   current_buffer(read_port.GetWrapped()->GetCurrentValueRaw()),
@@ -82,6 +96,10 @@ tBlackboardServer<T>::tBlackboardServer(const std::string& name, core::tFramewor
   unlock_future(),
   single_buffered(!multi_buffered)
 {
+  read_port.GetWrapped()->template EmplaceAnnotation<tPortWrapperResetter>(read_port);
+  write_port.GetWrapped()->template EmplaceAnnotation<tPortWrapperResetter>(write_port);
+
+  this->Init();
   read_port.Init();
   write_port.Init();
   if (elements > 0)

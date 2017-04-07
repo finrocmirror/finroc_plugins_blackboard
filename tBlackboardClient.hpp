@@ -64,168 +64,39 @@ namespace blackboard
 // Implementation
 //----------------------------------------------------------------------
 
-template<typename T>
-tBlackboardClient<T>::tBlackboardClient(const std::string& name, core::tFrameworkElement* parent, bool push_updates, bool create_read_port) :
-  read_port(PossiblyCreateReadPort(create_read_port, push_updates)),
-  write_port("write", internal::tBlackboardServer<T>::GetRPCInterfaceType()),
-  backend(new internal::tBlackboardClientBackend(name, parent, write_port, read_port)),
-  outside_write_port1(),
-  outside_write_port2(),
-  outside_read_port()
-{
-  //backend->SetAutoConnectMode(auto_connect_mode);
-}
+
+/*
+read_port(create_read_port_in ? tReadPort() : tReadPort()),
+    write_port(),
+    change_set_buffer_pool(new tChangeSetBufferPool(rrlib::rtti::tDataType<tChangeSet>(), 0))
+*/
 
 template<typename T>
-tBlackboardClient<T>::tBlackboardClient(internal::tBlackboardServer<T>& server, core::tFrameworkElement* parent, const std::string& non_default_name, bool push_updates, bool create_read_port) :
-  read_port(PossiblyCreateReadPort(create_read_port, push_updates)),
-  write_port("write", internal::tBlackboardServer<T>::GetRPCInterfaceType()),
-  backend(new internal::tBlackboardClientBackend(non_default_name.length() > 0 ? non_default_name : (server.GetName() + " Client"), parent, write_port, read_port)),
-  outside_write_port1(),
-  outside_write_port2(),
-  outside_read_port()
-{
-  if (create_read_port)
-  {
-    server.GetReadPort().ConnectTo(read_port);
-  }
-  server.GetWritePort().ConnectTo(write_port);
-}
-
-template<typename T>
-tBlackboardClient<T>::tBlackboardClient(const std::string& name, structure::tModuleBase* parent, bool push_updates, tReadPorts create_read_port, core::tPortGroup* create_write_port_in, core::tPortGroup* create_write_port_in2) :
-  read_port(PossiblyCreateReadPort(create_read_port != tReadPorts::NONE, push_updates)),
-  write_port("write", internal::tBlackboardServer<T>::GetRPCInterfaceType()),
-  backend(new internal::tBlackboardClientBackend(name, parent->GetChild("Blackboards") ? parent->GetChild("Blackboards") : new core::tFrameworkElement(parent, "Blackboards"), write_port, read_port)),
-  outside_write_port1(),
-  outside_write_port2(),
-  outside_read_port()
-{
-  structure::tModule* module = dynamic_cast<structure::tModule*>(parent);
-  structure::tSenseControlModule* sense_control_module = dynamic_cast<structure::tSenseControlModule*>(parent);
-  assert((module == NULL || sense_control_module == NULL) && (module || sense_control_module));
-
-  // Possibly create read ports in module
-  if (create_read_port == tReadPorts::EXTERNAL)
-  {
-    if (sense_control_module)
-    {
-      outside_read_port = structure::tSenseControlModule::tSensorInput<tBuffer>(name, parent, core::tFrameworkElement::tFlag::EMITS_DATA);
-    }
-    else
-    {
-      outside_read_port = structure::tModule::tInput<tBuffer>(name, parent, core::tFrameworkElement::tFlag::EMITS_DATA);
-    }
-    read_port.ConnectTo(outside_read_port);
-  }
-
-  // create write/full-access ports
-  core::tFrameworkElement& port_group = module ? module->GetOutputs() : sense_control_module->GetControllerOutputs();
-  outside_write_port1 = ReplicateWritePort(write_port, create_write_port_in != NULL ? create_write_port_in : &port_group, name);
-  if (create_write_port_in2 != NULL)
-  {
-    outside_write_port2 = ReplicateWritePort(write_port, create_write_port_in2, name);
-  }
-}
-
-template<typename T>
-tBlackboardClient<T>::tBlackboardClient(const tBlackboardClient& replicated_bb, structure::tSenseControlGroup* parent, bool create_read_port_in_ci, bool forward_write_port_in_controller, bool forward_write_port_in_sensor) :
+tBlackboardClient<T>::tBlackboardClient(bool push_updates, tInterface& create_write_port_in, const std::string& write_port_name, tInterface* create_read_port_in, const std::string& read_port_name) :
   read_port(),
-  write_port(),
-  backend(NULL),
-  outside_write_port1(),
-  outside_write_port2(),
-  outside_read_port()
+  write_port(write_port_name, &create_write_port_in, internal::tBlackboardServer<T>::GetRPCInterfaceType()),
+  change_set_buffer_pool(new tChangeSetBufferPool(rrlib::rtti::tDataType<tChangeSet>(), 0))
 {
-  // forward read port
-  if (replicated_bb.GetOutsideReadPort().GetWrapped())
+  if (create_read_port_in)
   {
-    // where do we create port?
-    core::tFrameworkElement* port_group = replicated_bb.GetOutsideReadPort().GetParent();
-    if (port_group->NameEquals("Sensor Input"))
+    read_port = tReadPort(read_port_name, create_read_port_in, data_ports::cDEFAULT_INPUT_PORT_FLAGS);
+    if (!push_updates)
     {
-      create_read_port_in_ci = false;
+      read_port.SetPushStrategy(false);
     }
-    else if (port_group->NameEquals("Controller Input"))
-    {
-      create_read_port_in_ci = true;
-    }
-
-    // create port
-    if (create_read_port_in_ci)
-    {
-      outside_read_port = structure::tSenseControlGroup::tControllerInput<tBuffer>(replicated_bb.GetOutsideReadPort().GetName(), parent);
-    }
-    else
-    {
-      outside_read_port = structure::tSenseControlGroup::tSensorInput<tBuffer>(replicated_bb.GetOutsideReadPort().GetName(), parent);
-    }
-    replicated_bb.GetOutsideReadPort().ConnectTo(outside_read_port);
-  }
-
-  // forward write ports
-  std::vector<rpc_ports::tProxyPort<tServer, false>> new_ports;
-  for (int i = 0; i < 2; i++)
-  {
-    rpc_ports::tProxyPort<tServer, false> port = (i == 0) ? replicated_bb.GetOutsideWritePort() : replicated_bb.GetOutsideWritePort2();
-    if (port.GetWrapped())
-    {
-      // where do we create ports?
-      core::tFrameworkElement* port_group = port.GetParent();
-      if (port_group->NameEquals("Input"))
-      {
-        if (forward_write_port_in_sensor)
-        {
-          new_ports.push_back(ReplicateWritePort(port, &parent->GetSensorInputs(), port.GetName()));
-        }
-        if (forward_write_port_in_controller)
-        {
-          new_ports.push_back(ReplicateWritePort(port, &parent->GetControllerInputs(), port.GetName()));
-        }
-      }
-      else if (port_group->NameEquals("Output"))
-      {
-        if (forward_write_port_in_sensor)
-        {
-          new_ports.push_back(ReplicateWritePort(port, &parent->GetSensorOutputs(), port.GetName()));
-        }
-        if (forward_write_port_in_controller)
-        {
-          new_ports.push_back(ReplicateWritePort(port, &parent->GetControllerOutputs(), port.GetName()));
-        }
-      }
-      else if ((rrlib::util::StartsWith(port_group->GetName(), "Sensor") && forward_write_port_in_sensor) || (rrlib::util::StartsWith(port_group->GetName(), "Controller") && forward_write_port_in_controller))
-      {
-        new_ports.push_back(ReplicateWritePort(port, &parent->GetInterface(port_group->GetName()), port.GetName()));
-      }
-    }
-  }
-  assert(new_ports.size() <= 2);
-  if (new_ports.size() >= 1)
-  {
-    outside_write_port1 = new_ports[0];
-  }
-  if (new_ports.size() >= 2)
-  {
-    outside_write_port2 = new_ports[1];
   }
 }
+
 
 template<typename T>
 tBlackboardClient<T>::tBlackboardClient(tBlackboardClient && o) :
   read_port(),
   write_port(),
-  backend(NULL),
-  outside_write_port1(),
-  outside_write_port2(),
-  outside_read_port()
+  change_set_buffer_pool()
 {
   std::swap(read_port, o.read_port);
   std::swap(write_port, o.write_port);
-  std::swap(backend, o.backend);
-  std::swap(outside_write_port1, o.outside_write_port1);
-  std::swap(outside_write_port2, o.outside_write_port2);
-  std::swap(outside_read_port, o.outside_read_port);
+  std::swap(change_set_buffer_pool, o.change_set_buffer_pool);
 }
 
 template<typename T>
@@ -233,76 +104,29 @@ tBlackboardClient<T>& tBlackboardClient<T>::operator=(tBlackboardClient && o)
 {
   std::swap(read_port, o.read_port);
   std::swap(write_port, o.write_port);
-  std::swap(backend, o.backend);
-  std::swap(outside_write_port1, o.outside_write_port1);
-  std::swap(outside_write_port2, o.outside_write_port2);
-  std::swap(outside_read_port, o.outside_read_port);
+  std::swap(change_set_buffer_pool, o.change_set_buffer_pool);
   return *this;
 }
 
 
 template<typename T>
-void tBlackboardClient<T>::CheckConnect(core::tPortWrapperBase p1, core::tPortWrapperBase p2)
-{
-  if (p1.GetWrapped() && p2.GetWrapped())
-  {
-    core::tFrameworkElement* parent1 = p1.GetParent();
-    core::tFrameworkElement* parent2 = p2.GetParent();
-    if ((rrlib::util::EndsWith(parent1->GetName(), "Output") && rrlib::util::EndsWith(parent2->GetName(), "Input")) ||
-        (rrlib::util::EndsWith(parent1->GetName(), "Input") && rrlib::util::EndsWith(parent2->GetName(), "Output")))
-    {
-      if (!((rrlib::util::StartsWith(parent1->GetName(), "Sensor") && rrlib::util::StartsWith(parent2->GetName(), "Controller")) ||
-            (rrlib::util::StartsWith(parent1->GetName(), "Controller") && rrlib::util::StartsWith(parent2->GetName(), "Sensor"))))
-      {
-        p1.ConnectTo(p2);
-      }
-    }
-  }
-}
-
-template<typename T>
-void tBlackboardClient<T>::CheckClientConnect(core::tPortWrapperBase p1, core::tPortWrapperBase p2)
-{
-  if (p1.GetWrapped() && p2.GetWrapped())
-  {
-    core::tFrameworkElement* parent1 = p1.GetParent();
-    core::tFrameworkElement* parent2 = p2.GetParent();
-    if ((rrlib::util::EndsWith(parent1->GetName(), "Input") && rrlib::util::EndsWith(parent2->GetName(), "Input")) ||
-        (rrlib::util::EndsWith(parent1->GetName(), "Output") && rrlib::util::EndsWith(parent2->GetName(), "Output")))
-    {
-      if (!((rrlib::util::StartsWith(parent1->GetName(), "Sensor") && rrlib::util::StartsWith(parent2->GetName(), "Controller")) ||
-            (rrlib::util::StartsWith(parent1->GetName(), "Controller") && rrlib::util::StartsWith(parent2->GetName(), "Sensor"))))
-      {
-        p1.ConnectTo(p2);
-      }
-    }
-  }
-}
-
-template<typename T>
 void tBlackboardClient<T>::ConnectTo(const tBlackboard<T>& blackboard)
 {
-  if (blackboard.GetOutsideReadPort().GetWrapped() && GetOutsideReadPort().GetWrapped())
+  if (blackboard.GetReadPort().GetWrapped() && GetReadPort().GetWrapped())
   {
-    CheckConnect(blackboard.GetOutsideReadPort(), GetOutsideReadPort());
+    blackboard.GetReadPort().ConnectTo(GetReadPort());
   }
-  CheckConnect(core::tPortWrapperBase(blackboard.GetOutsideWritePort()), GetOutsideWritePort());
-  CheckConnect(core::tPortWrapperBase(blackboard.GetOutsideWritePort2()), GetOutsideWritePort());
-  CheckConnect(core::tPortWrapperBase(blackboard.GetOutsideWritePort()), GetOutsideWritePort2());
-  CheckConnect(core::tPortWrapperBase(blackboard.GetOutsideWritePort2()), GetOutsideWritePort2());
+  GetWritePort().ConnectTo(blackboard.GetWritePort());
 }
 
 template<typename T>
 void tBlackboardClient<T>::ConnectTo(const tBlackboardClient<T>& client)
 {
-  if (client.GetOutsideReadPort().GetWrapped() && GetOutsideReadPort().GetWrapped())
+  if (client.GetReadPort().GetWrapped() && GetReadPort().GetWrapped())
   {
-    CheckClientConnect(client.GetOutsideReadPort(), GetOutsideReadPort());
+    client.GetReadPort().ConnectTo(GetReadPort());
   }
-  CheckClientConnect(client.GetOutsideWritePort(), GetOutsideWritePort());
-  CheckClientConnect(client.GetOutsideWritePort2(), GetOutsideWritePort());
-  CheckClientConnect(client.GetOutsideWritePort(), GetOutsideWritePort2());
-  CheckClientConnect(client.GetOutsideWritePort2(), GetOutsideWritePort2());
+  GetWritePort().ConnectTo(client.GetWritePort());
 }
 
 template<typename T>

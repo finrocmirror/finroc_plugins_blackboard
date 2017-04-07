@@ -30,12 +30,12 @@
  * \b tBlackboard
  *
  * This is a convenience class to create a blackboard server
- * (and possibly client) in a group or module.
+ * (and possibly client) in a (composite) component.
  *
- * This allows considering blackboard edges in scheduling.
+ * Read ports in data port interface allow considering blackboard edges in scheduling.
  *
- * It can also be used in a group to allow access to a blackboard
- * of an inner module or group.
+ * This class can furthermore be used in a composite component to allow access to a blackboard
+ * of an inner component.
  *
  */
 //----------------------------------------------------------------------
@@ -70,18 +70,16 @@ namespace blackboard
 //! Blackboard (server)
 /*!
  * This is a convenience class to create a blackboard server
- * (and possibly client) in a group or module.
+ * (and possibly client) in a (composite) component.
  *
- * This allows considering blackboard edges in scheduling.
+ * Read ports in data port interface allow considering blackboard edges in scheduling.
  *
- * It can also be used in a group to allow access to a blackboard
- * of an inner module or group.
+ * This class can furthermore be used in a composite component to allow access to a blackboard
+ * of an inner component.
  */
 template <typename T>
 class tBlackboard : public internal::tBlackboardBase
 {
-  template <typename TParent>
-  struct tGetReadPortType;
 
 //----------------------------------------------------------------------
 // Public methods and typedefs
@@ -90,75 +88,54 @@ public:
 
   typedef tBlackboardWriteAccess<T> tWriteAccess;
   typedef tBlackboardReadAccess<T> tReadAccess;
-
   typedef internal::tBlackboardServer<T> tServer;
-
   typedef typename tServer::tBuffer tBuffer;
+  typedef typename tServer::tReadPort tReadPort;
 
   /*!
    * Empty constructor for blackboards that are not initialized in
    * class initializer list (but later)
    */
   tBlackboard() :
-    wrapped_server(NULL),
+    wrapped_server(nullptr),
     wrapped_client(),
     read_port()
   {}
 
   /*!
-   * Constructor for use in tGroup, tModule and tSenseControlModule
-   * (per default, full-blackboard-access-ports are created in Input/ControllerInput.
-   *  If this is not desired, the last two constructor parameters can be used to specify alternatives.)
+   * Constructor for creating a new blackboard in a component.
    *
    * \param name Name of blackboard
-   * \param parent Parent of blackboard
+   * \param parent Component that contains blackboard
    * \param multi_buffered Create multi-buffered blackboard?
    * \param elements Initial number of elements
-   * \param create_client Create Blackboard client?
-   * \param create_read_port Which read ports to create for blackboard
-   * \param create_write_port_in If not NULL, creates write port in specified port group
-   * \param create_write_port_in2 If not NULL, creates another write port in specified port group
+   * \param create_client Create Blackboard client? (to access blackboard using this object's GetClient())
+   * \param create_read_port_in If not nullptr, creates data port for reading blackboard in specified component interface (possibly relevant for data dependencies -> scheduling order)
+   * \param read_port_name Name for read port. If empty, blackboard name will be used.
+   * \param create_read_port_in_client Create a read port in the client? This is only relevant when 'create_client' is true and a read port is created. Use 'true', if you wish 'read locks' to occur via the data port. (This parameter exists for minor performance tweaking.)
    */
   template <typename TParent>
   tBlackboard(const std::string& name, TParent* parent, bool multi_buffered = false, int elements = 0, bool create_client = true,
-              tReadPorts create_read_port = tReadPorts::EXTERNAL, core::tPortGroup* create_write_port_in = default_port_group, core::tPortGroup* create_write_port_in2 = NULL) :
-    wrapped_server(NULL),
+              tInterface* create_read_port_in = UseDefaultComponentInterface(), const std::string& read_port_name = "", bool create_read_port_in_client = true) :
+    wrapped_server(nullptr),
     wrapped_client(),
     read_port()
   {
-    // Get/create Framework element to put blackboard stuff beneath
-    core::tFrameworkElement* blackboard_parent = parent->GetChild("Blackboards");
-    if (!blackboard_parent)
-    {
-      blackboard_parent = new core::tFrameworkElement(parent, "Blackboards");
-    }
-
     // Create blackboard server
-    wrapped_server = new internal::tBlackboardServer<T>(name, blackboard_parent, multi_buffered, elements, false);
+    tInterface& blackboards_parent = GetBlackboardsParent(*parent);
+    create_read_port_in = create_read_port_in == UseDefaultComponentInterface() ? GetDefaultReadPortInterface(parent, nullptr) : create_read_port_in;
+    wrapped_server = new internal::tBlackboardServer<T>(name, blackboards_parent, multi_buffered, elements, parent->GetServices(), create_read_port_in, read_port_name);
+    write_port = wrapped_server->GetWritePort();
+    if (create_read_port_in && create_read_port_in_client)
+    {
+      read_port = wrapped_server->GetReadPort();
+    }
 
     // Create blackboard client
     if (create_client)
     {
-      wrapped_client = tBlackboardClient<T>(*wrapped_server, blackboard_parent, "", false, create_read_port != tReadPorts::NONE);
-    }
-
-    // Possibly create read ports in module
-    if (create_read_port == tReadPorts::EXTERNAL && GetWritePortGroup(parent) != NULL)
-    {
-      typedef typename tGetReadPortType<typename std::remove_pointer<TParent>::type>::type tReadPort;
-      read_port = tReadPort(name, parent, core::tFrameworkElement::tFlag::ACCEPTS_DATA); // make this a proxy port
-      wrapped_server->GetReadPort().ConnectTo(read_port);
-    }
-
-    // create write/full-access ports
-    if (create_write_port_in != NULL && GetWritePortGroup(parent) != NULL)
-    {
-      write_port1 = ReplicateWritePort(*wrapped_server->GetWritePort().GetWrapped(),
-                                       *(create_write_port_in != default_port_group ? create_write_port_in : GetWritePortGroup(parent)), name);
-    }
-    if (create_write_port_in2 != NULL && GetWritePortGroup(parent) != NULL)
-    {
-      write_port2 = ReplicateWritePort(*wrapped_server->GetWritePort().GetWrapped(), *create_write_port_in2, name);
+      wrapped_client = tBlackboardClient<T>(false, blackboards_parent, name + " Internal Write", (create_read_port_in_client && create_read_port_in) ? (&blackboards_parent) : nullptr, name + " Internal Read");
+      wrapped_client.ConnectTo(*this);
     }
   }
 
@@ -168,45 +145,23 @@ public:
    *  In case of a plain tModule, ports in tSensorOutput and tControllerInput are created by default.)
    *
    * \param replicated_bb Blackboard to provide access to
-   * \param parent Parent of blackboard
-   * \param create_read_port_in_co In case we have a plain tModule: Create read port in Controller Output (rather than Sensor Output?)
-   * \param forward_write_port_in_controller Forward write ports in controller port groups?
-   * \param forward_write_port_in_sensor Forward write ports in sensor port groups?
+   * \param parent Composite component that replicates blackboard
+   * \param create_read_port_in If not nullptr and blackboard has a read port, creates data port for reading blackboard in specified component interface (possibly relevant for data dependencies -> scheduling order)
+   * \param blackboard_name Name for blackboard (== name for write port). If empty, replicated blackboard's name will be used.
+   * \param read_port_name Name for read port. If empty, replicated blackboard's read port name will be used.
    */
-  tBlackboard(tBlackboard& replicated_bb, structure::tSenseControlGroup* parent, bool create_read_port_in_co = false,
-              bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false) :
-    tBlackboardBase(replicated_bb, parent, create_read_port_in_co, forward_write_port_in_controller, forward_write_port_in_sensor),
-    wrapped_server(NULL),
+  template <typename TParent>
+  tBlackboard(tBlackboard& replicated_bb, TParent* parent, tInterface* create_read_port_in = UseDefaultComponentInterface(), const std::string& blackboard_name = "", const std::string& read_port_name = "") :
+    tBlackboardBase(replicated_bb, parent->GetServices(), blackboard_name),
+    wrapped_server(nullptr),
     wrapped_client(),
     read_port()
   {
     // forward read port
-    if (replicated_bb.read_port.GetWrapped())
+    if (replicated_bb.read_port.GetWrapped() && create_read_port_in)
     {
-      // where do we create port?
-      core::tFrameworkElement* pg = replicated_bb.read_port.GetParent();
-      if (pg->NameEquals("Sensor Output"))
-      {
-        create_read_port_in_co = false;
-      }
-      else if (pg->NameEquals("Controller Output"))
-      {
-        create_read_port_in_co = true;
-      }
-      else
-      {
-        assert(pg->NameEquals("Output") && "Have names changed?");
-      }
-
-      // create port
-      if (create_read_port_in_co)
-      {
-        read_port = structure::tSenseControlGroup::tControllerOutput<std::vector<T>>(replicated_bb.read_port.GetName(), parent);
-      }
-      else
-      {
-        read_port = structure::tSenseControlGroup::tSensorOutput<std::vector<T>>(replicated_bb.read_port.GetName(), parent);
-      }
+      create_read_port_in = create_read_port_in == UseDefaultComponentInterface() ? GetDefaultReadPortInterface(parent, replicated_bb.GetReadPort().GetWrapped()) : create_read_port_in;
+      read_port = tReadPort(read_port_name.length() ? read_port_name : replicated_bb.read_port.GetName(), create_read_port_in, create_read_port_in->GetDefaultPortFlags() | tFlag::EMITS_DATA | tFlag::ACCEPTS_DATA | tFlag::PUSH_STRATEGY | tFlag::OUTPUT_PORT);
       replicated_bb.read_port.ConnectTo(read_port);
     }
   }
@@ -214,7 +169,7 @@ public:
   /*! move constructor */
   tBlackboard(tBlackboard && o) :
     tBlackboardBase(std::forward(o)),
-    wrapped_server(NULL),
+    wrapped_server(nullptr),
     wrapped_client(),
     read_port()
   {
@@ -244,39 +199,19 @@ public:
   /*! same as tFrameworkElement::GetName() */
   const std::string& GetName() const
   {
-    return wrapped_server->GetName();
-  }
-
-  /*!
-   * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's read port
-   */
-  data_ports::tPort<std::vector<T>> GetOutsideReadPort() const
-  {
-    return read_port;
-  }
-
-  /*!
-   * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's primary write port
-   */
-  core::tAbstractPort* GetOutsideWritePort() const
-  {
-    return write_port1;
-  }
-
-  /*!
-   * \return Port to use, when modules outside of group/module containing blackboard want to connect to this blackboard's secondary write port
-   */
-  core::tAbstractPort* GetOutsideWritePort2() const
-  {
-    return write_port2;
+    return write_port.GetName();
   }
 
   /*!
    * \return Port to use, when modules inside group containing blackboard want to connect to this blackboard's read port
    */
-  data_ports::tOutputPort<tBuffer> GetReadPort() const
+  tReadPort GetReadPort() const
   {
-    return wrapped_server->GetReadPort();
+    return read_port;
+  }
+  tReadPort GetOutsideReadPort() const __attribute__((deprecated("USE GetReadPort() instead")))
+  {
+    return read_port;
   }
 
   /*!
@@ -290,9 +225,23 @@ public:
   /*!
    * \return Port to use, when modules inside group containing blackboard want to connect to this blackboard's primary write port
    */
-  rpc_ports::tServerPort<internal::tBlackboardServer<T>> GetWritePort() const
+  core::tPortWrapperBase GetWritePort() const
   {
-    return rpc_ports::tServerPort<internal::tBlackboardServer<T>>::Wrap(*wrapped_server->GetWritePort().GetWrapped());
+    return write_port;
+  }
+
+  /*!
+   * Deletes this blackboard (its server/client/ports in particular). Object is empty afterwards (equals to a tBlackboard()).
+   */
+  void ManagedDelete()
+  {
+    if (wrapped_server)
+    {
+      wrapped_server->ManagedDelete();
+    }
+    wrapped_client.ManagedDelete();
+    read_port.ManagedDelete();
+    write_port.ManagedDelete();
   }
 
 //----------------------------------------------------------------------
@@ -306,19 +255,9 @@ private:
   /*! Wrapped blackboard client - contains NULL pointer if no such client was created */
   tBlackboardClient<T> wrapped_client;
 
-  /*! Replicated read port in group's/module's tPortGroups */
-  data_ports::tPort<std::vector<T>> read_port;
+  /*! Read Port in component's interface */
+  tReadPort read_port;
 
-
-  template <typename TParent>
-  struct tGetReadPortType
-  {
-    typedef std::vector<T> tBuffer;
-    typedef typename std::conditional < std::is_base_of<structure::tModule, TParent>::value, structure::tModule::tOutput<tBuffer>,
-            typename std::conditional < std::is_base_of<structure::tSenseControlModule, TParent>::value, structure::tSenseControlModule::tSensorOutput<tBuffer>,
-            typename std::conditional < std::is_base_of<structure::tSenseControlGroup, TParent>::value, structure::tSenseControlGroup::tSensorOutput<tBuffer>,
-            data_ports::tPort<tBuffer >>::type >::type >::type type;
-  };
 };
 
 //----------------------------------------------------------------------

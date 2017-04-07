@@ -69,95 +69,47 @@ namespace internal
 // Implementation
 //----------------------------------------------------------------------
 
-core::tPortGroup* tBlackboardBase::default_port_group = (core::tPortGroup*)1;
-
 tBlackboardBase::tBlackboardBase() :
-  write_port1(NULL),
-  write_port2(NULL)
+  write_port(nullptr)
 {}
 
-tBlackboardBase::tBlackboardBase(const tBlackboardBase& replicated_bb, structure::tSenseControlGroup* parent, bool create_read_port_in_co, bool forward_write_port_in_controller, bool forward_write_port_in_sensor) :
-  write_port1(NULL),
-  write_port2(NULL)
+tBlackboardBase::tBlackboardBase(const tBlackboardBase& replicated_bb, tInterface& create_write_port_in, const std::string& write_port_name) :
+  write_port(create_write_port_in.CreatePort(write_port_name.length() ? write_port_name : replicated_bb.write_port.GetName(), replicated_bb.write_port.GetDataType(),
+             core::tFrameworkElement::tFlag::ACCEPTS_DATA | core::tFrameworkElement::tFlag::EMITS_DATA | (replicated_bb.write_port.GetFlag(tFlag::OUTPUT_PORT) ? tFlag::OUTPUT_PORT : tFlag::PORT)))
 {
-  // forward write ports
-  std::vector<core::tAbstractPort*> new_ports;
-  for (int i = 0; i < 2; i++)
-  {
-    core::tAbstractPort* port = (i == 0) ? replicated_bb.write_port1 : replicated_bb.write_port2;
-    if (port)
-    {
-      // where do we create ports?
-      core::tFrameworkElement* pg = port->GetParent();
-      if (pg->NameEquals("Input"))
-      {
-        if (forward_write_port_in_sensor)
-        {
-          new_ports.push_back(ReplicateWritePort(*port, parent->GetSensorInputs(), port->GetName()));
-        }
-        if (forward_write_port_in_controller)
-        {
-          new_ports.push_back(ReplicateWritePort(*port, parent->GetControllerInputs(), port->GetName()));
-        }
-      }
-      else if (pg->NameEquals("Output"))
-      {
-        if (forward_write_port_in_sensor)
-        {
-          new_ports.push_back(ReplicateWritePort(*port, parent->GetSensorOutputs(), port->GetName()));
-        }
-        if (forward_write_port_in_controller)
-        {
-          new_ports.push_back(ReplicateWritePort(*port, parent->GetControllerOutputs(), port->GetName()));
-        }
-      }
-      else if ((rrlib::util::StartsWith(pg->GetName(), "Sensor") && forward_write_port_in_sensor) || (rrlib::util::StartsWith(pg->GetName(), "Controller") && forward_write_port_in_controller))
-      {
-        new_ports.push_back(ReplicateWritePort(*port, parent->GetInterface(pg->GetName()), port->GetName()));
-      }
-    }
-  }
-  assert(new_ports.size() <= 2);
-  if (new_ports.size() >= 1)
-  {
-    write_port1 = new_ports[0];
-  }
-  if (new_ports.size() >= 2)
-  {
-    write_port2 = new_ports[1];
-  }
+  write_port.ConnectTo(replicated_bb.write_port);
 }
 
 tBlackboardBase::tBlackboardBase(tBlackboardBase && other) :
-  write_port1(NULL),
-  write_port2(NULL)
+  write_port(nullptr)
 {
-  std::swap(write_port1, other.write_port1);
-  std::swap(write_port2, other.write_port2);
+  std::swap(write_port, other.write_port);
 }
 
 tBlackboardBase& tBlackboardBase::operator=(tBlackboardBase && other)
 {
-  std::swap(write_port1, other.write_port1);
-  std::swap(write_port2, other.write_port2);
+  std::swap(write_port, other.write_port);
   return *this;
 }
 
-core::tAbstractPort* tBlackboardBase::ReplicateWritePort(core::tAbstractPort& write_port, core::tFrameworkElement& port_group, const std::string& name)
+tInterface& tBlackboardBase::GetBlackboardsParent(core::tFrameworkElement& component)
 {
-  core::tAbstractPortCreationInfo creation_info;
-  creation_info.flags = core::tFrameworkElement::tFlag::ACCEPTS_DATA | core::tFrameworkElement::tFlag::EMITS_DATA;
-  if (typeid(port_group) == typeid(core::tPortGroup))
+  core::tFrameworkElement* blackboard_parent = component.GetChild("Blackboards");
+  if (blackboard_parent)
   {
-    creation_info.flags |= static_cast<core::tPortGroup&>(port_group).GetDefaultPortFlags();
+    return static_cast<tInterface&>(*blackboard_parent);
   }
-  creation_info.data_type = write_port.GetDataType();
-  creation_info.parent = &port_group;
-  creation_info.name = name;
-  rpc_ports::internal::tRPCPort* new_port = new rpc_ports::internal::tRPCPort(creation_info, NULL);
-  write_port.ConnectTo(*new_port);
-  return new_port;
+  tInterface* result = new tInterface(&component, "Blackboards", tFlag::INTERFACE, tFlags());
+  core::tFrameworkElementTags::AddTag(*result, core::tFrameworkElementTags::cHIDDEN_IN_TOOLS);
+  result->Init();
+  return *result;
 }
+
+tInterface* tBlackboardBase::UseDefaultComponentInterface()
+{
+  return reinterpret_cast<tInterface*>(1);
+}
+
 
 //----------------------------------------------------------------------
 // End of namespace declaration

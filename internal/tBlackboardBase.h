@@ -29,7 +29,7 @@
  *
  * \b tBlackboardBase
  *
- * internal base class for tBlackboard<T> class
+ * Internal base class for tBlackboard<T> class
  *
  */
 //----------------------------------------------------------------------
@@ -48,6 +48,7 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
+#include "plugins/blackboard/definitions.h"
 
 //----------------------------------------------------------------------
 // Namespace declaration
@@ -71,19 +72,33 @@ namespace internal
  * Internal base class for tBlackboard<T> class
  * Common functionality is placed here, which should reduce code size
  */
-class tBlackboardBase
+class tBlackboardBase : public rrlib::util::tNoncopyable
 {
+
+//----------------------------------------------------------------------
+// Public methods
+//----------------------------------------------------------------------
+public:
+
+  /*!
+   * Get (possibly create) hidden framework element below component to put blackboard stuff beneath
+   */
+  static tInterface& GetBlackboardsParent(core::tFrameworkElement& component);
+
+  /*! \return Returns constant that indicates that default component interface for read port should be used */
+  static tInterface* UseDefaultComponentInterface();
 
 //----------------------------------------------------------------------
 // Protected fields and methods
 //----------------------------------------------------------------------
 protected:
 
-  /*! Replicated ports in group's/module's tPortGroups */
-  core::tAbstractPort * write_port1, * write_port2;
+  typedef core::tFrameworkElement::tFlag tFlag;
+  typedef core::tFrameworkElement::tFlag tFlags;
 
-  /*! default parameter for tBlackboard constructor */
-  static core::tPortGroup* default_port_group;
+  /*! Replicated ports in group's/module's tPortGroups */
+  core::tPortWrapperBase write_port;
+
 
   tBlackboardBase();
 
@@ -93,12 +108,10 @@ protected:
    *  In case of a plain tModule, ports in tSensorOutput and tControllerInput are created by default.)
    *
    * \param replicated_bb Blackboard to provide access to
-   * \param parent Parent of blackboard
-   * \param create_read_port_in_co In case we have a plain tModule: Create read port in Controller Output (rather than Sensor Output?)
-   * \param forward_write_port_in_controller Forward write ports in controller port groups?
-   * \param forward_write_port_in_sensor Forward write ports in sensor port groups?
+   * \param create_write_port_in Interface to create RPC write port in
+   * \param write_port_name Name for write port. If empty, replicated blackboard's write port name will be used.
    */
-  tBlackboardBase(const tBlackboardBase& replicated_bb, structure::tSenseControlGroup* parent, bool create_read_port_in_co = false, bool forward_write_port_in_controller = true, bool forward_write_port_in_sensor = false);
+  tBlackboardBase(const tBlackboardBase& replicated_bb, tInterface& create_write_port_in, const std::string& write_port_name);
 
   /*! move constructor */
   tBlackboardBase(tBlackboardBase && other);
@@ -106,43 +119,35 @@ protected:
   /*! move assignment */
   tBlackboardBase& operator=(tBlackboardBase && other);
 
-  /*! Helper function to determine port group to create write ports in by default */
-  static core::tPortGroup* GetWritePortGroup(structure::tSenseControlGroup* g)
+  /*! Helper functions to determine component interface to create read ports in by default */
+  static tInterface* GetDefaultReadPortInterface(structure::tSenseControlGroup* g, core::tAbstractPort* replicated_port)
   {
-    return &g->GetControllerInputs();
+    if (replicated_port && replicated_port->GetParent()->GetFlag(tFlag::CONTROLLER_DATA))
+    {
+      return &g->GetControllerOutputs();
+    }
+    return &g->GetSensorOutputs();
   }
-
-  static core::tPortGroup* GetWritePortGroup(structure::tSenseControlModule* g)
+  static tInterface* GetDefaultReadPortInterface(structure::tSenseControlModule* g, core::tAbstractPort* replicated_port)
   {
-    return &g->GetControllerInputs();
+    if (replicated_port && replicated_port->GetParent()->GetFlag(tFlag::CONTROLLER_DATA))
+    {
+      return &g->GetControllerOutputs();
+    }
+    return &g->GetSensorOutputs();
   }
-
-  static core::tPortGroup* GetWritePortGroup(structure::tGroup* g)
+  static tInterface* GetDefaultReadPortInterface(structure::tGroup* g, core::tAbstractPort* replicated_port)
   {
-    return &g->GetInputs();
+    return &g->GetOutputs();
   }
-
-  static core::tPortGroup* GetWritePortGroup(structure::tModule* g)
+  static tInterface* GetDefaultReadPortInterface(structure::tModule* g, core::tAbstractPort* replicated_port)
   {
-    return &g->GetInputs();
+    return &g->GetOutputs();
   }
-
-  static core::tPortGroup* GetWritePortGroup(core::tFrameworkElement* g)
+  static tInterface* GetDefaultReadPortInterface(core::tFrameworkElement* g, core::tAbstractPort* replicated_port)
   {
-    return NULL;
+    return nullptr;
   }
-
-  /*!
-   * Create blackboard write port in specified port group and connect it to
-   * (original blackboard) write port.
-   *
-   * \param write_port Port to connect newly created port to
-   * \param pg Port group to create port in
-   * \param name Name of new port
-   * \return Created Port
-   */
-  static core::tAbstractPort* ReplicateWritePort(core::tAbstractPort& write_port, core::tFrameworkElement& port_group, const std::string& name);
-
 };
 
 //----------------------------------------------------------------------

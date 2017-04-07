@@ -37,6 +37,7 @@
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#include "plugins/structure/tComponent.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -54,13 +55,8 @@ namespace blackboard
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
 
-/*! Desired read port configuration (constructor parameter) */
-enum class tReadPorts
-{
-  NONE,     //!< Do not create any read ports
-  INTERNAL, //!< Create read port in internal client
-  EXTERNAL, //!< Create read port in internal client and also in group's/module's external interface (e.g. "Output" or "Sensor Output")
-};
+/*! Component interface typedef */
+typedef structure::tComponent::tInterface tInterface;
 
 /*!
  * Auto-connect mode for clients of global blackboards
