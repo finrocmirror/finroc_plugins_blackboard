@@ -139,6 +139,15 @@ public:
   }
 
   /*!
+   * \return Timestamp of locked blackboard data
+   */
+  rrlib::time::tTimestamp GetTimestamp()
+  {
+    CheckLock();
+    return locked_buffer.GetTimestamp();
+  }
+
+  /*!
    * \return Number of elements in blackboard
    *
    * \exception tLockException is thrown if lock fails (can only occur if locking was deferred in constructor)
