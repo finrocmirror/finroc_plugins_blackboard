@@ -182,6 +182,14 @@ public:
   void DirectCommit(tBufferPointer new_buffer);
 
   /*!
+   * \return Blackboard's current buffer mode
+   */
+  tBlackboardBufferMode GetBufferMode() const
+  {
+    return buffer_mode;
+  }
+
+  /*!
    * \return Output port for reading current blackboard data
    */
   data_ports::tOutputPort<tBuffer> GetReadPort()
@@ -204,11 +212,6 @@ public:
   {
     return write_port;
   }
-
-  /*!
-   * \return Is this a single buffered blackboard server?
-   */
-  //bool IsSingleBuffered();
 
   /*!
    * (RPC Call)

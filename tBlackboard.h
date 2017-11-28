@@ -247,6 +247,14 @@ public:
   }
 
   /*!
+   * \return Blackboard's current buffer mode
+   */
+  tBlackboardBufferMode GetBufferMode() const
+  {
+    return wrapped_server ? wrapped_server->GetBufferMode() : tBlackboardBufferMode::NONE;
+  }
+
+  /*!
    * \return Wrapped blackboard client - contains NULL pointer if no such client was created
    */
   tBlackboardClient<T>& GetClient()

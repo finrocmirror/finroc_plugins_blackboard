@@ -82,6 +82,11 @@ tBlackboardServer<T>::tBlackboardServer(const std::string& name, core::tFramewor
   unlock_future(),
   buffer_mode(buffer_mode)
 {
+  if (buffer_mode == tBlackboardBufferMode::NONE)
+  {
+    throw std::invalid_argument("Invalid buffer mode");
+  }
+
   read_port.Init();
   write_port.Init();
   if (elements > 0)
