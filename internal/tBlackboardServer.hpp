@@ -70,7 +70,7 @@ inline core::tFrameworkElement::tFlags GenerateConstructorFlags(bool shared)
 }
 
 template <typename T>
-tBlackboardServer<T>::tBlackboardServer(const std::string& name, core::tFrameworkElement* parent, bool multi_buffered, size_t elements, bool shared) :
+tBlackboardServer<T>::tBlackboardServer(const std::string& name, core::tFrameworkElement* parent, tBlackboardBufferMode buffer_mode, size_t elements, bool shared) :
   tAbstractBlackboardServer(parent, name, GenerateConstructorFlags(shared)),
   read_port("read", this, core::tFrameworkElement::tFlag::FINSTRUCT_READ_ONLY | GenerateConstructorFlags(shared)),
   write_port(rpc_ports::tServerPort<tBlackboardServer<T>>(*this, "write", this, GetRPCInterfaceType(), GenerateConstructorFlags(shared))),
@@ -80,7 +80,7 @@ tBlackboardServer<T>::tBlackboardServer(const std::string& name, core::tFramewor
   lock_id(0),
   write_lock(tWriteLock::NONE),
   unlock_future(),
-  single_buffered(!multi_buffered)
+  buffer_mode(buffer_mode)
 {
   read_port.Init();
   write_port.Init();
@@ -88,8 +88,11 @@ tBlackboardServer<T>::tBlackboardServer(const std::string& name, core::tFramewor
   {
     NewCurrentBuffer(true);
     rrlib::rtti::ResizeVector(current_buffer->GetObject().GetData<tBuffer>(), elements);
-    read_port.GetWrapped()->Publish(current_buffer);
-    current_buffer = read_port.GetWrapped()->GetCurrentValueRaw();
+    if (buffer_mode != tBlackboardBufferMode::SINGLE_BUFFERED)
+    {
+      read_port.GetWrapped()->Publish(current_buffer);
+      current_buffer = read_port.GetWrapped()->GetCurrentValueRaw();
+    }
   }
   assert(!current_buffer->IsUnused());
 }
@@ -192,6 +195,23 @@ void tBlackboardServer<T>::HandleException(rpc_ports::tFutureStatus exception_ty
 }
 
 template <typename T>
+void tBlackboardServer<T>::HandleReadUnlock(tReadLockedBufferPointer& unlock)
+{
+  if (!unlock)
+  {
+    HandleException(rpc_ports::tFutureStatus::READY);
+    return;
+  }
+
+  rrlib::thread::tLock lock(this->BlackboardMutex());
+  unlock.Reset();
+  if (current_buffer->Unique())
+  {
+    this->ProcessPendingLockRequests();
+  }
+}
+
+template <typename T>
 void tBlackboardServer<T>::HandleResponse(tLockedBufferData<tBuffer> unlock_data)
 {
   if (!unlock_data.buffer)
@@ -228,12 +248,14 @@ void tBlackboardServer<T>::HandleResponse(tLockedBufferData<tBuffer> unlock_data
   ConsiderPublishing();
 
   // Any pending lock requests?
+  unlock_data = tLockedBufferData<tBuffer>();
   this->ProcessPendingLockRequests();
 }
 
 template <typename T>
 void tBlackboardServer<T>::ProcessPendingLockRequests()
 {
+  assert(current_buffer->Unique() || buffer_mode != tBlackboardBufferMode::SINGLE_BUFFERED);
   while (pending_lock_requests.size() > 0)
   {
     tLockRequest& lock_request = pending_lock_requests.front();
@@ -241,14 +263,18 @@ void tBlackboardServer<T>::ProcessPendingLockRequests()
     {
       if (lock_request.write_lock)
       {
-        WriteLockImplementation(lock_request.write_lock_promise, lock_request.remote_call);
-        pending_lock_requests.pop_front();
+        if (current_buffer->Unique() || buffer_mode != tBlackboardBufferMode::SINGLE_BUFFERED)
+        {
+          WriteLockImplementation(lock_request.write_lock_promise, lock_request.remote_call);
+          pending_lock_requests.pop_front();
+        }
         return;
       }
       else
       {
         current_buffer->AddLocks(1);
-        tConstBufferPointer pointer_clone(data_ports::standard::tStandardPort::tLockingManagerPointer(current_buffer.get()), *read_port.GetWrapped());
+        tReadLockedBufferPointer pointer_clone(data_ports::standard::tStandardPort::tLockingManagerPointer(current_buffer.get()), *read_port.GetWrapped());
+        pointer_clone.process_pending_on_unlock = this;
         lock_request.read_lock_promise.SetValue(pointer_clone);
       }
     }
@@ -257,22 +283,27 @@ void tBlackboardServer<T>::ProcessPendingLockRequests()
 }
 
 template <typename T>
-rpc_ports::tFuture<typename tBlackboardServer<T>::tConstBufferPointer> tBlackboardServer<T>::ReadLock(const rrlib::time::tDuration& timeout)
+rpc_ports::tFuture<typename tBlackboardServer<T>::tReadLockedBufferPointer> tBlackboardServer<T>::ReadLock(const rrlib::time::tDuration& timeout)
 {
   rrlib::thread::tLock lock(this->BlackboardMutex());
-  rpc_ports::tPromise<tConstBufferPointer> promise;
-  rpc_ports::tFuture<tConstBufferPointer> future = promise.GetFuture();
-  if (write_lock != tWriteLock::EXCLUSIVE)
+  rpc_ports::tPromise<tReadLockedBufferPointer> promise;
+  rpc_ports::tFuture<tReadLockedBufferPointer> future = promise.GetFuture();
+  //if ((buffer_mode != tBlackboardBufferMode::SINGLE_BUFFERED && write_lock != tWriteLock::EXCLUSIVE) || (buffer_mode == tBlackboardBufferMode::SINGLE_BUFFERED && current_buffer->Unique()))
+  if (write_lock != tWriteLock::EXCLUSIVE && (buffer_mode != tBlackboardBufferMode::SINGLE_BUFFERED || pending_lock_requests.empty() /*|| (!pending_lock_requests[0].write_lock)*/))
   {
     assert(!current_buffer->IsUnused());
     current_buffer->AddLocks(1);
-    tConstBufferPointer pointer_clone(data_ports::standard::tStandardPort::tLockingManagerPointer(current_buffer.get()), *read_port.GetWrapped());
+    tReadLockedBufferPointer pointer_clone(data_ports::standard::tStandardPort::tLockingManagerPointer(current_buffer.get()), *read_port.GetWrapped());
+    pointer_clone.process_pending_on_unlock = this;
     promise.SetValue(pointer_clone);
   }
   else
   {
-    FINROC_LOG_PRINT(DEBUG, "Attempt to read-lock during exclusive write lock. Enabling multi-buffered mode to avoid blocking in such situations in the future.");
-    single_buffered = false;
+    if (buffer_mode == tBlackboardBufferMode::MULTI_BUFFERED_ON_PARALLEL_ACCESS)
+    {
+      FINROC_LOG_PRINT(DEBUG, "Attempt to read-lock during exclusive write lock. Enabling multi-buffered mode to avoid blocking in such situations in the future.");
+      buffer_mode = tBlackboardBufferMode::MULTI_BUFFERED;
+    }
     if (timeout > rrlib::time::tDuration::zero())
     {
       this->pending_lock_requests.emplace_back(std::move(promise), rrlib::time::Now() + timeout);
@@ -287,7 +318,7 @@ rpc_ports::tFuture<tLockedBuffer<typename tBlackboardServer<T>::tBuffer>> tBlack
   rrlib::thread::tLock lock(this->BlackboardMutex());
   rpc_ports::tPromise<tLockedBuffer<tBuffer>> promise;
   rpc_ports::tFuture<tLockedBuffer<tBuffer>> future = promise.GetFuture();
-  if (write_lock == tWriteLock::NONE)
+  if ((buffer_mode != tBlackboardBufferMode::SINGLE_BUFFERED && write_lock == tWriteLock::NONE) || (buffer_mode == tBlackboardBufferMode::SINGLE_BUFFERED && current_buffer->Unique()))
   {
     WriteLockImplementation(promise, lock_parameters.IsRemoteCall());
   }
@@ -319,6 +350,7 @@ void tBlackboardServer<T>::WriteLockImplementation(rpc_ports::tPromise<tLockedBu
   }
   else
   {
+    assert(buffer_mode != tBlackboardBufferMode::SINGLE_BUFFERED);
     write_lock = tWriteLock::ON_COPY;
     lock_id++;
     current_buffer->AddLocks(1);

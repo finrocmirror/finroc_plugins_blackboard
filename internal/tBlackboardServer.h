@@ -109,14 +109,53 @@ public:
   typedef std::vector<tSingleChange> tChangeSet;
   typedef data_ports::tPortDataPointer<tChangeSet> tChangeSetPointer;
 
+  class tReadLockedBufferPointer : public tConstBufferPointer
+  {
+    friend class tBlackboardServer;
+    typedef tConstBufferPointer tBase;
+
+    tBlackboardServer* process_pending_on_unlock;
+
+  public:
+    template <typename ... TArgs>
+    tReadLockedBufferPointer(TArgs && ... args) :
+      tBase(std::forward<TArgs>(args)...),
+      process_pending_on_unlock(nullptr)
+    {
+    }
+
+    tReadLockedBufferPointer(tReadLockedBufferPointer && other) :
+      tBase(std::forward<tBase>(other)),
+      process_pending_on_unlock(nullptr)
+    {
+      std::swap(process_pending_on_unlock, other.process_pending_on_unlock);
+    }
+
+    tReadLockedBufferPointer& operator=(tReadLockedBufferPointer && other)
+    {
+      tBase::operator=(std::forward<tBase>(other));
+      std::swap(process_pending_on_unlock, other.process_pending_on_unlock);
+      return *this;
+    }
+
+    ~tReadLockedBufferPointer()
+    {
+      if (process_pending_on_unlock)
+      {
+        process_pending_on_unlock->HandleReadUnlock(*this);
+      }
+    }
+  };
+
+
   /*!
    * \param name Name/Uid of blackboard
    * \param parent Parent of blackboard server
-   * \param multi_buffered Create blackboard server that is in multi_buffered mode initially?
+   * \param buffer_mode Buffer mode - whether to use multiple buffers to avoid blocking (at the cost of copying content)
    * \param elements Initial number of elements
    * \param shared Share blackboard with other runtime environments?
    */
-  tBlackboardServer(const std::string& name, core::tFrameworkElement* parent = NULL, bool multi_buffered = false, size_t elements = 0, bool shared = true);
+  tBlackboardServer(const std::string& name, core::tFrameworkElement* parent = nullptr, tBlackboardBufferMode buffer_mode = tBlackboardBufferMode::MULTI_BUFFERED_ON_PARALLEL_ACCESS, size_t elements = 0, bool shared = true);
 
   virtual ~tBlackboardServer() {}
 
@@ -178,7 +217,7 @@ public:
    * \param timeout Timeout for call
    * \return Future on locked buffer
    */
-  rpc_ports::tFuture<tConstBufferPointer> ReadLock(const rrlib::time::tDuration& timeout);
+  rpc_ports::tFuture<tReadLockedBufferPointer> ReadLock(const rrlib::time::tDuration& timeout);
 
   /*!
    * (RPC Call)
@@ -194,6 +233,8 @@ public:
 //----------------------------------------------------------------------
 private:
 
+  friend class tReadLockedBuffer;
+
   /*! Wraps read and write lock requests for enqueueing */
   class tLockRequest
   {
@@ -206,7 +247,7 @@ private:
     rpc_ports::tPromise<tLockedBuffer<tBuffer>> write_lock_promise;
 
     /*! Promise for read lock, if read lock was requested */
-    rpc_ports::tPromise<tConstBufferPointer> read_lock_promise;
+    rpc_ports::tPromise<tReadLockedBufferPointer> read_lock_promise;
 
     /*! Timeout for lock request */
     rrlib::time::tTimestamp timeout_time;
@@ -223,7 +264,7 @@ private:
       remote_call(remote_call)
     {}
 
-    tLockRequest(rpc_ports::tPromise<tConstBufferPointer> && read_lock_promise, rrlib::time::tTimestamp timeout_time) :
+    tLockRequest(rpc_ports::tPromise<tReadLockedBufferPointer> && read_lock_promise, rrlib::time::tTimestamp timeout_time) :
       write_lock(false),
       write_lock_promise(),
       read_lock_promise(std::move(read_lock_promise)),
@@ -267,8 +308,8 @@ private:
   /*! Future for blackboard unlock (when it is locked) */
   tUnlockFuture unlock_future;
 
-  /*! True, if blackboard server is run in single-buffered mode */
-  bool single_buffered;
+  /*! Buffer mode that blackboard server is currently using */
+  tBlackboardBufferMode buffer_mode;
 
 
   /*!
@@ -312,7 +353,8 @@ private:
    */
   void ConsiderPublishing()
   {
-    //if ((!single_buffered) || read_port.GetWrapped()->GetStrategy() > 0)  // TODO: Implementation needs to publish on strategy change, too (e.g. change log blackboard)
+    if (buffer_mode != tBlackboardBufferMode::SINGLE_BUFFERED)
+      //if ((!single_buffered) || read_port.GetWrapped()->GetStrategy() > 0)  // TODO: Implementation needs to publish on strategy change, too (e.g. change log blackboard)
     {
       assert(!current_buffer->IsUnused());
       current_buffer->AddLocks(1);
@@ -344,6 +386,8 @@ private:
   }
 
   virtual void HandleException(rpc_ports::tFutureStatus exception_type) override;
+
+  void HandleReadUnlock(tReadLockedBufferPointer& unlock);
 
   virtual void HandleResponse(tLockedBufferData<tBuffer> call_result) override;
 

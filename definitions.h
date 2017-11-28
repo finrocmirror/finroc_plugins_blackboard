@@ -78,6 +78,16 @@ enum class tAutoConnectMode
   REMOTE,   //!< Connect to any remote global blackboard with the same name
 };
 
+/*!
+ * Blackboard buffer mode
+ */
+enum class tBlackboardBufferMode
+{
+  SINGLE_BUFFERED,                   //!< Blackboard is single-buffered: parallel locks except of parallel read locks block; all blackboard accesses access the same buffer in memory
+  MULTI_BUFFERED,                    //!< Blackboard is multi-buffered: blackboard is copied on write access; only parallel write locks block (as changes should be made sequentially so that none of them are lost)
+  MULTI_BUFFERED_ON_PARALLEL_ACCESS  //!< Blackboard is single-buffered initially: if parallel locks occur that block and would not block in multi-buffered mode - switches to multi-buffered mode
+};
+
 
 //----------------------------------------------------------------------
 // Function declarations

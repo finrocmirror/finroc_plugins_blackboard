@@ -95,6 +95,17 @@ public:
 
   typedef typename tServer::tBuffer tBuffer;
 
+  struct tBlackboardBufferModeParameter
+  {
+    tBlackboardBufferModeParameter(tBlackboardBufferMode buffer_mode) : buffer_mode(buffer_mode) {}
+
+    // Constructor for legacy compatibility
+    tBlackboardBufferModeParameter(bool multi_buffered) : buffer_mode(multi_buffered ? tBlackboardBufferMode::MULTI_BUFFERED : tBlackboardBufferMode::MULTI_BUFFERED_ON_PARALLEL_ACCESS) {}
+
+    tBlackboardBufferMode buffer_mode;
+  };
+
+
   /*!
    * Empty constructor for blackboards that are not initialized in
    * class initializer list (but later)
@@ -112,20 +123,22 @@ public:
    *
    * \param name Name of blackboard
    * \param parent Parent of blackboard
-   * \param multi_buffered Create multi-buffered blackboard?
+   * \param buffer_mode Buffer mode - whether to use multiple buffers to avoid blocking (at the cost of copying content)
    * \param elements Initial number of elements
    * \param create_client Create Blackboard client?
-   * \param create_read_port Which read ports to create for blackboard
+   * \param create_read_port Which read ports to create for blackboard (no read ports are created for single-buffere blackboards)
    * \param create_write_port_in If not NULL, creates write port in specified port group
    * \param create_write_port_in2 If not NULL, creates another write port in specified port group
    */
   template <typename TParent>
-  tBlackboard(const std::string& name, TParent* parent, bool multi_buffered = false, int elements = 0, bool create_client = true,
+  tBlackboard(const std::string& name, TParent* parent, const tBlackboardBufferModeParameter& buffer_mode = tBlackboardBufferMode::MULTI_BUFFERED_ON_PARALLEL_ACCESS, int elements = 0, bool create_client = true,
               tReadPorts create_read_port = tReadPorts::EXTERNAL, core::tPortGroup* create_write_port_in = default_port_group, core::tPortGroup* create_write_port_in2 = NULL) :
     wrapped_server(NULL),
     wrapped_client(),
     read_port()
   {
+    create_read_port = buffer_mode.buffer_mode == tBlackboardBufferMode::SINGLE_BUFFERED ? tReadPorts::NONE : create_read_port;
+
     // Get/create Framework element to put blackboard stuff beneath
     core::tFrameworkElement* blackboard_parent = parent->GetChild("Blackboards");
     if (!blackboard_parent)
@@ -134,7 +147,7 @@ public:
     }
 
     // Create blackboard server
-    wrapped_server = new internal::tBlackboardServer<T>(name, blackboard_parent, multi_buffered, elements, false);
+    wrapped_server = new internal::tBlackboardServer<T>(name, blackboard_parent, buffer_mode.buffer_mode, elements, false);
 
     // Create blackboard client
     if (create_client)

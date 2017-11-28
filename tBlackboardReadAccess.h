@@ -166,17 +166,17 @@ private:
 
   friend class tBlackboardWriteAccess<T>;
 
-  typedef typename tBlackboardClient<T>::tConstBufferPointer tConstBufferPointer;
+  typedef typename tBlackboardClient<T>::tReadLockedBufferPointer tReadLockedBufferPointer;
   typedef typename tBlackboardClient<T>::tBuffer tBuffer;
 
   /*! Locked blackboard */
   tBlackboardClient<T>& blackboard;
 
   /*! Future for locked buffer */
-  rpc_ports::tFuture<tConstBufferPointer> locked_buffer_future;
+  rpc_ports::tFuture<tReadLockedBufferPointer> locked_buffer_future;
 
   /*! Buffer from locked blackboard */
-  tConstBufferPointer locked_buffer;
+  tReadLockedBufferPointer locked_buffer;
 
   /*! Buffer from locked blackboard - as raw pointer (so that it can set from subclass also) */
   const tBuffer* locked_buffer_raw;

@@ -321,14 +321,18 @@ bool tBlackboardClient<T>::HasChanged() const
 }
 
 template<typename T>
-rpc_ports::tFuture<typename tBlackboardClient<T>::tConstBufferPointer> tBlackboardClient<T>::ReadLock(const rrlib::time::tDuration& timeout)
+rpc_ports::tFuture<typename tBlackboardClient<T>::tReadLockedBufferPointer> tBlackboardClient<T>::ReadLock(const rrlib::time::tDuration& timeout)
 {
   // Possibly obtain value from read_port
   if (read_port.GetWrapped() && read_port.GetFlag(core::tFrameworkElement::tFlag::PUSH_STRATEGY))
   {
-    rpc_ports::tPromise<tConstBufferPointer> promise;
-    promise.SetValue(read_port.GetPointer());
-    return promise.GetFuture();
+    auto buffer_pointer = read_port.GetPointer();
+    if (buffer_pointer->size())   // TODO: Heuristic: if blackboard does not have read port, blackboard has size zero; so if size is zero, lock via RPC lock which is always appropriate  (this heuristic can break, when read port was connected to multi-buffered blackboard - and is connected to single-buffered blackboard later); why is read port used at all? over the network this is significantly more efficient (push instead of pull)
+    {
+      rpc_ports::tPromise<tReadLockedBufferPointer> promise;
+      promise.SetValue(std::move(buffer_pointer));
+      return promise.GetFuture();
+    }
   }
 
   return write_port.NativeFutureCall(&tServer::ReadLock, timeout);

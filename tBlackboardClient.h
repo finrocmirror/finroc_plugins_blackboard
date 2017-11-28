@@ -101,6 +101,7 @@ public:
   typedef std::vector<T> tBuffer;
   typedef data_ports::tPortDataPointer<tBuffer> tBufferPointer;
   typedef data_ports::tPortDataPointer<const tBuffer> tConstBufferPointer;
+  typedef typename tServer::tReadLockedBufferPointer tReadLockedBufferPointer;
   typedef std::vector<tChange<T>> tChangeSet;
   typedef data_ports::tPortDataPointer<tChangeSet> tChangeSetPointer;
 
@@ -142,7 +143,7 @@ public:
                     const std::string& non_default_name = "", bool push_updates = false, bool read_port = true);
 
   /*!
-   * Constructor for use tModule and tSenseControlModule.
+   * Constructor for use with tModule and tSenseControlModule.
    * Does NOT connect to global blackboards - but rather uses group's/module's input/output port groups.
    *
    * (per default, full-blackboard-access-ports are created in Output/ControllerOutput.
@@ -341,13 +342,9 @@ public:
    *
    * \exception rpc_ports::tRPCException is thrown if call fails
    */
-  inline tConstBufferPointer Read(const rrlib::time::tDuration& timeout = std::chrono::seconds(2))
+  inline tReadLockedBufferPointer Read(const rrlib::time::tDuration& timeout = std::chrono::seconds(2))
   {
-    if (read_port && read_port.GetFlag(core::tFrameworkElement::tFlag::PUSH_STRATEGY))
-    {
-      return read_port.GetPointer();
-    }
-    rpc_ports::tFuture<tConstBufferPointer> future = ReadLock(timeout);
+    rpc_ports::tFuture<tReadLockedBufferPointer> future = ReadLock(timeout);
     return future.Get(timeout);
   }
 
@@ -365,7 +362,7 @@ public:
    *
    * \exception rpc_ports::tRPCException is thrown if call fails
    */
-  rpc_ports::tFuture<tConstBufferPointer> ReadLock(const rrlib::time::tDuration& timeout = std::chrono::seconds(10));
+  rpc_ports::tFuture<tReadLockedBufferPointer> ReadLock(const rrlib::time::tDuration& timeout = std::chrono::seconds(10));
 
   /*!
    * (only works properly if pushUpdates in constructor was set to true)
