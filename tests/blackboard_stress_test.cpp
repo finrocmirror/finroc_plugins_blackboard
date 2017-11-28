@@ -203,7 +203,7 @@ public:
           buffer_address_changes++;
         }
 
-        //FINROC_LOG_PRINT(USER, *this, "Changed blackboard: ", " ", rrlib::time::ToIsoString(rrlib::time::Now()));
+        //FINROC_LOG_PRINT(USER, *this, "Changed blackboard: ", &acc[0], " ", rrlib::time::ToIsoString(rrlib::time::Now()));
       }
       catch (const tLockException& e)
       {
@@ -361,13 +361,13 @@ class BlackboardStressTest : public rrlib::util::tUnitTestSuite
             }
 
             // Sleep
+            buffer_address_changes.store(0);
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             // Check results
             bool buffers_should_change = mode == 0;
             bool buffers_change = buffer_address_changes.load() > 4;
             RRLIB_UNIT_TESTS_ASSERT(buffers_change == buffers_should_change);
-            buffer_address_changes.store(0);
             for (auto & client : readers)
             {
               RRLIB_UNIT_TESTS_ASSERT(client->lock_count > 4);
