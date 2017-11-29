@@ -157,6 +157,15 @@ public:
   }
 
   /*!
+   * \return Timestamp of locked blackboard data
+   */
+  rrlib::time::tTimestamp GetTimestamp()
+  {
+    CheckLock();
+    return locked_buffer->GetTimestamp();
+  }
+
+  /*!
    * \param new_size New size (number of elements) in blackboard
    *
    * \exception tLockException is thrown if lock fails (can only occur if locking was deferred in constructor)
@@ -169,6 +178,17 @@ public:
       changed = true;
       locked_buffer_raw = locked_buffer.Get();
     }
+  }
+
+  /*!
+   * Sets timestamp of locked blackboard data
+   *
+   * \param timestamp Value to set timestamp to
+   */
+  void SetTimestamp(const rrlib::time::tTimestamp& timestamp)
+  {
+    CheckLock();
+    locked_buffer.SetTimestamp(timestamp);
   }
 
   /*!

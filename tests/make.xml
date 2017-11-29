@@ -13,5 +13,11 @@
       blackboard_test.cpp
     </sources>
   </program>
+  
+  <program name="stress" autorun="false">
+    <sources>
+      blackboard_stress_test.cpp
+    </sources>
+  </program>
 
 </targets>

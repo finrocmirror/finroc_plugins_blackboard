@@ -92,6 +92,17 @@ public:
   typedef typename tServer::tBuffer tBuffer;
   typedef typename tServer::tReadPort tReadPort;
 
+  struct tBlackboardBufferModeParameter
+  {
+    tBlackboardBufferModeParameter(tBlackboardBufferMode buffer_mode) : buffer_mode(buffer_mode) {}
+
+    // Constructor for legacy compatibility
+    tBlackboardBufferModeParameter(bool multi_buffered) : buffer_mode(multi_buffered ? tBlackboardBufferMode::MULTI_BUFFERED : tBlackboardBufferMode::MULTI_BUFFERED_ON_PARALLEL_ACCESS) {}
+
+    tBlackboardBufferMode buffer_mode;
+  };
+
+
   /*!
    * Empty constructor for blackboards that are not initialized in
    * class initializer list (but later)
@@ -107,7 +118,7 @@ public:
    *
    * \param name Name of blackboard
    * \param parent Component that contains blackboard
-   * \param multi_buffered Create multi-buffered blackboard?
+   * \param buffer_mode Buffer mode - whether to use multiple buffers to avoid blocking (at the cost of copying content)
    * \param elements Initial number of elements
    * \param create_client Create Blackboard client? (to access blackboard using this object's GetClient())
    * \param create_read_port_in If not nullptr, creates data port for reading blackboard in specified component interface (possibly relevant for data dependencies -> scheduling order)
@@ -115,16 +126,18 @@ public:
    * \param create_read_port_in_client Create a read port in the client? This is only relevant when 'create_client' is true and a read port is created. Use 'true', if you wish 'read locks' to occur via the data port. (This parameter exists for minor performance tweaking.)
    */
   template <typename TParent>
-  tBlackboard(const std::string& name, TParent* parent, bool multi_buffered = false, int elements = 0, bool create_client = true,
+  tBlackboard(const std::string& name, TParent* parent, const tBlackboardBufferModeParameter& buffer_mode = tBlackboardBufferMode::MULTI_BUFFERED_ON_PARALLEL_ACCESS, int elements = 0, bool create_client = true,
               tInterface* create_read_port_in = UseDefaultComponentInterface(), const std::string& read_port_name = "", bool create_read_port_in_client = true) :
     wrapped_server(nullptr),
     wrapped_client(),
     read_port()
   {
+    create_read_port_in = buffer_mode.buffer_mode == tBlackboardBufferMode::SINGLE_BUFFERED ? nullptr : create_read_port_in;
+
     // Create blackboard server
     tInterface& blackboards_parent = GetBlackboardsParent(*parent);
     create_read_port_in = create_read_port_in == UseDefaultComponentInterface() ? GetDefaultReadPortInterface(parent, nullptr) : create_read_port_in;
-    wrapped_server = new internal::tBlackboardServer<T>(name, blackboards_parent, multi_buffered, elements, parent->GetServices(), create_read_port_in, read_port_name);
+    wrapped_server = new internal::tBlackboardServer<T>(name, blackboards_parent, buffer_mode.buffer_mode, elements, parent->GetServices(), create_read_port_in, read_port_name);
     write_port = wrapped_server->GetWritePort();
     if (create_read_port_in && create_read_port_in_client)
     {
@@ -186,6 +199,14 @@ public:
     std::swap(wrapped_client, o.wrapped_client);
     std::swap(read_port, o.read_port);
     return *this;
+  }
+
+  /*!
+   * \return Blackboard's current buffer mode
+   */
+  tBlackboardBufferMode GetBufferMode() const
+  {
+    return wrapped_server ? wrapped_server->GetBufferMode() : tBlackboardBufferMode::NONE;
   }
 
   /*!

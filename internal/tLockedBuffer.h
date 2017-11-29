@@ -154,11 +154,30 @@ public:
   }
 
   /*!
+   * \return Timestamp of locked blackboard data
+   */
+  rrlib::time::tTimestamp GetTimestamp()
+  {
+    return data.buffer ? data.buffer.GetTimestamp() : data.const_buffer.GetTimestamp();
+  }
+
+  /*!
    * \param buffer_source Buffer source - set if only const-buffer was provided on write lock
    */
   void SetBufferSource(data_ports::tOutputPort<T> buffer_source)
   {
     this->buffer_source = buffer_source;
+  }
+
+  /*!
+   * Sets timestamp of locked blackboard data
+   *
+   * \param timestamp Value to set timestamp to
+   */
+  void SetTimestamp(const rrlib::time::tTimestamp& timestamp)
+  {
+    this->Get();
+    data.buffer.SetTimestamp(timestamp);
   }
 
 //----------------------------------------------------------------------
