@@ -188,8 +188,7 @@ public:
   void SetTimestamp(const rrlib::time::tTimestamp& timestamp)
   {
     CheckLock();
-    locked_buffer.Get();
-    locked_buffer.data.SetTimestamp(timestamp);
+    locked_buffer.SetTimestamp(timestamp);
   }
 
   /*!
